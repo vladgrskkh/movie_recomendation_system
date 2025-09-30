@@ -6,9 +6,10 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func routes() http.Handler {
+func (app *application) routes() http.Handler {
 	r := chi.NewRouter()
 
-	r.Get("/", simpleHandler)
+	r.Get("/", app.simpleHandler)
+	r.Get("/v1/healthcheck", app.healthCheckHandler)
 	return r
 }

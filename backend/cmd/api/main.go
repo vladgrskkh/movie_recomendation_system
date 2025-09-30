@@ -1,16 +1,43 @@
 package main
 
 import (
-	"fmt"
+	"flag"
+	"log"
 )
 
-func main() {
-	fmt.Println("Starting server on :8080...")
-	if err := server(); err != nil {
-		fmt.Println("Server error:", err)
-	}
+const version = "1.0.0"
+
+type application struct {
+	config config
+	logger *log.Logger
+	// db     *sql.DB
+	// mailer *mailer.Mailer
 }
 
+type config struct {
+	port int
+	env  string
+}
+
+func main() {
+	var cfg config
+
+	flag.IntVar(&cfg.port, "port", 8080, "API server port")
+	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
+	flag.Parse()
+
+	logger := log.New(log.Writer(), "", log.Ldate|log.Ltime)
+
+	app := &application{
+		config: cfg,
+		logger: logger,
+	}
+
+	logger.Printf("Starting server on port %d in %s mode", cfg.port, cfg.env)
+	if err := app.server(); err != nil {
+		logger.Fatal(err)
+	}
+}
 
 // TO DO: add some handlers for different routes
 // TO DO: think about the endpoints we need for the movie recommendation system
