@@ -11,5 +11,10 @@ func (app *application) routes() http.Handler {
 
 	r.Get("/", app.simpleHandler)
 	r.Get("/v1/healthcheck", app.healthCheckHandler)
+	r.Get("/v1/data", app.getDataHandler)
+	r.Post("/v1/data", app.postDataHandler)
+
+	// Placholder: need to implement id handling of data
+	r.Delete("/v1/data/id", app.deleteDataHandler)
 	return r
 }
