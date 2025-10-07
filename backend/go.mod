@@ -1,4 +1,4 @@
-module github.com/vladgrskkh
+module github.com/vladgrskkh/movie_recomendation_system
 
 go 1.25.1
 
