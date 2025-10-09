@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	_ "github.com/lib/pq"
+
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 )
 
@@ -35,7 +37,7 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 8080, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://movie_user:password@localhost/movies?sslmode=disable", "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", "", "PostgreSQL DSN")
 
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
@@ -89,9 +91,6 @@ func openDB(cfg config) (*sql.DB, error) {
 	return db, nil
 }
 
-// TO DO: add some handlers for different routes
-// TO DO: think about the endpoints we need for the movie recommendation system
-// TO DO: connect to the database
 // TO DO: implement authentication and authorization
 // TO DO: add logging and error handling
 // TO DO: write tests for the handlers and other components
@@ -99,9 +98,3 @@ func openDB(cfg config) (*sql.DB, error) {
 // TO DO: graceful shutdown and cleanup
 // TO DO: rate limiter
 // TO DO: CORS handling
-
-// Tasks for today
-// client -> reverse proxy (caddy) -> server -> postgres
-// TO DO: health check endpoint
-// JSON responses
-// TO DO: environment variables for configuration
