@@ -1,7 +1,9 @@
 package data
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/lib/pq"
@@ -22,6 +24,10 @@ type MovieModel struct {
 }
 
 func (m MovieModel) Get(id int64) (*Movie, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+
 	query := `
 		SELECT id, created_at, title, year, runtime, genres, version
 		FROM movies
@@ -30,7 +36,10 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 
 	var movie Movie
 
-	err := m.DB.QueryRow(query, id).Scan(
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(
 		&movie.ID,
 		&movie.CreatedAt,
 		&movie.Title,
@@ -40,7 +49,12 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 		&movie.Version,
 	)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
 	}
 
 	return &movie, nil
@@ -52,8 +66,10 @@ func (m MovieModel) Insert(movie *Movie) error {
 		VALUES ($1, $2, $3, $4)
 		RETURNING id, created_at, version
 	`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-	err := m.DB.QueryRow(query,
+	err := m.DB.QueryRowContext(ctx, query,
 		movie.Title,
 		movie.Year,
 		movie.Runtime,
@@ -61,6 +77,35 @@ func (m MovieModel) Insert(movie *Movie) error {
 	).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m MovieModel) Delete(id int64) error {
+	if id < 1 {
+		return ErrRecordNotFound
+	}
+
+	query := `
+	DELETE FROM movies
+	WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := m.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
 	}
 
 	return nil
