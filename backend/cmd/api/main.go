@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"flag"
-	"log"
+	"log/slog"
+	"os"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -13,9 +15,19 @@ import (
 
 const version = "1.0.0"
 
+const (
+	LevelTrace = slog.Level(-8)
+	LevelFatal = slog.Level(12)
+)
+
+var LevelNames = map[slog.Leveler]string{
+	LevelTrace: "TRACE",
+	LevelFatal: "FATAL",
+}
+
 type application struct {
 	config config
-	logger *log.Logger
+	logger *slog.Logger
 	db     data.MovieModel
 	// mailer *mailer.Mailer
 }
@@ -45,14 +57,36 @@ func main() {
 
 	flag.Parse()
 
-	logger := log.New(log.Writer(), "", log.Ldate|log.Ltime)
+	loggerOpts := &slog.HandlerOptions{
+		Level: LevelTrace,
+
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == slog.LevelKey {
+				level := a.Value.Any().(slog.Level)
+				levelLabel, exists := LevelNames[level]
+				if !exists {
+					levelLabel = level.String()
+				}
+
+				a.Value = slog.StringValue(levelLabel)
+			}
+			return a
+		},
+	}
+
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, loggerOpts))
+
+	ctx := context.Background()
 
 	db, err := openDB(cfg)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Log(ctx, LevelFatal, err.Error())
+		os.Exit(1)
 	}
 
 	defer db.Close()
+
+	logger.Info("database connection pool established")
 
 	app := &application{
 		config: cfg,
@@ -60,9 +94,10 @@ func main() {
 		db:     data.MovieModel{DB: db},
 	}
 
-	logger.Printf("Starting server on port %d in %s mode", cfg.port, cfg.env)
+	logger.Info("Starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {
-		logger.Fatal(err)
+		logger.Log(ctx, LevelFatal, err.Error())
+		os.Exit(1)
 	}
 }
 
@@ -90,6 +125,14 @@ func openDB(cfg config) (*sql.DB, error) {
 
 	return db, nil
 }
+
+// Task for today::::::::::::::::::
+// ::::::::::::::::::::::::::::::::
+// TO DO: logger and error handling
+// TO DO: context
+// TO DO: some middleware
+// TO DO: user auth? (mailer?)
+// ::::::::::::::::::::::::::::::::
 
 // TO DO: implement authentication and authorization
 // TO DO: add logging and error handling

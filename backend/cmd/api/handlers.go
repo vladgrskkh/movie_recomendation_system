@@ -10,8 +10,6 @@ import (
 	"github.com/vladgrskkh/movie_recomendation_system/internal/validate"
 )
 
-// TO DO: JSON responses, data base connection
-
 func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
 		"status":  "avaliable",
@@ -21,31 +19,25 @@ func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Reques
 
 	err := app.writeJSON(w, http.StatusOK, data, nil)
 	if err != nil {
-		app.logger.Println(err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		app.serverErrorResponse(w, r, err)
 	}
 }
 
 func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
-		app.logger.Println(err)
-		return
+		app.notFoundResponse(w, r)
 	}
 
 	movie, err := app.db.Get(id)
 	if err != nil {
-		app.logger.Println(err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	err = app.writeJSON(w, http.StatusOK, map[string]interface{}{"movie": movie}, nil)
-
 	if err != nil {
-		app.logger.Println(err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+		app.serverErrorResponse(w, r, err)
 	}
 
 }
@@ -61,7 +53,7 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 
 	err := app.readJSON(w, r, &input)
 	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -80,15 +72,14 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 		validation.Field(&movie.Genres, validation.Required, validation.Length(1, 5), validation.By(validate.Unique(movie.Genres))),
 	)
 	if err != nil {
-		// TODO: improve error handling
-		app.logger.Println(err)
-		http.Error(w, "Wrong json input", http.StatusBadRequest)
+		app.failedValidationResponse(w, r, err)
+		return
 	}
 
 	err = app.db.Insert(movie)
 	if err != nil {
-		app.logger.Println(err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		app.serverErrorResponse(w, r, err)
+		return
 	}
 
 	headers := make(http.Header)
@@ -96,9 +87,7 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 
 	err = app.writeJSON(w, http.StatusCreated, map[string]interface{}{"input": input}, headers)
 	if err != nil {
-		app.logger.Println(err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+		app.serverErrorResponse(w, r, err)
 	}
 
 }
