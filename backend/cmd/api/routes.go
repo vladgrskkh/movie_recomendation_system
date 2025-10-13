@@ -15,6 +15,6 @@ func (app *application) routes() http.Handler {
 	r.Post("/v1/movie", app.postMovieHandler)
 
 	// Placholder: need to implement id handling of data
-	r.Delete("/v1/movie/id", app.deleteMovieHandler)
+	r.Delete("/v1/movie/{movieID}", app.deleteMovieHandler)
 	return r
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -85,7 +86,7 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 	headers := make(http.Header)
 	headers.Set("Location", fmt.Sprintf("/v1/movie/%d", movie.ID))
 
-	err = app.writeJSON(w, http.StatusCreated, map[string]interface{}{"input": input}, headers)
+	err = app.writeJSON(w, http.StatusCreated, map[string]interface{}{"movie": movie}, headers)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -94,6 +95,26 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 
 // admin only
 func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Work in progress..."))
-	w.WriteHeader(http.StatusNotImplemented)
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = app.db.Delete(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.badRequestResponse(w, r, err)
+			return
+		default:
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+	}
+
+	err = app.writeJSON(w, http.StatusOK, map[string]interface{}{"message": "movie successfully deleted"}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
