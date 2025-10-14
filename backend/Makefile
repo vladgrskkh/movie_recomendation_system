@@ -21,4 +21,4 @@ confirm:
 ## run/api: run the API application
 .PHONY: run/api
 run/api:
-	go run ./cmd/api -db-dsn=${MRS_DB_DSN}
+	go run ./cmd/api -db-dsn=${MRS_DB_DSN} -smtp-username=${SMTP_USERNAME} -smtp-password=${SMTP_PASSWORD}

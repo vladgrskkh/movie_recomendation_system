@@ -9,6 +9,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/vladgrskkh/movie_recomendation_system/internal/mailer"
 )
 
 const version = "1.0.0"
@@ -51,6 +52,13 @@ type config struct {
 		maxIdleConns int
 		maxIdleTime  string
 	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 }
 
 func main() {
@@ -65,7 +73,15 @@ func main() {
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "5m", "PostgreSQL max idle time")
 
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "smtp.mailersend.net", "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 587, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "", "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "", "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "MSR <no-reply@msr.vladgrskkh.net>", "SMTP sender")
+
 	flag.Parse()
+
+	mailer := mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender)
 
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, loggerOpts))
 
@@ -81,7 +97,7 @@ func main() {
 
 	logger.Info("database connection pool established")
 
-	app := newApplication(cfg, logger, db)
+	app := newApplication(cfg, logger, db, mailer)
 
 	logger.Info("Starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {

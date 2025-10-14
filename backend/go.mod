@@ -9,4 +9,8 @@ require (
 	golang.org/x/crypto v0.43.0
 )
 
-require github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
+require (
+	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
+)
