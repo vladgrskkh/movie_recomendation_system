@@ -15,6 +15,7 @@ func (app *application) routes() http.Handler {
 	r.Get("/v1/movie", app.getAllMoviesHandler)
 
 	r.Post("/v1/movie", app.postMovieHandler)
+	r.Post("/v1/users", app.registerUserHandler)
 
 	r.Patch("/v1/movie/{movieID}", app.updateMovieHandler)
 

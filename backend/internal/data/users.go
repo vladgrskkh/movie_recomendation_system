@@ -14,13 +14,13 @@ var (
 )
 
 type User struct {
-	ID        int64
-	CreatedAt time.Time
-	Name      string
-	Email     string
-	Password  password
-	Activated bool
-	Version   int
+	ID        int64     `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Password  password  `json:"-"`
+	Activated bool      `json:"activated"`
+	Version   int       `json:"-"`
 }
 
 type password struct {

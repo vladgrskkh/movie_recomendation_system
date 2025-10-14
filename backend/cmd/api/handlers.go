@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/invopop/validation"
+	"github.com/invopop/validation/is"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/validate"
 )
@@ -198,4 +199,57 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 
 func (app *application) getAllMoviesHandler(w http.ResponseWriter, r *http.Request) {
 
+}
+
+func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	user := &data.User{
+		Name:      input.Name,
+		Email:     input.Email,
+		Activated: false,
+	}
+
+	err = user.Password.Set(input.Password)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = validation.ValidateStruct(user,
+		validation.Field(&user.Name, validation.Required, validation.Length(1, 500)),
+		validation.Field(&user.Email, validation.Required, is.Email),
+		validation.Field(&input.Password, validation.Required, validation.Length(8, 72)))
+
+	if err != nil {
+		app.failedValidationResponse(w, r, err)
+		return
+	}
+
+	err = app.models.Users.Insert(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrDuplicateEmail):
+			app.badRequestResponse(w, r, err)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusAccepted, map[string]interface{}{"user": user}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
