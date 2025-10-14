@@ -28,7 +28,6 @@ func TestUnique(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := validation.Validate(&tt.value, validation.By(Unique(tt.value)))
-
 			if !errors.Is(err, tt.want) {
 				t.Errorf("got %v; want %v", err, tt.want)
 			}

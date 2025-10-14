@@ -9,8 +9,6 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
-
-	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 )
 
 const version = "1.0.0"
@@ -25,12 +23,24 @@ var LevelNames = map[slog.Leveler]string{
 	LevelFatal: "FATAL",
 }
 
-type application struct {
-	config config
-	logger *slog.Logger
-	db     data.MovieModel
-	// mailer *mailer.Mailer
-}
+var (
+	loggerOpts = &slog.HandlerOptions{
+		Level: LevelTrace,
+
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == slog.LevelKey {
+				level := a.Value.Any().(slog.Level)
+				levelLabel, exists := LevelNames[level]
+				if !exists {
+					levelLabel = level.String()
+				}
+
+				a.Value = slog.StringValue(levelLabel)
+			}
+			return a
+		},
+	}
+)
 
 type config struct {
 	port int
@@ -57,23 +67,6 @@ func main() {
 
 	flag.Parse()
 
-	loggerOpts := &slog.HandlerOptions{
-		Level: LevelTrace,
-
-		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			if a.Key == slog.LevelKey {
-				level := a.Value.Any().(slog.Level)
-				levelLabel, exists := LevelNames[level]
-				if !exists {
-					levelLabel = level.String()
-				}
-
-				a.Value = slog.StringValue(levelLabel)
-			}
-			return a
-		},
-	}
-
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, loggerOpts))
 
 	ctx := context.Background()
@@ -88,11 +81,7 @@ func main() {
 
 	logger.Info("database connection pool established")
 
-	app := &application{
-		config: cfg,
-		logger: logger,
-		db:     data.MovieModel{DB: db},
-	}
+	app := newApplication(cfg, logger, db)
 
 	logger.Info("Starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {

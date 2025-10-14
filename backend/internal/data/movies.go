@@ -19,11 +19,11 @@ type Movie struct {
 	Version   int32     `json:"version"`
 }
 
-type MovieModel struct {
+type movieModel struct {
 	DB *sql.DB
 }
 
-func (m MovieModel) Get(id int64) (*Movie, error) {
+func (m movieModel) Get(id int64) (*Movie, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
@@ -60,7 +60,7 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 	return &movie, nil
 }
 
-func (m MovieModel) Insert(movie *Movie) error {
+func (m movieModel) Insert(movie *Movie) error {
 	query := `
 		INSERT INTO movies (title, year, runtime, genres)
 		VALUES ($1, $2, $3, $4)
@@ -82,7 +82,7 @@ func (m MovieModel) Insert(movie *Movie) error {
 	return nil
 }
 
-func (m MovieModel) Delete(id int64) error {
+func (m movieModel) Delete(id int64) error {
 	if id < 1 {
 		return ErrRecordNotFound
 	}
@@ -112,7 +112,7 @@ func (m MovieModel) Delete(id int64) error {
 	return nil
 }
 
-func (m MovieModel) Update(movie *Movie) error {
+func (m movieModel) Update(movie *Movie) error {
 	query := `
 	UPDATE movies
 	SET title = $1, year = $2, runtime = $3, genres = $4, version = version + 1
