@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/invopop/validation"
 	"github.com/invopop/validation/is"
+
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/validate"
 )
@@ -226,9 +228,9 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = validation.ValidateStruct(user,
-		validation.Field(&user.Name, validation.Required, validation.Length(1, 500)),
-		validation.Field(&user.Email, validation.Required, is.Email),
+	err = validation.ValidateStruct(&input,
+		validation.Field(&input.Name, validation.Required, validation.Length(1, 500)),
+		validation.Field(&input.Email, validation.Required, is.Email),
 		validation.Field(&input.Password, validation.Required, validation.Length(8, 72)))
 
 	if err != nil {
@@ -248,7 +250,90 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	token, err := createTokenActivation(user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// SMTP
+
+	go func() {
+		data := map[string]interface{}{
+			"activationToken": token,
+			"userID":          user.ID,
+		}
+
+		err = app.mailer.Send(user.Email, "user_welcome.html", data)
+		if err != nil {
+			app.logger.Error(err.Error())
+		}
+	}()
+
 	err = app.writeJSON(w, http.StatusAccepted, map[string]interface{}{"user": user}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Token string `json:"token"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	claims, err := validateToken(input.Token)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrInvalidToken):
+			app.failedValidationResponse(w, r, err)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	app.logger.Info(strconv.Itoa(int(claims.UserID)))
+
+	user, err := app.models.Users.GetByID(claims.UserID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	if claims.Scope != "activation" {
+		app.invalidScopeResponse(w, r)
+	}
+
+	user.Activated = true
+
+	err = app.models.Users.Update(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	// TODO: revoke activation token or think of a better way to gen token
+
+	err = app.writeJSON(w, http.StatusOK, map[string]interface{}{"user": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

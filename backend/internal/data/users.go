@@ -64,7 +64,7 @@ func (m userModel) Insert(user *User) error {
 	query := `
 	INSERT INTO users (name, email, password_hash, activated)
 	VALUES ($1, $2, $3, $4)
-	RETURNIN id, created_at, version`
+	RETURNING id, created_at, version`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -86,7 +86,7 @@ func (m userModel) Insert(user *User) error {
 func (m userModel) GetByEmail(email string) (*User, error) {
 	query := `
 	SELECT id, created_at, name, email, password_hash, activated, version
-	FROM user
+	FROM users
 	WHERE email = $1`
 
 	var user User
@@ -114,4 +114,63 @@ func (m userModel) GetByEmail(email string) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+func (m userModel) GetByID(id int64) (*User, error) {
+	query := `
+	SELECT id, created_at, name, email, password_hash, activated, version
+	FROM users
+	WHERE id = $1`
+
+	var user User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(
+		&user.ID,
+		&user.CreatedAt,
+		&user.Name,
+		&user.Email,
+		&user.Password.hash,
+		&user.Activated,
+		&user.Version,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &user, nil
+}
+
+func (m userModel) Update(user *User) error {
+	query := `
+	UPDATE users
+	SET name = $1, email = $2, password_hash = $3, activated = $4, version = version + 1
+	WHERE id = $5 AND version = $6
+	RETURNING version`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, user.Name, user.Email, user.Password.hash, user.Activated, user.ID, user.Version).Scan(
+		&user.Version,
+	)
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+			return ErrDuplicateEmail
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
 }

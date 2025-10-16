@@ -20,7 +20,8 @@ type movieInterface interface {
 type userInterface interface {
 	Insert(*User) error
 	GetByEmail(string) (*User, error)
-	// Update()
+	GetByID(int64) (*User, error)
+	Update(*User) error
 }
 
 type Models struct {
@@ -34,3 +35,5 @@ func NewModels(db *sql.DB) Models {
 		Users:  userModel{DB: db},
 	}
 }
+
+// TODO: read about interface and how it should be for mocking dependency

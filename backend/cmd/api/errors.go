@@ -46,3 +46,8 @@ func (app *application) editConflictResponse(w http.ResponseWriter, r *http.Requ
 	message := "unable to update the record due to and edit conflict, please try again"
 	app.errorResponse(w, r, http.StatusConflict, message)
 }
+
+func (app *application) invalidScopeResponse(w http.ResponseWriter, r *http.Request) {
+	message := "provided token didn't match the scope (auth/activate)"
+	app.errorResponse(w, r, http.StatusBadRequest, message)
+}

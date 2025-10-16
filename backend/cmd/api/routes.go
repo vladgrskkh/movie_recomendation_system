@@ -16,9 +16,11 @@ func (app *application) routes() http.Handler {
 
 	r.Post("/v1/movie", app.postMovieHandler)
 	r.Post("/v1/users", app.registerUserHandler)
+	r.Post("/v1/users/activate", app.activateUserHandler)
 
 	r.Patch("/v1/movie/{movieID}", app.updateMovieHandler)
 
 	r.Delete("/v1/movie/{movieID}", app.deleteMovieHandler)
+
 	return r
 }
