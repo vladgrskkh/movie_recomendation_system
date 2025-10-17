@@ -22,3 +22,8 @@ confirm:
 .PHONY: run/api
 run/api:
 	go run ./cmd/api -db-dsn=${MRS_DB_DSN} -smtp-username=${SMTP_USERNAME} -smtp-password=${SMTP_PASSWORD}
+
+## run/docker: run the docker container
+.PHONY: run/docker
+run/docker:
+	docker run -p 8080:8080 docker-mrs_test -db-dsn=${MRS_DB_DSN} -smtp-username=${SMTP_USERNAME} -smtp-password=${SMTP_PASSWORD}

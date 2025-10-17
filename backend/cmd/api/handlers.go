@@ -332,6 +332,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// TODO: revoke activation token or think of a better way to gen token
+	// TODO: refresh token
 
 	err = app.writeJSON(w, http.StatusOK, map[string]interface{}{"user": user}, nil)
 	if err != nil {
