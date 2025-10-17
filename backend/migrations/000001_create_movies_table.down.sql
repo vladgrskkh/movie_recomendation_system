@@ -1,1 +1,4 @@
+DROP EXTENSION IF EXISTS citext;
+
 DROP TABLE IF EXISTS movies;
+

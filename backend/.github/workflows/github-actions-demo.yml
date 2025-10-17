@@ -1,18 +1,139 @@
-name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push]
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - dev/backend
+      - development
+      - main
+  pull_request:
+    branches:
+      - dev/backend
+      - development
+      - main
+
 jobs:
-  Explore-GitHub-Actions:
+  build-test:
+    name: 🧪 Build, Migrate, and Test
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mrs
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mrs"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      MRS_DB_DSN: postgres://postgres:postgres@localhost:5432/mrs?sslmode=disable
+
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v5
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-      - name: List files in the repository
-        run: |
-          ls ${{ github.workspace }}
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+      - name: 🛎 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🧰 Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: 📦 Install dependencies
+        run: go mod download
+
+      - name: 🗄️ Run database migrations
+        uses: docker://migrate/migrate
+        with:
+          args: >
+            -path=/github/workspace/migrations
+            -database=${{ env.MRS_DB_DSN }}
+            up
+
+      - name: ✅ Run linters
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+      - name: 🧪 Run tests
+        run: go test ./... -v
+
+  docker-publish:
+    name: 🐳 Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: 🛎 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🧰 Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔐 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🐳 Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            vladgrskkh/mrs-api:latest
+            vladgrskkh/mrs-api:${{ github.sha }}
+
+  deploy:
+    name: 🚀 Deploy to VPS
+    needs: docker-publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🛎 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Create .env on VPS
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            mkdir -p ~/mrs
+            echo "MRS_DB_DSND=${{ secrets.MRS_DB_DSN }}" > ~/mrs/.env
+            echo "SMTP_USERNAMED=${{ secrets.SMTP_USERNAME }}" >> ~/mrs/.env
+            echo "SMTP_PASSWORDD=${{ secrets.SMTP_PASSWORD }}" >> ~/mrs/.env
+            echo "MRS_DB_DSN=${{ secrets.POSTGRES_USER }}" > ~/mrs/.env_db
+            echo "MRS_DB_DSN=${{ secrets.POSTGRES_PASSWORD }}" >> ~/mrs/.env_db
+            echo "MRS_DB_DSN=${{ secrets.POSTGRES_DB }}" >> ~/mrs/.env_db
+
+
+      - name: 🔐 Copy files to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "~/mrs/"
+
+      - name: 🚀 Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ~/mrs
+            docker compose pull
+            docker compose down
+            docker compose up -d --build
+            docker system prune -f

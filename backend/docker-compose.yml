@@ -7,8 +7,8 @@ services:
       - .env
     restart: always
     ports: 
-      - "80:8080"
-    command: ["-db-dsn=${MRS_DB_DSN}", "-smtp-username=${SMTP_USERNAME}", "-smtp-password=${SMTP_PASSWORD}"]
+      - "8080:8080"
+    command: ["-db-dsn=${MRS_DB_DSND}", "-smtp-username=${SMTP_USERNAMED}", "-smtp-password=${SMTP_PASSWORDD}"]
     depends_on:
       - db
       - migrate
@@ -17,6 +17,11 @@ services:
     image: postgres:18
     env_file:
       - .env_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mrs_user -d mrs"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -24,15 +29,16 @@ services:
     image: migrate/migrate
     env_file:
       - .env
+    depends_on:
+        db:
+          condition: service_healthy
     command: [
       "-path", "/migrations",
-      "-database", "${MRS_DB_DSN}",
+      "-database", "${MRS_DB_DSND}",
       "up"
     ]
     volumes:
       - ./migrations:/migrations
-    depends_on:
-      - db
 
 volumes:
   pgdata:
