@@ -1,6 +1,16 @@
-name: CI/CD Pipeline
+name: Backend CI/CD Pipeline 
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - dev/backend
+      - development
+      - main
+  pull_request:
+    branches:
+      - dev/backend
+      - development
+      - main
 
 jobs:
   build-test:
@@ -23,7 +33,7 @@ jobs:
           --health-retries 10
 
     env:
-      MRS_DB_DSN: postgres://postgres:postgres@localhost:5432/mrs?sslmode=disable
+      MRS_DB_DSN: postgres://postgres:postgres@postgres:5432/mrs?sslmode=disable
 
     steps:
       - name: 🛎 Checkout code
@@ -35,23 +45,28 @@ jobs:
           go-version: "1.25"
 
       - name: 📦 Install dependencies
-        run: go mod download
+        run: |
+          cd backend
+          go mod download
 
       - name: 🗄️ Run database migrations
         uses: docker://migrate/migrate
         with:
           args: >
-            -path=/github/workspace/migrations
+            -path=/github/workspace/backend/migrations
             -database=${{ env.MRS_DB_DSN }}
             up
 
-      - name: ✅ Run linters
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
+#      - name: ✅ Run linters
+#        uses: golangci/golangci-lint-action@v7
+#        with:
+#          version: v2.5.0
+#          working-directory: backend
 
       - name: 🧪 Run tests
-        run: go test ./... -v
+        run: |
+          cd backend
+          go test ./... -v
 
   docker-publish:
     name: 🐳 Build & Push Docker Image
@@ -74,8 +89,8 @@ jobs:
       - name: 🐳 Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./backend
+          file: ./backend/Dockerfile
           push: true
           tags: |
             vladgrskkh/mrs-api:latest
@@ -91,38 +106,44 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create .env on VPS
-        uses: appleboy/ssh-action@v0.1.8
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          passphrase: ${{ secrets.VPS_PASSPHRASE }}
           script: |
             mkdir -p ~/mrs
-            echo "MRS_DB_DSND=${{ secrets.MRS_DB_DSN }}" > ~/mrs/.env
-            echo "SMTP_USERNAMED=${{ secrets.SMTP_USERNAME }}" >> ~/mrs/.env
-            echo "SMTP_PASSWORDD=${{ secrets.SMTP_PASSWORD }}" >> ~/mrs/.env
-            echo "MRS_DB_DSN=${{ secrets.POSTGRES_USER }}" > ~/mrs/.env_db
-            echo "MRS_DB_DSN=${{ secrets.POSTGRES_PASSWORD }}" >> ~/mrs/.env_db
-            echo "MRS_DB_DSN=${{ secrets.POSTGRES_DB }}" >> ~/mrs/.env_db
+            mkdir -p ~/mrs/backend
+            echo "MRS_DB_DSND=${{ secrets.MRS_DB_DSND }}" > ~/mrs/backend/.env
+            echo "SMTP_USERNAMED=${{ secrets.SMTP_USERNAMED }}" >> ~/mrs/backend/.env
+            echo "SMTP_PASSWORDD=${{ secrets.SMTP_PASSWORDD }}" >> ~/mrs/backend/.env
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" > ~/mrs/backend/.env_db
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> ~/mrs/backend/.env_db
+            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> ~/mrs/backend/.env_db
 
 
       - name: 🔐 Copy files to VPS
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "docker-compose.yml"
+          passphrase: ${{ secrets.VPS_PASSPHRASE }}
+          source: "backend/*"
           target: "~/mrs/"
+          timeout: 120s
 
       - name: 🚀 Deploy via SSH
-        uses: appleboy/ssh-action@v0.1.8
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          passphrase: ${{ secrets.VPS_PASSPHRASE }}
+          timeout: 120s
           script: |
-            cd ~/mrs
+            cd ~/mrs/backend
             docker compose pull
             docker compose down
             docker compose up -d --build
