@@ -43,11 +43,43 @@ func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.
 }
 
 func (app *application) editConflictResponse(w http.ResponseWriter, r *http.Request) {
-	message := "unable to update the record due to and edit conflict, please try again"
+	message := "unable to update the record due to an edit conflict, please try again"
 	app.errorResponse(w, r, http.StatusConflict, message)
 }
 
-func (app *application) invalidScopeResponse(w http.ResponseWriter, r *http.Request) {
-	message := "provided token didn't match the scope (auth/activate)"
-	app.errorResponse(w, r, http.StatusBadRequest, message)
+// func (app *application) invalidScopeResponse(w http.ResponseWriter, r *http.Request) {
+// 	message := "provided token didn't match the scope (auth/activate)"
+// 	app.errorResponse(w, r, http.StatusUnprocessableEntity, message)
+// }
+
+func (app *application) invalidCredentialResponse(w http.ResponseWriter, r *http.Request) {
+	message := "invalid authentication credentials"
+	app.errorResponse(w, r, http.StatusUnauthorized, message)
+}
+
+func (app *application) invalidAuthenticationResponse(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("WWW-Authenticate", "Bearer")
+
+	message := "invalid or missing authentication token"
+	app.errorResponse(w, r, http.StatusUnauthorized, message)
+}
+
+func (app *application) authenticationRequiredResponse(w http.ResponseWriter, r *http.Request) {
+	message := "this resourse avaliable only for authenticated users"
+	app.errorResponse(w, r, http.StatusUnauthorized, message)
+}
+
+func (app *application) inactiveAccountResponse(w http.ResponseWriter, r *http.Request) {
+	message := "your account must be activated to access this resourse"
+	app.errorResponse(w, r, http.StatusForbidden, message)
+}
+
+func (app *application) invalidActicationTokenResponse(w http.ResponseWriter, r *http.Request) {
+	message := "invalid or expired activation token"
+	app.errorResponse(w, r, http.StatusUnprocessableEntity, message)
+}
+
+func (app *application) invalidRefreshTokenResponse(w http.ResponseWriter, r *http.Request) {
+	message := "invalid or expired refresh token"
+	app.errorResponse(w, r, http.StatusUnprocessableEntity, message)
 }

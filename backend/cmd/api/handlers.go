@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/invopop/validation"
@@ -250,7 +249,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	token, err := createTokenActivation(user.ID)
+	token, err := app.models.Tokens.New(user.ID, 72*time.Hour, data.ScopeActivation)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -260,7 +259,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	go func() {
 		data := map[string]interface{}{
-			"activationToken": token,
+			"activationToken": token.Plaintext,
 			"userID":          user.ID,
 		}
 
@@ -287,34 +286,22 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	claims, err := validateToken(input.Token)
+	err = validation.Validate(input.Token, validation.Required, validation.Length(26, 26))
 	if err != nil {
-		switch {
-		case errors.Is(err, ErrInvalidToken):
-			app.failedValidationResponse(w, r, err)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
-
+		app.failedValidationResponse(w, r, err)
 		return
 	}
 
-	app.logger.Info(strconv.Itoa(int(claims.UserID)))
-
-	user, err := app.models.Users.GetByID(claims.UserID)
+	user, err := app.models.Users.GetForToken(data.ScopeActivation, input.Token)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w, r)
+			app.invalidActicationTokenResponse(w, r)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
 
 		return
-	}
-
-	if claims.Scope != "activation" {
-		app.invalidScopeResponse(w, r)
 	}
 
 	user.Activated = true
@@ -331,10 +318,145 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	err = app.models.Tokens.DeleteAllForUser(data.ScopeActivation, user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
 	// TODO: revoke activation token or think of a better way to gen token
 	// TODO: refresh token
 
 	err = app.writeJSON(w, http.StatusOK, map[string]interface{}{"user": user}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+// refreshTokenHandler wants refresh token to create auth token and new refresh token
+// auth token is jwt and refresh token is high entropy string
+func (app *application) refreshTokenHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	user, err := app.models.Users.GetForToken(data.ScopeRefresh, input.RefreshToken)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.invalidRefreshTokenResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	// maybe create helper function for all the code down there
+	err = app.models.Tokens.DeleteAllForUser(data.ScopeRefresh, user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// refresh token
+	refreshToken, err := app.models.Tokens.New(user.ID, 30*24*time.Hour, data.ScopeRefresh)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// auth token
+	authToken, err := createToken(user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusCreated, map[string]interface{}{
+		"authentication_token": authToken,
+		"refresh_token":        refreshToken,
+	}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+// createAuthenticationTokenHandler is log in for app
+// every time user log in we will create new auth token and refresh token(deleting prev refresh token if exists)
+func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = validation.ValidateStruct(&input,
+		validation.Field(&input.Email, validation.Required, is.Email),
+		validation.Field(&input.Password, validation.Required, validation.Length(8, 72)))
+	if err != nil {
+		app.failedValidationResponse(w, r, err)
+		return
+	}
+
+	user, err := app.models.Users.GetByEmail(input.Email)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.invalidCredentialResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	match, err := user.Password.Matches(input.Password)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+
+	if !match {
+		app.invalidCredentialResponse(w, r)
+		return
+	}
+
+	// maybe create helper function for all the code down there
+	err = app.models.Tokens.DeleteAllForUser(data.ScopeRefresh, user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// refresh token
+	refreshToken, err := app.models.Tokens.New(user.ID, 30*24*time.Hour, data.ScopeRefresh)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// auth token
+	authToken, err := createToken(user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusCreated, map[string]interface{}{
+		"authentication_token": authToken,
+		"refresh_token":        refreshToken,
+	}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

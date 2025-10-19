@@ -133,16 +133,22 @@ func openDB(cfg config) (*sql.DB, error) {
 
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
-// TO DO: logger and error handling
-// TO DO: context
-// TO DO: some middleware
-// TO DO: user auth? (mailer?)
+// TO DO: run tests of auth and activation
+// TO DO: some middleware (gracefull shutdown, rate limiter)
+// TO DO: get all movies handler (paginating)
+// TO DO: read about indexes psql
+// TO DO: see how to set up caddy or nginx (cicd)
+// TO DO: makefile new rules
 // ::::::::::::::::::::::::::::::::
 
-// TO DO: implement authentication and authorization
-// TO DO: add logging and error handling
 // TO DO: write tests for the handlers and other components
-// TO DO: add mailer for user notifications and authentication/authorization
 // TO DO: graceful shutdown and cleanup
 // TO DO: rate limiter
-// TO DO: CORS handling
+// TO DO: think about how to serve images for movies
+// TO DO: metrics (prometheus, grafana, expvar etc)
+// TO DO: cicd (copy only docker-compose, check commit author)
+// TO DO: python ml microservice (grpc)
+// TO DO: swagger
+// TO DO: think about movie info structure
+// TO DO: routes groups
+// bug: mailer on vps dial i/o timeout
