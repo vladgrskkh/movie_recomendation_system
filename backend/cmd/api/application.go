@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log/slog"
+	"sync"
 
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/mailer"
@@ -13,6 +14,7 @@ type application struct {
 	logger *slog.Logger
 	models data.Models
 	mailer mailer.Mailer
+	wg     sync.WaitGroup
 }
 
 func newApplication(cfg config, logger *slog.Logger, db *sql.DB, mailer mailer.Mailer) application {

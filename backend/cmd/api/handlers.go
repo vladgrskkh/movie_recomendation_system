@@ -257,7 +257,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	// SMTP
 
-	go func() {
+	app.background(func() {
 		data := map[string]interface{}{
 			"activationToken": token.Plaintext,
 			"userID":          user.ID,
@@ -267,7 +267,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		if err != nil {
 			app.logger.Error(err.Error())
 		}
-	}()
+	})
 
 	err = app.writeJSON(w, http.StatusAccepted, map[string]interface{}{"user": user}, nil)
 	if err != nil {
