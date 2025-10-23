@@ -10,13 +10,13 @@ import (
 )
 
 type Movie struct {
-	ID        int64     `json:"id"`
+	ID        int64     `json:"id" example:"1"`
 	CreatedAt time.Time `json:"-"`
-	Title     string    `json:"title"`
-	Year      int32     `json:"year"`
-	Runtime   int32     `json:"runtime,omitempty"`
-	Genres    []string  `json:"genres"`
-	Version   int32     `json:"version"`
+	Title     string    `json:"title" example:"The Shawshank Redemption"`
+	Year      int32     `json:"year" example:"1994"`
+	Runtime   int32     `json:"runtime,omitempty" example:"142"`
+	Genres    []string  `json:"genres" example:"Drama,Crime"`
+	Version   int32     `json:"version" example:"1"`
 }
 
 type movieModel struct {

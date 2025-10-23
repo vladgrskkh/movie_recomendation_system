@@ -53,7 +53,7 @@ func (app *application) server() error {
 		return err
 	}
 
-	// check if something went wrong will shutting down
+	// check if something went wrong while shutting down
 	err = <-shutdownError
 	if err != nil {
 		return err
@@ -62,9 +62,4 @@ func (app *application) server() error {
 	app.logger.Info("server stopped", slog.String("addr", srv.Addr))
 
 	return nil
-}
-
-func (app *application) simpleHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("simple response"))
 }

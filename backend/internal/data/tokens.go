@@ -14,6 +14,9 @@ const (
 	ScopeRefresh    = "refresh"
 )
 
+// Token represents an application token used for account activation or refresh flows.
+// Plaintext is only available at creation time; Hash is stored in the database.
+// Scope differentiates token usage (e.g., activation, refresh).
 type Token struct {
 	Plaintext string
 	Hash      []byte
@@ -22,6 +25,8 @@ type Token struct {
 	Scope     string
 }
 
+// generateToken creates a new Token with a random plaintext value and SHA-256 hash.
+// The plaintext is Base32(no padding) encoded. The caller is responsible for persisting it.
 func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error) {
 	token := &Token{
 		UserID: userID,
@@ -48,6 +53,8 @@ type tokenModel struct {
 	DB *sql.DB
 }
 
+// New creates a Token for the given user and scope, persists it, and returns
+// the token including its plaintext value for one-time presentation.
 func (m tokenModel) New(userID int64, ttl time.Duration, scope string) (*Token, error) {
 	token, err := generateToken(userID, ttl, scope)
 	if err != nil {
@@ -58,9 +65,10 @@ func (m tokenModel) New(userID int64, ttl time.Duration, scope string) (*Token, 
 	return token, err
 }
 
+// Insert persists a token hash with associated metadata.
 func (m tokenModel) Insert(token *Token) error {
 	query := `
-	INSERT INTO tokens (hash, userID, expiry, scope) 
+	INSERT INTO tokens (hash, user_id, expiry, scope) 
 	VALUES ($1, $2, $3, $4)`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -70,6 +78,7 @@ func (m tokenModel) Insert(token *Token) error {
 	return err
 }
 
+// DeleteAllForUser removes all tokens for a user within the specified scope.
 func (m tokenModel) DeleteAllForUser(scope string, userID int64) error {
 	query := `
 	DELETE FROM tokens

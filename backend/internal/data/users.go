@@ -17,12 +17,12 @@ var (
 var AnonymousUser = &User{}
 
 type User struct {
-	ID        int64     `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
+	ID        int64     `json:"id" example:"1"`
+	CreatedAt time.Time `json:"created_at" example:"2025-01-01T00:00:00Z"`
+	Name      string    `json:"name" example:"John Doe"`
+	Email     string    `json:"email" example:"something@example.com"`
 	Password  password  `json:"-"`
-	Activated bool      `json:"activated"`
+	Activated bool      `json:"activated" example:"false"`
 	Version   int       `json:"-"`
 }
 
@@ -185,7 +185,7 @@ func (m userModel) Update(user *User) error {
 func (m userModel) GetForToken(tokenScope, token string) (*User, error) {
 	tokenHash := sha256.Sum256([]byte(token))
 	query := `
-		SELECT user.id, users.created_at, users.name, users.email, users.password_hash, users.activated, users.version
+		SELECT users.id, users.created_at, users.name, users.email, users.password_hash, users.activated, users.version
 		FROM users
 		INNER JOIN tokens
 		ON users.id = tokens.user_id

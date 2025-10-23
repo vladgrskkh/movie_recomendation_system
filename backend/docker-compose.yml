@@ -16,7 +16,7 @@ services:
   db:
     image: postgres:18
     env_file:
-      - .env_db
+      - .env_db 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mrs_user -d mrs"]
       interval: 5s

@@ -12,6 +12,8 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+type envelope map[string]interface{}
+
 // readIDParam extracts and validates the ID parameter from the URL
 func (app *application) readIDParam(r *http.Request) (int64, error) {
 	movieID := chi.URLParam(r, "movieID")
@@ -25,7 +27,7 @@ func (app *application) readIDParam(r *http.Request) (int64, error) {
 }
 
 // writeJSON is a helper method for writing JSON responses
-func (app *application) writeJSON(w http.ResponseWriter, status int, data map[string]interface{}, headers http.Header) error {
+func (app *application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	// Convert the data to JSON
 	js, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
@@ -41,9 +43,9 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data map[st
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	w.Write(js)
+	_, err = w.Write(js)
 
-	return nil
+	return err
 }
 
 // readJSON is a helper method for reading JSON requests

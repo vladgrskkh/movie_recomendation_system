@@ -20,7 +20,6 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// Maybe use a pointer to string
 func createToken(userID int64) (string, error) {
 	expireTime := time.Now().Add(30 * time.Minute)
 
@@ -47,7 +46,7 @@ func validateToken(token string) (*Claims, error) {
 		return jwtKey, nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, ErrInvalidToken
 	}
 
 	claims, ok := tkn.Claims.(*Claims)

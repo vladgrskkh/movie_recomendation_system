@@ -1,0 +1,518 @@
+basePath: /v1
+definitions:
+  data.Movie:
+    properties:
+      genres:
+        example:
+        - Drama
+        - Crime
+        items:
+          type: string
+        type: array
+      id:
+        example: 1
+        type: integer
+      runtime:
+        example: 142
+        type: integer
+      title:
+        example: The Shawshank Redemption
+        type: string
+      version:
+        example: 1
+        type: integer
+      year:
+        example: 1994
+        type: integer
+    type: object
+  data.User:
+    properties:
+      activated:
+        example: false
+        type: boolean
+      created_at:
+        example: "2025-01-01T00:00:00Z"
+        type: string
+      email:
+        example: something@example.com
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: John Doe
+        type: string
+    type: object
+  main.activateInput:
+    properties:
+      token:
+        type: string
+    type: object
+  main.loginInput:
+    properties:
+      email:
+        example: something@example.com
+        type: string
+      password:
+        example: s1mplepA$$word
+        type: string
+    type: object
+  main.movieInput:
+    properties:
+      genres:
+        example:
+        - Drama
+        - Crime
+        items:
+          type: string
+        type: array
+      runtime:
+        example: 142
+        type: integer
+      title:
+        example: The Shawshank Redemption
+        type: string
+      year:
+        example: 1994
+        type: integer
+    type: object
+  main.refreshInput:
+    properties:
+      refresh_token:
+        type: string
+    type: object
+  main.registerInput:
+    properties:
+      email:
+        example: something@example.com
+        type: string
+      name:
+        example: John Doe
+        type: string
+      password:
+        example: s1mplepA$$word
+        type: string
+    type: object
+  main.tokenPair:
+    properties:
+      authentication_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: REST API for recomending movies, managing users and authentication.
+  title: Movie Recommendation System API
+  version: 1.0.0
+paths:
+  /healthcheck:
+    get:
+      description: Returns service health and metadata
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+      tags:
+      - health
+  /movie:
+    get:
+      description: Get all movies (may support pagination)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                type: object
+              type: array
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List movies
+      tags:
+      - movies
+    post:
+      consumes:
+      - application/json
+      description: Create a new movie (admin only)
+      parameters:
+      - description: Movie payload
+        in: body
+        name: movie
+        required: true
+        schema:
+          $ref: '#/definitions/main.movieInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/data.Movie'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a movie
+      tags:
+      - movies
+  /movie/{movieID}:
+    delete:
+      description: Delete movie by ID (admin only)
+      parameters:
+      - description: Movie ID
+        in: path
+        name: movieID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a movie
+      tags:
+      - movies
+    get:
+      description: Returns a single movie by numeric ID
+      parameters:
+      - description: Movie ID
+        in: path
+        name: movieID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/data.Movie'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a movie by ID
+      tags:
+      - movies
+    patch:
+      consumes:
+      - application/json
+      description: Patch movie by ID
+      parameters:
+      - description: Movie ID
+        in: path
+        name: movieID
+        required: true
+        type: integer
+      - description: Partial movie payload
+        in: body
+        name: movie
+        required: true
+        schema:
+          $ref: '#/definitions/main.movieInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/data.Movie'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a movie
+      tags:
+      - movies
+  /movie/predict:
+    post:
+      consumes:
+      - application/json
+      description: Validates movie input and predict movie
+      parameters:
+      - description: Moive payload
+        in: body
+        name: credentials
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get predict movie
+      tags:
+      - movies
+  /tokens/authentication:
+    post:
+      consumes:
+      - application/json
+      description: Creates authentication and refresh tokens
+      parameters:
+      - description: Login payload
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/main.loginInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.tokenPair'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Log in and get tokens
+      tags:
+      - auth
+  /tokens/refresh:
+    put:
+      consumes:
+      - application/json
+      description: Exchange refresh token for new auth and refresh tokens
+      parameters:
+      - description: Refresh token payload
+        in: body
+        name: token
+        required: true
+        schema:
+          $ref: '#/definitions/main.refreshInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.tokenPair'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh tokens
+      tags:
+      - auth
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Creates a user account and sends activation email
+      parameters:
+      - description: Registration payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/main.registerInput'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/data.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - users
+  /users/activate:
+    put:
+      consumes:
+      - application/json
+      description: Activates a user account using activation token
+      parameters:
+      - description: Activation payload
+        in: body
+        name: activation
+        required: true
+        schema:
+          $ref: '#/definitions/main.activateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/data.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Activate user
+      tags:
+      - users
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: 'Provide a Bearer token: "Bearer {token}"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -11,7 +11,7 @@ func (app *application) logError(r *http.Request, err error) {
 }
 
 func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message interface{}) {
-	data := map[string]interface{}{
+	data := envelope{
 		"error": message,
 	}
 
@@ -39,7 +39,7 @@ func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors error) {
-	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
+	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors.Error())
 }
 
 func (app *application) editConflictResponse(w http.ResponseWriter, r *http.Request) {

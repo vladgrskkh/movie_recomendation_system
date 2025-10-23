@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"time"
@@ -11,6 +12,16 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/mailer"
 )
+
+// @title Movie Recommendation System API
+// @version 1.0.0
+// @description REST API for recomending movies, managing users and authentication.
+// @BasePath /v1
+// @schemes http https
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Provide a Bearer token: "Bearer {token}"
 
 const version = "1.0.0"
 
@@ -93,7 +104,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	defer db.Close()
+	defer func() {
+		e := db.Close()
+		if err != nil {
+			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
+		} else {
+			err = e
+		}
+	}()
 
 	logger.Info("database connection pool established")
 
@@ -134,7 +152,6 @@ func openDB(cfg config) (*sql.DB, error) {
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
 // TO DO: run tests of auth and activation
-// TO DO: some middleware (gracefull shutdown, rate limiter)
 // TO DO: get all movies handler (paginating)
 // TO DO: read about indexes psql
 // TO DO: see how to set up caddy or nginx (cicd)
@@ -142,7 +159,6 @@ func openDB(cfg config) (*sql.DB, error) {
 // ::::::::::::::::::::::::::::::::
 
 // TO DO: write tests for the handlers and other components
-// TO DO: graceful shutdown and cleanup
 // TO DO: rate limiter
 // TO DO: think about how to serve images for movies
 // TO DO: metrics (prometheus, grafana, expvar etc)
@@ -152,3 +168,4 @@ func openDB(cfg config) (*sql.DB, error) {
 // TO DO: think about movie info structure
 // TO DO: routes groups
 // bug: mailer on vps dial i/o timeout
+// TODO: activated jwt payload
