@@ -6,8 +6,8 @@ services:
     env_file:
       - .env
     restart: always
-    ports: 
-      - "8080:8080"
+    expose: 
+      - "8080"
     command: ["-db-dsn=${MRS_DB_DSND}", "-smtp-username=${SMTP_USERNAMED}", "-smtp-password=${SMTP_PASSWORDD}"]
     depends_on:
       - db
@@ -40,5 +40,21 @@ services:
     volumes:
       - ./migrations:/migrations
 
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - $PWD/conf:/etc/caddy
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+
 volumes:
   pgdata:
+  caddy_data:
+  caddy_config:

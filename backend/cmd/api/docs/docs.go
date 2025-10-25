@@ -27,7 +27,16 @@ const docTemplate = `{
                 "summary": "Health check",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "OK | Example {\"status\": \"avaliable\", \"env\": \"production\", \"version\": \"1.0.0\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -99,8 +108,17 @@ const docTemplate = `{
                             "$ref": "#/definitions/main.MoviesListResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized | Example {\"error\": \"this resourse avaliable only for authenticated users\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "422": {
-                        "description": "Unprocessable Entity",
+                        "description": "Unprocessable Entity | Example {\"error\": \"validation error\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -109,7 +127,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -155,7 +173,16 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden | Example {\"error\": \"your account must be activated to access this resourse\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -164,7 +191,7 @@ const docTemplate = `{
                         }
                     },
                     "422": {
-                        "description": "Unprocessable Entity",
+                        "description": "Unprocessable Entity | Example {\"error\": \"validation error\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -173,7 +200,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -217,7 +244,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -259,11 +286,26 @@ const docTemplate = `{
                             "$ref": "#/definitions/data.Movie"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request Example: {\"error\":\"invalid request\"}"
+                    "401": {
+                        "description": "Unauthorized | Example {\"error\": \"this resourse avaliable only for authenticated users\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Not Found | Example {\"error\": \"requested resource could not be found\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -298,7 +340,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "OK | Example {\"message\": \"movie successfully deleted\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -307,7 +349,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -316,7 +358,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -369,7 +411,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -378,7 +420,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Not Found | Example {\"error\": \"requested resource could not be found\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -387,7 +429,7 @@ const docTemplate = `{
                         }
                     },
                     "409": {
-                        "description": "Conflict",
+                        "description": "Conflict | Example {\"error\": \"unable to update the record due to an edit conflict, please try again\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -396,7 +438,7 @@ const docTemplate = `{
                         }
                     },
                     "422": {
-                        "description": "Unprocessable Entity",
+                        "description": "Unprocessable Entity | Example {\"error\": \"validation error\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -405,7 +447,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -448,7 +490,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -457,7 +499,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Unauthorized | Example {\"error\": \"invalid authentication credentials\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -466,7 +508,7 @@ const docTemplate = `{
                         }
                     },
                     "422": {
-                        "description": "Unprocessable Entity",
+                        "description": "Unprocessable Entity | Example {\"error\": \"validation error\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -475,7 +517,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -518,7 +560,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -527,7 +569,7 @@ const docTemplate = `{
                         }
                     },
                     "422": {
-                        "description": "Unprocessable Entity",
+                        "description": "Unprocessable Entity | Example {\"error\": \"validation error\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -536,7 +578,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -579,7 +621,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -588,7 +630,7 @@ const docTemplate = `{
                         }
                     },
                     "422": {
-                        "description": "Unprocessable Entity",
+                        "description": "Unprocessable Entity | Example {\"error\": \"validation error\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -597,7 +639,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -640,7 +682,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -649,7 +691,7 @@ const docTemplate = `{
                         }
                     },
                     "409": {
-                        "description": "Conflict",
+                        "description": "Conflict | Example {\"error\": \"unable to update the record due to an edit conflict, please try again\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -658,7 +700,7 @@ const docTemplate = `{
                         }
                     },
                     "422": {
-                        "description": "Unprocessable Entity",
+                        "description": "Unprocessable Entity | Example {\"error\": \"validation error\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -667,7 +709,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

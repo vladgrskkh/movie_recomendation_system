@@ -1,0 +1,7 @@
+{
+    email contactme12314q@gmail.com
+}
+
+movierecomendation.duckdns.org {
+    reverse_proxy api:8080
+}
