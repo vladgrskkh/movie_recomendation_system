@@ -42,7 +42,8 @@ func (app *application) authentication(next http.Handler) http.Handler {
 		}
 
 		user := data.User{
-			ID: claims.UserID,
+			ID:        claims.UserID,
+			Activated: claims.Activated,
 		}
 
 		r = app.contextSetUser(r, &user)

@@ -17,7 +17,7 @@ import (
 // @version 1.0.0
 // @description REST API for recomending movies, managing users and authentication.
 // @BasePath /v1
-// @schemes http https
+// @schemes https
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
@@ -151,10 +151,6 @@ func openDB(cfg config) (*sql.DB, error) {
 
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
-// TO DO: run tests of auth and activation
-// TO DO: get all movies handler (paginating)
-// TO DO: read about indexes psql
-// TO DO: see how to set up caddy or nginx (cicd)
 // TO DO: makefile new rules
 // ::::::::::::::::::::::::::::::::
 
@@ -164,8 +160,8 @@ func openDB(cfg config) (*sql.DB, error) {
 // TO DO: metrics (prometheus, grafana, expvar etc)
 // TO DO: cicd (copy only docker-compose, check commit author)
 // TO DO: python ml microservice (grpc)
-// TO DO: swagger
-// TO DO: think about movie info structure
 // TO DO: routes groups
+// TO DO: reset password handler
+// TO DO: user profile handler
 // bug: mailer on vps dial i/o timeout
 // TODO: activated jwt payload

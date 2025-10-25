@@ -447,7 +447,7 @@ type activateInput struct {
 // @Accept json
 // @Produce json
 // @Param activation body activateInput true "Activation payload"
-// @Success 200 {object} data.User
+// @Success 200 {object} activateInput
 // @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
 // @Failure 409 {object} map[string]string "Conflict | Example {"error": "unable to update the record due to an edit conflict, please try again"}"
 // @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
@@ -500,7 +500,14 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
+	// auth token with updated payload (user.Actavated field)
+	authToken, err := createToken(user.ID, user.Activated)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"token": authToken}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -567,7 +574,7 @@ func (app *application) refreshTokenHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// auth token
-	authToken, err := createToken(user.ID)
+	authToken, err := createToken(user.ID, user.Activated)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -660,7 +667,7 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 	}
 
 	// auth token
-	authToken, err := createToken(user.ID)
+	authToken, err := createToken(user.ID, user.Activated)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

@@ -16,15 +16,17 @@ var (
 var jwtKey = []byte("my secret key")
 
 type Claims struct {
-	UserID int64 `json:"userID"`
+	UserID    int64 `json:"userID"`
+	Activated bool  `json:"activated"`
 	jwt.RegisteredClaims
 }
 
-func createToken(userID int64) (string, error) {
+func createToken(userID int64, activated bool) (string, error) {
 	expireTime := time.Now().Add(30 * time.Minute)
 
 	claims := Claims{
-		UserID: userID,
+		UserID:    userID,
+		Activated: activated,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expireTime),
 		},
