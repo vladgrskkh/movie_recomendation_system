@@ -155,7 +155,14 @@ func (m movieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 		return nil, Metadata{}, err
 	}
 
-	defer rows.Close()
+	defer func() {
+		e := rows.Close()
+		if err != nil {
+			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
+		} else {
+			err = e
+		}
+	}()
 
 	totalRecords := 0
 	var movies []*Movie

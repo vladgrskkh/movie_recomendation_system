@@ -298,8 +298,9 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 	var input struct {
 		Title  string
 		Genres []string
-		data.Filters
 	}
+
+	var filters data.Filters
 
 	qs := r.URL.Query()
 
@@ -308,25 +309,25 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 	input.Title = app.readString(qs, "title", "")
 	input.Genres = app.readCSV(qs, "genres", []string{})
 
-	input.Filters.Page, err = app.readInt(qs, "page", 1)
+	filters.Page, err = app.readInt(qs, "page", 1)
 	if err != nil {
 		app.failedValidationResponse(w, r, err)
 		return
 	}
 
-	input.Filters.PageSize, err = app.readInt(qs, "page_size", 20)
+	filters.PageSize, err = app.readInt(qs, "page_size", 20)
 	if err != nil {
 		app.failedValidationResponse(w, r, err)
 		return
 	}
 
-	input.Filters.Sort = app.readString(qs, "sort", "id")
-	input.Filters.SortSafeList = []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"}
+	filters.Sort = app.readString(qs, "sort", "id")
+	filters.SortSafeList = []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"}
 
-	err = validation.ValidateStruct(&input,
-		validation.Field(&input.Filters.Page, validation.Required, validation.Min(1), validation.Max(10_000_000)),
-		validation.Field(&input.Filters.PageSize, validation.Required, validation.Min(1)),
-		validation.Field(&input.Filters.Sort, validation.Required, validation.In(input.Filters.SortSafeList...)),
+	err = validation.ValidateStruct(&filters,
+		validation.Field(&filters.Page, validation.Required, validation.Min(1), validation.Max(10_000_000)),
+		validation.Field(&filters.PageSize, validation.Required, validation.Min(1)),
+		validation.Field(&filters.Sort, validation.Required, validation.In(filters.SortSafeList...)),
 	)
 
 	if err != nil {
@@ -334,7 +335,7 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	movies, metadata, err := app.models.Movies.GetAll(input.Title, input.Genres, input.Filters)
+	movies, metadata, err := app.models.Movies.GetAll(input.Title, input.Genres, filters)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
