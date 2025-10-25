@@ -134,7 +134,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
-          source: "backend/*"
+          source: "backend/docker-compose.yml,backend/migrations"
           target: "~/mrs/"
           timeout: 120s
 

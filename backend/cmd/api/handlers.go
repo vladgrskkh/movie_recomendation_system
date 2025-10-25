@@ -14,11 +14,13 @@ import (
 )
 
 // HealthCheck godoc
+//
 // @Summary Health check
 // @Description Returns service health and metadata
 // @Tags health
 // @Produce json
-// @Success 200 {object} map[string]string
+// @Success 200 {object} map[string]string "OK | Example {"status": "avaliable", "env": "production", "version": "1.0.0"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Router /healthcheck [get]
 func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	data := envelope{
@@ -34,14 +36,16 @@ func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Reques
 }
 
 // GetMovie godoc
+//
 // @Summary Get a movie by ID
 // @Description Returns a single movie by numeric ID
 // @Tags movies
 // @Produce json
 // @Param movieID path int true "Movie ID"
 // @Success 200 {object} data.Movie
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
+// @Failure 401 {object} map[string]string "Unauthorized | Example {"error": "this resourse avaliable only for authenticated users"}"
+// @Failure 404 {object} map[string]string "Not Found | Example {"error": "requested resource could not be found"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Security BearerAuth
 // @Router /movie/{movieID} [get]
 func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) {
@@ -77,6 +81,7 @@ type movieInput struct {
 }
 
 // CreateMovie godoc
+//
 // @Summary Create a movie
 // @Description Create a new movie (admin only)
 // @Tags movies
@@ -84,9 +89,10 @@ type movieInput struct {
 // @Produce json
 // @Param movie body movieInput true "Movie payload"
 // @Success 201 {object} data.Movie
-// @Failure 400 {object} map[string]string
-// @Failure 422 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
+// @Failure 403 {object} map[string]string "Forbidden | Example {"error": "your account must be activated to access this resourse"}"
+// @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Security BearerAuth
 // @Router /movie [post]
 func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request) {
@@ -135,14 +141,15 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 
 // admin only
 // DeleteMovie godoc
+//
 // @Summary Delete a movie
 // @Description Delete movie by ID (admin only)
 // @Tags movies
 // @Produce json
 // @Param movieID path int true "Movie ID"
-// @Success 200 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} map[string]string "OK | Example {"message": "movie successfully deleted"}"
+// @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Security BearerAuth
 // @Router /movie/{movieID} [delete]
 func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Request) {
@@ -171,6 +178,7 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 }
 
 // UpdateMovie godoc
+//
 // @Summary Update a movie
 // @Description Patch movie by ID
 // @Tags movies
@@ -179,11 +187,11 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 // @Param movieID path int true "Movie ID"
 // @Param movie body movieInput true "Partial movie payload"
 // @Success 200 {object} data.Movie
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 409 {object} map[string]string
-// @Failure 422 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
+// @Failure 404 {object} map[string]string "Not Found | Example {"error": "requested resource could not be found"}"
+// @Failure 409 {object} map[string]string "Conflict | Example {"error": "unable to update the record due to an edit conflict, please try again"}"
+// @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Security BearerAuth
 // @Router /movie/{movieID} [patch]
 func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Request) {
@@ -264,16 +272,78 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 
 }
 
+type MoviesListResponse struct {
+	Movies   []data.Movie  `json:"movies"`
+	Metadata data.Metadata `json:"metadata"`
+}
+
 // ListMovies godoc
+//
 // @Summary List movies
-// @Description Get all movies (may support pagination)
+// @Description Retrieve a list of movies filtered by title and genres with pagination and sorting
 // @Tags movies
 // @Produce json
+// @Param title query string false "Full-text search by title"
+// @Param genres query []string false "Comma-separated list of genres" collectionFormat(csv)
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Number of items per page" default(20)
+// @Param sort query string false "Sort by: one of id,title,year,runtime,-id,-title,-year,-runtime" default(id)
 // @Security BearerAuth
-// @Success 200 {object} map[string][]object
+// @Success 200 {object} MoviesListResponse
+// @Failure 401 {object} map[string]string "Unauthorized | Example {"error": "this resourse avaliable only for authenticated users"}"
+// @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Router /movie [get]
-func (app *application) getAllMoviesHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Title  string
+		Genres []string
+		data.Filters
+	}
 
+	qs := r.URL.Query()
+
+	var err error
+
+	input.Title = app.readString(qs, "title", "")
+	input.Genres = app.readCSV(qs, "genres", []string{})
+
+	input.Filters.Page, err = app.readInt(qs, "page", 1)
+	if err != nil {
+		app.failedValidationResponse(w, r, err)
+		return
+	}
+
+	input.Filters.PageSize, err = app.readInt(qs, "page_size", 20)
+	if err != nil {
+		app.failedValidationResponse(w, r, err)
+		return
+	}
+
+	input.Filters.Sort = app.readString(qs, "sort", "id")
+	input.Filters.SortSafeList = []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"}
+
+	err = validation.ValidateStruct(&input,
+		validation.Field(&input.Filters.Page, validation.Required, validation.Min(1), validation.Max(10_000_000)),
+		validation.Field(&input.Filters.PageSize, validation.Required, validation.Min(1)),
+		validation.Field(&input.Filters.Sort, validation.Required, validation.In(input.Filters.SortSafeList...)),
+	)
+
+	if err != nil {
+		app.failedValidationResponse(w, r, err)
+		return
+	}
+
+	movies, metadata, err := app.models.Movies.GetAll(input.Title, input.Genres, input.Filters)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"movies": movies, "metadata": metadata}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
 
 type registerInput struct {
@@ -291,9 +361,9 @@ type registerInput struct {
 // @Produce json
 // @Param user body registerInput true "Registration payload"
 // @Success 202 {object} data.User
-// @Failure 400 {object} map[string]string
-// @Failure 422 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
+// @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Router /users [post]
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var input registerInput
@@ -369,6 +439,7 @@ type activateInput struct {
 }
 
 // ActivateUser godoc
+//
 // @Summary Activate user
 // @Description Activates a user account using activation token
 // @Tags users
@@ -376,10 +447,10 @@ type activateInput struct {
 // @Produce json
 // @Param activation body activateInput true "Activation payload"
 // @Success 200 {object} data.User
-// @Failure 400 {object} map[string]string
-// @Failure 409 {object} map[string]string
-// @Failure 422 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
+// @Failure 409 {object} map[string]string "Conflict | Example {"error": "unable to update the record due to an edit conflict, please try again"}"
+// @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Router /users/activate [put]
 func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var input activateInput
@@ -443,9 +514,11 @@ type tokenPair struct {
 	RefreshToken        string `json:"refresh_token"`
 }
 
+// RefreshToken godoc
+//
 // refreshTokenHandler wants refresh token to create auth token and new refresh token
 // auth token is jwt and refresh token is high entropy string
-// RefreshToken godoc
+//
 // @Summary Refresh tokens
 // @Description Exchange refresh token for new auth and refresh tokens
 // @Tags auth
@@ -453,9 +526,9 @@ type tokenPair struct {
 // @Produce json
 // @Param token body refreshInput true "Refresh token payload"
 // @Success 201 {object} tokenPair
-// @Failure 400 {object} map[string]string
-// @Failure 422 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
+// @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Router /tokens/refresh [put]
 func (app *application) refreshTokenHandler(w http.ResponseWriter, r *http.Request) {
 	var input refreshInput
@@ -515,9 +588,11 @@ type loginInput struct {
 	Password string `json:"password" example:"s1mplepA$$word"`
 }
 
+// createAuthenticationTokenHandler godoc
+//
 // createAuthenticationTokenHandler is log in for app
 // every time user log in we will create new auth token and refresh token(deleting prev refresh token if exists)
-// CreateAuthToken godoc
+//
 // @Summary Log in and get tokens
 // @Description Creates authentication and refresh tokens
 // @Tags auth
@@ -525,10 +600,10 @@ type loginInput struct {
 // @Produce json
 // @Param credentials body loginInput true "Login payload"
 // @Success 201 {object} tokenPair
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 422 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
+// @Failure 401 {object} map[string]string "Unauthorized | Example {"error": "invalid authentication credentials"}
+// @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Router /tokens/authentication [post]
 func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, r *http.Request) {
 	var input loginInput
@@ -602,6 +677,7 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 }
 
 // Predict Handler godoc
+//
 // @Summary Get predict movie
 // @Description Validates movie input and predict movie
 // @Tags movies
@@ -609,7 +685,7 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 // @Produce json
 // @Param credentials body object true "Moive payload"
 // @Success 200 {object} map[string]interface{}
-// @Failure 500 {object} map[string]string
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Router /movie/predict [post]
 func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 	mock := envelope{

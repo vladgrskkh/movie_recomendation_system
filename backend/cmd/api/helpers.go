@@ -6,10 +6,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+)
+
+var (
+	ErrKeyNotInteger = errors.New("must be an integer")
 )
 
 type envelope map[string]interface{}
@@ -115,4 +120,47 @@ func (app *application) background(fn func()) {
 
 		fn()
 	}()
+}
+
+// readString is a helper method for retrieving a string value from a url.Values object.
+// If the value is not present, it returns the defaultValue.
+func (app *application) readString(qs url.Values, key string, defaultValue string) string {
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultValue
+	}
+
+	return s
+}
+
+// readCSV is a helper method for retrieving a comma-separated string value from a url.Values object.
+// If the value is not present, it returns the defaultValue.
+// The function splits the returned string by commas and returns a slice of strings.
+func (app *application) readCSV(qs url.Values, key string, defaultValue []string) []string {
+	csv := qs.Get(key)
+
+	if csv == "" {
+		return defaultValue
+	}
+
+	return strings.Split(csv, ",")
+}
+
+// readInt is a helper method for retrieving an integer value from a url.Values object.
+// If the value is not present, it returns the defaultValue.
+// The function parses the returned string as an integer. If the parsing fails, it returns the defaultValue.
+func (app *application) readInt(qs url.Values, key string, defaultValue int) (int, error) {
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultValue, nil
+	}
+
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return defaultValue, ErrKeyNotInteger
+	}
+
+	return i, nil
 }

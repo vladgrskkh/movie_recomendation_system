@@ -16,6 +16,7 @@ type moviesInterface interface {
 	Insert(*Movie) error
 	Delete(int64) error
 	Update(*Movie) error
+	GetAll(string, []string, Filters) ([]*Movie, Metadata, error)
 }
 
 type usersInterface interface {

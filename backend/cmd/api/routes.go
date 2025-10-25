@@ -13,9 +13,12 @@ func (app *application) routes() http.Handler {
 
 	r.Get("/v1/healthcheck", app.healthCheckHandler)
 	r.Get("/v1/movie/{movieID}", app.requireAuthenticatedUser(app.getMovieHandler))
-	r.Get("/v1/movie", app.requireAuthenticatedUser(app.getAllMoviesHandler))
+	// r.Get("/v1/movie/{movieID}", app.getMovieHandler)
+	r.Get("/v1/movie", app.requireAuthenticatedUser(app.listMoviesHandler))
+	// r.Get("/v1/movie", app.listMoviesHandler)
 	r.Get("/v1/swagger/*", httpSwagger.Handler())
 	r.Post("/v1/movie", app.requireActivatedUser(app.postMovieHandler))
+	// r.Post("/v1/movie", app.postMovieHandler)
 	r.Post("/v1/users", app.registerUserHandler)
 	r.Put("/v1/tokens/refresh", app.refreshTokenHandler)
 	r.Post("/v1/tokens/authentication", app.createAuthenticationTokenHandler)

@@ -45,7 +45,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get all movies (may support pagination)",
+                "description": "Retrieve a list of movies filtered by title and genres with pagination and sorting",
                 "produces": [
                     "application/json"
                 ],
@@ -53,16 +53,67 @@ const docTemplate = `{
                     "movies"
                 ],
                 "summary": "List movies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Full-text search by title",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Comma-separated list of genres",
+                        "name": "genres",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Number of items per page",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "id",
+                        "description": "Sort by: one of id,title,year,runtime,-id,-title,-year,-runtime",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
+                            "$ref": "#/definitions/main.MoviesListResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
                             "type": "object",
                             "additionalProperties": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object"
-                                }
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     }
@@ -209,13 +260,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
+                        "description": "Bad Request Example: {\"error\":\"invalid request\"}"
                     },
                     "404": {
                         "description": "Not Found",
@@ -635,6 +680,31 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "data.Metadata": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "first_page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "last_page": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "page_page": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "total_records": {
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
         "data.Movie": {
             "type": "object",
             "properties": {
@@ -692,6 +762,20 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "John Doe"
+                }
+            }
+        },
+        "main.MoviesListResponse": {
+            "type": "object",
+            "properties": {
+                "metadata": {
+                    "$ref": "#/definitions/data.Metadata"
+                },
+                "movies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/data.Movie"
+                    }
                 }
             }
         },
@@ -795,7 +879,7 @@ var SwaggerInfo = &swag.Spec{
 	Version:          "1.0.0",
 	Host:             "",
 	BasePath:         "/v1",
-	Schemes:          []string{"http"},
+	Schemes:          []string{"http", "https"},
 	Title:            "Movie Recommendation System API",
 	Description:      "REST API for recomending movies, managing users and authentication.",
 	InfoInstanceName: "swagger",

@@ -1,5 +1,23 @@
 basePath: /v1
 definitions:
+  data.Metadata:
+    properties:
+      current_page:
+        example: 1
+        type: integer
+      first_page:
+        example: 1
+        type: integer
+      last_page:
+        example: 5
+        type: integer
+      page_page:
+        example: 20
+        type: integer
+      total_records:
+        example: 100
+        type: integer
+    type: object
   data.Movie:
     properties:
       genres:
@@ -42,6 +60,15 @@ definitions:
       name:
         example: John Doe
         type: string
+    type: object
+  main.MoviesListResponse:
+    properties:
+      metadata:
+        $ref: '#/definitions/data.Metadata'
+      movies:
+        items:
+          $ref: '#/definitions/data.Movie'
+        type: array
     type: object
   main.activateInput:
     properties:
@@ -123,17 +150,53 @@ paths:
       - health
   /movie:
     get:
-      description: Get all movies (may support pagination)
+      description: Retrieve a list of movies filtered by title and genres with pagination
+        and sorting
+      parameters:
+      - description: Full-text search by title
+        in: query
+        name: title
+        type: string
+      - collectionFormat: csv
+        description: Comma-separated list of genres
+        in: query
+        items:
+          type: string
+        name: genres
+        type: array
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Number of items per page
+        in: query
+        name: page_size
+        type: integer
+      - default: id
+        description: 'Sort by: one of id,title,year,runtime,-id,-title,-year,-runtime'
+        in: query
+        name: sort
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
+            $ref: '#/definitions/main.MoviesListResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
             additionalProperties:
-              items:
-                type: object
-              type: array
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
             type: object
       security:
       - BearerAuth: []
@@ -232,11 +295,7 @@ paths:
           schema:
             $ref: '#/definitions/data.Movie'
         "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+          description: 'Bad Request Example: {"error":"invalid request"}'
         "404":
           description: Not Found
           schema:
@@ -509,6 +568,7 @@ paths:
       - users
 schemes:
 - http
+- https
 securityDefinitions:
   BearerAuth:
     description: 'Provide a Bearer token: "Bearer {token}"'
