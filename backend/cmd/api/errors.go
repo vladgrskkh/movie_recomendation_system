@@ -3,13 +3,19 @@ package main
 import (
 	"log/slog"
 	"net/http"
+	"runtime/debug"
 )
 
+// logError logs an error with the request method, URL, and stack trace.
 func (app *application) logError(r *http.Request, err error) {
-	app.logger.Error(err.Error(), slog.String("request_method", r.Method),
-		slog.String("request_url", r.URL.String()))
+	app.logger.Error(err.Error(),
+		slog.String("request_method", r.Method),
+		slog.String("request_url", r.URL.String()),
+		slog.String("trace", string(debug.Stack())))
 }
 
+// errorResponse writes a JSON response with a provided status code and message
+// to the http.ResponseWriter.
 func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message interface{}) {
 	data := envelope{
 		"error": message,

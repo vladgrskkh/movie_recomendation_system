@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	httpSwagger "github.com/swaggo/http-swagger"
 	_ "github.com/vladgrskkh/movie_recomendation_system/cmd/api/docs"
 )
@@ -11,24 +12,38 @@ import (
 func (app *application) routes() http.Handler {
 	r := chi.NewRouter()
 
-	r.Get("/v1/healthcheck", app.healthCheckHandler)
-	r.Get("/v1/movie/{movieID}", app.requireAuthenticatedUser(app.getMovieHandler))
-	// r.Get("/v1/movie/{movieID}", app.getMovieHandler)
-	r.Get("/v1/movie", app.requireAuthenticatedUser(app.listMoviesHandler))
-	// r.Get("/v1/movie", app.listMoviesHandler)
-	r.Get("/v1/swagger/*", httpSwagger.Handler())
-	r.Post("/v1/movie", app.requireActivatedUser(app.postMovieHandler))
-	// r.Post("/v1/movie", app.postMovieHandler)
-	r.Post("/v1/users", app.registerUserHandler)
-	r.Put("/v1/tokens/refresh", app.refreshTokenHandler)
-	r.Post("/v1/tokens/authentication", app.createAuthenticationTokenHandler)
-	r.Post("/v1/movie/predict", app.predictHandler)
+	r.Use(app.recoverPanic)
+	r.Use(app.authentication)
 
-	r.Put("/v1/users/activate", app.activateUserHandler)
+	r.Route("/v1", func(r chi.Router) {
+		r.Get("/healthcheck", app.healthCheckHandler)
+		r.Get("/swagger/*", httpSwagger.Handler())
 
-	r.Patch("/v1/movie/{movieID}", app.updateMovieHandler)
+		r.Route("/movie", func(r chi.Router) {
+			r.Use(app.requireAuthenticatedUser)
+			r.Get("/", app.listMoviesHandler)
+			r.With(app.requireActivatedUser).Post("/", app.postMovieHandler)
+			r.Post("/predict", app.predictHandler)
 
-	r.Delete("/v1/movie/{movieID}", app.deleteMovieHandler)
+			r.Route("/{movieID}", func(r chi.Router) {
+				r.Get("/", app.getMovieHandler)
+				r.With(app.requireActivatedUser).Patch("/", app.updateMovieHandler)
+				r.Delete("/", app.deleteMovieHandler)
+			})
+		})
 
-	return app.recoverPanic(app.authentication(r))
+		r.Route("/users", func(r chi.Router) {
+			r.Post("/", app.registerUserHandler)
+			r.Post("/activate", app.activateUserHandler)
+		})
+
+		r.Route("/tokens", func(r chi.Router) {
+			r.Post("/authentication", app.createAuthenticationTokenHandler)
+			r.Post("/refresh", app.refreshTokenHandler)
+		})
+	})
+
+	r.Method(http.MethodGet, "/metrics", promhttp.Handler())
+
+	return r
 }

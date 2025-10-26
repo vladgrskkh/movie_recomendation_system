@@ -151,17 +151,20 @@ func openDB(cfg config) (*sql.DB, error) {
 
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
-// TO DO: makefile new rules
+// TO DO: metrics (prometheus, grafana, expvar etc) (idk 4 house mb)
+// TO DO: makefile new rules (30 min)
+// TO DO: write tests for the handlers and other components (2 hours)
+// TO DO: routes groups (30 min)
+// TO DO: rate limiter (mb use already implemented stuff from github )(1-2 hours)
+// fix bug: mailer on vps dial i/o timeout
 // ::::::::::::::::::::::::::::::::
 
 // TO DO: write tests for the handlers and other components
 // TO DO: rate limiter
+// TO DO: routes groups
 // TO DO: think about how to serve images for movies
 // TO DO: metrics (prometheus, grafana, expvar etc)
-// TO DO: cicd (copy only docker-compose, check commit author)
 // TO DO: python ml microservice (grpc)
-// TO DO: routes groups
 // TO DO: reset password handler
 // TO DO: user profile handler
 // bug: mailer on vps dial i/o timeout
-// TODO: activated jwt payload

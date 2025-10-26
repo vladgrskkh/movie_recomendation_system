@@ -52,7 +52,7 @@ func (app *application) authentication(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) requireAuthenticatedUser(next http.HandlerFunc) http.HandlerFunc {
+func (app *application) requireAuthenticatedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := app.contextGetUser(r)
 
@@ -65,8 +65,8 @@ func (app *application) requireAuthenticatedUser(next http.HandlerFunc) http.Han
 	})
 }
 
-func (app *application) requireActivatedUser(next http.HandlerFunc) http.HandlerFunc {
-	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func (app *application) requireActivatedUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := app.contextGetUser(r)
 
 		if !user.Activated {
@@ -76,8 +76,6 @@ func (app *application) requireActivatedUser(next http.HandlerFunc) http.Handler
 
 		next.ServeHTTP(w, r)
 	})
-
-	return app.requireAuthenticatedUser(fn)
 }
 
 func (app *application) recoverPanic(next http.Handler) http.Handler {
