@@ -12,6 +12,7 @@ import (
 func (app *application) routes() http.Handler {
 	r := chi.NewRouter()
 
+	r.Use(app.metrics)
 	r.Use(app.recoverPanic)
 	r.Use(app.authentication)
 

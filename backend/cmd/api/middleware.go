@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 )
 
@@ -89,5 +92,48 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 		}()
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) metrics(next http.Handler) http.Handler {
+	// TODO: think how to add avg stats to prometheus
+	totalRequestsReceived := promauto.NewCounter(prometheus.CounterOpts{
+		Name: "total_requests_received",
+		Help: "The total number of requests received",
+	})
+	totalResponsesSent := promauto.NewCounter(prometheus.CounterOpts{
+		Name: "total_responses_sent",
+		Help: "The total number of responses sent",
+	})
+	totalProcessingTimeMicroseconds := promauto.NewCounter(prometheus.CounterOpts{
+		Name: "total_processing_time_microseconds",
+		Help: "The total (cumulative) time taken to process all requests in microseconds",
+	})
+	activeRequests := promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "in_flight_requests",
+		Help: "The number of 'active' in-flight requests",
+	})
+	// avgRequestReceivedPerRequest := promauto.NewGauge(prometheus.GaugeOpts{
+	// Name: "avg_request_received_per_request",
+	// Help: "The average amount of requests received per second (between scrapes)",
+	// })
+	// avgProcessingTimePerRequest := promauto.NewGauge(prometheus.GaugeOpts{
+	// Name: "avg_processing_time_per_request",
+	// Help: "The average processing time per request in microseconds (between scrapes)",
+	// })
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		totalRequestsReceived.Inc()
+		activeRequests.Inc()
+
+		next.ServeHTTP(w, r)
+
+		totalResponsesSent.Inc()
+		activeRequests.Dec()
+
+		duration := time.Since(start).Microseconds()
+		totalProcessingTimeMicroseconds.Add(float64(duration))
 	})
 }

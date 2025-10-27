@@ -47,14 +47,43 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - $PWD/conf:/etc/caddy
+      - $PWD/conf/Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
       - api
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.55.0
+    volumes:
+      - $PWD/conf/prometheus.yml:/etc/prometheus/prometheus.yml
+    expose:
+      - "9090"
+    depends_on:
+      - api
+  
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:11.3.0
+    env_file:
+      - .env
+    volumes:
+      - $PWD/conf/grafana.yml:/etc/grafana/provisioning/datasources/datasource.yaml
+      - grafana-data:/var/lib/grafana
+    expose:
+      - "3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+    depends_on:
+      - api
+      - prometheus
+
 
 
 volumes:
   pgdata:
   caddy_data:
   caddy_config:
+  grafana-data:
