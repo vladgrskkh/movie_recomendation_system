@@ -83,7 +83,7 @@ jobs:
         run: |
           current_time=$(date -Iseconds)
           git_description=$(git describe --always --dirty --tags --long)
-          linker_flags="-s -X main.buildTime=$(current_time) -X main.version=$(git_description)"
+          linker_flags="-s -X main.buildTime=${current_time} -X main.version=${git_description}"
           echo "linker_flags=${linker_flags}" >> $GITHUB_OUTPUT
 
       - name: 🧰 Setup Docker Buildx
