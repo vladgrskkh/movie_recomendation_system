@@ -73,6 +73,10 @@ type config struct {
 		password string
 		sender   string
 	}
+	limiter struct {
+		rps    int
+		enable bool
+	}
 }
 
 func main() {
@@ -92,6 +96,9 @@ func main() {
 	flag.StringVar(&cfg.smtp.username, "smtp-username", "", "SMTP username")
 	flag.StringVar(&cfg.smtp.password, "smtp-password", "", "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "MS_rGhIm9@test-r83ql3pqpxxgzw1j.mlsender.net", "SMTP sender")
+
+	flag.IntVar(&cfg.limiter.rps, "limiter-rps", 10, "Rate limiter maximum requests per second")
+	flag.BoolVar(&cfg.limiter.enable, "limiter-enable", true, "Enable rate limiter")
 
 	displayVersion := flag.Bool("version", false, "Display version and quit")
 
@@ -162,15 +169,15 @@ func openDB(cfg config) (*sql.DB, error) {
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
 // TO DO: write tests for the handlers and other components (2 hours)
-// TO DO: rate limiter (mb use already implemented stuff from github)(1-2 hours)
-// fix bug: mailer on vps dial i/o timeout (fix: firewall blocks 587 so swithc to api can help)
+// TO DO: python ml microservice (grpc)
+// fix bug: mailer on vps dial i/o timeout (fix: firewall blocks 587 so switch to api can help)
 // ::::::::::::::::::::::::::::::::
 
 // TO DO: write tests for the handlers and other components
-// TO DO: rate limiter
 // TO DO: think about how to serve images for movies
 // TO DO: python ml microservice (grpc)
 // TO DO: reset password handler
 // TO DO: user profile handler
 // bug: mailer on vps dial i/o timeout
 // TODO: add more metrics, grafana settings (best practice)
+// TODO: add redis db for ip rate limmiter

@@ -393,7 +393,8 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		validation.Field(&input.Password, validation.Required, validation.Length(8, 72)))
 
 	if err != nil {
-		app.failedValidationResponse(w, r, err)
+		message := app.readValidation(err.Error())
+		app.failedValidationUserResponse(w, r, message)
 		return
 	}
 
@@ -401,7 +402,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateEmail):
-			app.badRequestResponse(w, r, err)
+			app.failedValidationUserResponse(w, r, envelope{"email": err})
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
@@ -626,7 +627,8 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 		validation.Field(&input.Email, validation.Required, is.Email),
 		validation.Field(&input.Password, validation.Required, validation.Length(8, 72)))
 	if err != nil {
-		app.failedValidationResponse(w, r, err)
+		message := app.readValidation(err.Error())
+		app.failedValidationUserResponse(w, r, message)
 		return
 	}
 

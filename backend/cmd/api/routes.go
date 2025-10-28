@@ -2,10 +2,13 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httprate"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	httpSwagger "github.com/swaggo/http-swagger"
+
 	_ "github.com/vladgrskkh/movie_recomendation_system/cmd/api/docs"
 )
 
@@ -15,6 +18,12 @@ func (app *application) routes() http.Handler {
 	r.Use(app.metrics)
 	r.Use(app.recoverPanic)
 	r.Use(app.authentication)
+
+	// Rate-limit all routes
+	// Think about adding rate limmiter for specific routes(registaration, login)
+	if app.config.limiter.enable {
+		r.Use(httprate.LimitByIP(app.config.limiter.rps, time.Second))
+	}
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/healthcheck", app.healthCheckHandler)
