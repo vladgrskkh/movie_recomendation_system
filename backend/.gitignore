@@ -3,3 +3,4 @@
 .env_db
 .dockerignore
 .DS_STORE
+bin/

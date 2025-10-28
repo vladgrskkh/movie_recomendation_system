@@ -3,6 +3,8 @@ FROM golang:1.25 AS builder
 
 WORKDIR /app
 
+ARG LINKER_FLAGS=""
+
 # Копируем go.mod и go.sum для кеширования зависимостей
 COPY go.mod go.sum ./
 RUN go mod download
@@ -11,7 +13,7 @@ RUN go mod download
 COPY . .
 
 # Собираем бинарь
-RUN CGO_ENABLED=0 GOOS=linux go build -o server ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="${LINKER_FLAGS}" -o server ./cmd/api
 
 # ---------- Stage 2: Runtime ----------
 FROM alpine:3.20
@@ -23,12 +25,6 @@ WORKDIR /app
 
 # Копируем бинарник из builder
 COPY --from=builder /app/server .
-
-# Копируем миграции (если нужно применять внутри контейнера)
-#COPY --from=builder /app/migrations ./migrations
-
-# Устанавливаем переменные окружения
-#ENV PORT=8080
 
 EXPOSE 8080
 

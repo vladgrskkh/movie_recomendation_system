@@ -23,7 +23,10 @@ import (
 // @name Authorization
 // @description Provide a Bearer token: "Bearer {token}"
 
-const version = "1.0.0"
+var (
+	buildTime string
+	version   string
+)
 
 const (
 	LevelTrace = slog.Level(-8)
@@ -90,7 +93,14 @@ func main() {
 	flag.StringVar(&cfg.smtp.password, "smtp-password", "", "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "MS_rGhIm9@test-r83ql3pqpxxgzw1j.mlsender.net", "SMTP sender")
 
+	displayVersion := flag.Bool("version", false, "Display version and quit")
+
 	flag.Parse()
+
+	if *displayVersion {
+		fmt.Printf("Build time:\t%s\nVersion:\t%s\n", buildTime, version)
+		os.Exit(0)
+	}
 
 	mailer := mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender)
 
@@ -151,20 +161,16 @@ func openDB(cfg config) (*sql.DB, error) {
 
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
-// TO DO: metrics (prometheus, grafana, expvar etc) (idk 4 house mb)
-// TO DO: makefile new rules (30 min)
 // TO DO: write tests for the handlers and other components (2 hours)
-// TO DO: routes groups (30 min)
-// TO DO: rate limiter (mb use already implemented stuff from github )(1-2 hours)
-// fix bug: mailer on vps dial i/o timeout
+// TO DO: rate limiter (mb use already implemented stuff from github)(1-2 hours)
+// fix bug: mailer on vps dial i/o timeout (fix: firewall blocks 587 so swithc to api can help)
 // ::::::::::::::::::::::::::::::::
 
 // TO DO: write tests for the handlers and other components
 // TO DO: rate limiter
-// TO DO: routes groups
 // TO DO: think about how to serve images for movies
-// TO DO: metrics (prometheus, grafana, expvar etc)
 // TO DO: python ml microservice (grpc)
 // TO DO: reset password handler
 // TO DO: user profile handler
 // bug: mailer on vps dial i/o timeout
+// TODO: add more metrics, grafana settings (best practice)
