@@ -79,6 +79,7 @@ jobs:
 
       - name: Generate metadata
         id: meta
+        shell: bash
         run: |
           current_time=$(date -Iseconds)
           git_description=$(git describe --always --dirty --tags --long)
