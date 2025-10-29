@@ -48,13 +48,6 @@ func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.
 	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors.Error())
 }
 
-// failedValidationUserResponse writes a JSON response with a provided status code and message
-// signature differs from failedValidationResponse because of how validation package provides errors
-// may need to change package or implement own
-func (app *application) failedValidationUserResponse(w http.ResponseWriter, r *http.Request, message interface{}) {
-	app.errorResponse(w, r, http.StatusUnprocessableEntity, message)
-}
-
 func (app *application) editConflictResponse(w http.ResponseWriter, r *http.Request) {
 	message := "unable to update the record due to an edit conflict, please try again"
 	app.errorResponse(w, r, http.StatusConflict, message)

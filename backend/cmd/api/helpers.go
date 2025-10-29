@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -169,35 +168,35 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int) (in
 // readValidation is a helper method for reading validation message and converting it to a map for json response
 // This method should only be used for reading validationMessage when user is registering/logging in
 // Can change it in future, but best options is to change validation package or implement our own
-func (app *application) readValidation(validationMessage string) map[string]string {
-	validationErrors := make(map[string]string)
-	if strings.TrimSpace(validationMessage) == "" {
-		return validationErrors
-	}
+// func (app *application) readValidation(validationMessage string) map[string]string {
+// 	validationErrors := make(map[string]string)
+// 	if strings.TrimSpace(validationMessage) == "" {
+// 		return validationErrors
+// 	}
 
-	re := regexp.MustCompile(`\s*([^:;]+?)\s*:\s*([^;]+)`)
-	matches := re.FindAllStringSubmatch(validationMessage[:len(validationMessage)-1], -1)
+// 	re := regexp.MustCompile(`\s*([^:;]+?)\s*:\s*([^;]+)`)
+// 	matches := re.FindAllStringSubmatch(validationMessage[:len(validationMessage)-1], -1)
 
-	for _, match := range matches {
-		if len(match) < 3 {
-			continue
-		}
+// 	for _, match := range matches {
+// 		if len(match) < 3 {
+// 			continue
+// 		}
 
-		field := strings.TrimSpace(match[1])
-		msg := strings.TrimSpace(match[2])
+// 		field := strings.TrimSpace(match[1])
+// 		msg := strings.TrimSpace(match[2])
 
-		if field == "" || msg == "" {
-			continue
-		}
+// 		if field == "" || msg == "" {
+// 			continue
+// 		}
 
-		// checking if field exists
-		if _, ok := validationErrors[field]; ok {
-			// panic here because we only use this function for reading validation when we expect unique fields
-			panic("duplicate field in validation message")
-		}
+// 		// checking if field exists
+// 		if _, ok := validationErrors[field]; ok {
+// 			// panic here because we only use this function for reading validation when we expect unique fields
+// 			panic("duplicate field in validation message")
+// 		}
 
-		validationErrors[field] = msg
-	}
+// 		validationErrors[field] = msg
+// 	}
 
-	return validationErrors
-}
+// 	return validationErrors
+// }
