@@ -65,6 +65,8 @@ jobs:
       - name: Generate Go gRPC code
         run: |
           mkdir -p backend/genproto
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
           protoc \
             -I=proto \
             --go_out=backend/genproto \
