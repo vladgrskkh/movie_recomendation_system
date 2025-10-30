@@ -67,6 +67,7 @@ jobs:
           mkdir -p backend/genproto
           go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          $(go env GOPATH)/bin
           protoc \
             -I=proto \
             --go_out=backend/genproto \
