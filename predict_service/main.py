@@ -2,10 +2,11 @@ import grpc
 from concurrent import futures
 import joblib
 from v1.predict import predict_pb2, predict_pb2_grpc
+from common import types_pb2 as common_pb2
 
 from models.recommender_model import MovieRecommender
 
-class Recommendation(predict_pb2_grpc.RecommendationServicer):
+class RecommendationService(predict_pb2_grpc.RecommendationServicer):
     def __init__(self):
         print("Loading model")
         self.model = joblib.load("models/recommender.pkl")
@@ -15,7 +16,7 @@ class Recommendation(predict_pb2_grpc.RecommendationServicer):
         movie_title = request.movieTitle
         recs = self.model.recommend(movie_title)
         recommendations = [
-            predict_pb2.Recommendation(title=title, score=score)
+            common_pb2.Recommendation(title=title, score=score)
             for title, score in recs
         ]
         return predict_pb2.RecommendResponse(recommendations=recommendations)
@@ -23,7 +24,7 @@ class Recommendation(predict_pb2_grpc.RecommendationServicer):
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     predict_pb2_grpc.add_RecommendationServicer_to_server(
-        Recommendation(), server
+        RecommendationService(), server
     )
     server.add_insecure_port("[::]:50051")
     print("gRPC Movie Recommender running on port 50051")

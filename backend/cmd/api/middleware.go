@@ -31,7 +31,6 @@ func (app *application) authentication(next http.Handler) http.Handler {
 		}
 
 		token := headerParts[1]
-
 		claims, err := validateToken(token)
 		if err != nil {
 			switch {
@@ -48,7 +47,6 @@ func (app *application) authentication(next http.Handler) http.Handler {
 			ID:        claims.UserID,
 			Activated: claims.Activated,
 		}
-
 		r = app.contextSetUser(r, &user)
 
 		next.ServeHTTP(w, r)

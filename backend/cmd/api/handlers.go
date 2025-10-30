@@ -699,11 +699,17 @@ type predictionInput struct {
 // @Accept json
 // @Produce json
 // @Param credentials body object true "Moive payload"
-// @Success 200 {object} map[string]interface{}
+// @Security BearerAuth
+// @Success 200 {object} predictionInput
+// @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
+// @Failure 401 {object} map[string]string "Unauthorized | Example {"error": "this resourse avaliable only for authenticated users"}"
+// @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Router /movie/predict [post]
 func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 	var input predictionInput
+
+	app.logger.Info("Starting to read json")
 
 	err := app.readJSON(w, r, &input)
 	if err != nil {
@@ -719,11 +725,13 @@ func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	app.logger.Info("connt to python server")
 	client := pb.NewRecommendationClient(app.grpcConn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
+	app.logger.Info("calling method on python server")
 	recommendation, err := client.Recommend(ctx, &pb.RecommendRequest{
 		MovieTitle: input.Title,
 	})
@@ -731,7 +739,7 @@ func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-
+	app.logger.Info("successfully got recommendation from python server")
 	data := envelope{"recommendations": recommendation.GetRecommendations()}
 
 	err = app.writeJSON(w, http.StatusOK, data, nil)

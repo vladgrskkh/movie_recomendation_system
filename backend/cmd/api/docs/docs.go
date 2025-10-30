@@ -213,6 +213,11 @@ const docTemplate = `{
         },
         "/movie/predict": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Validates movie input and predict movie",
                 "consumes": [
                     "application/json"
@@ -239,8 +244,34 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
+                            "$ref": "#/definitions/main.predictionInput"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}",
+                        "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | Example {\"error\": \"this resourse avaliable only for authenticated users\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity | Example {\"error\": \"validation error\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "500": {
@@ -678,7 +709,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/data.User"
+                            "$ref": "#/definitions/main.activateInput"
                         }
                     },
                     "400": {
@@ -866,6 +897,15 @@ const docTemplate = `{
                 "year": {
                     "type": "integer",
                     "example": 1994
+                }
+            }
+        },
+        "main.predictionInput": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "example": "The Shawshank Redemption"
                 }
             }
         },

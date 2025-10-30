@@ -19,7 +19,7 @@ import (
 // @version 1.0.0
 // @description REST API for recomending movies, managing users and authentication.
 // @BasePath /v1
-// @schemes https
+// @schemes http https
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization

@@ -103,6 +103,12 @@ definitions:
         example: 1994
         type: integer
     type: object
+  main.predictionInput:
+    properties:
+      title:
+        example: The Shawshank Redemption
+        type: string
+    type: object
   main.refreshInput:
     properties:
       refresh_token:
@@ -427,7 +433,26 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
+            $ref: '#/definitions/main.predictionInput'
+        "400":
+          description: 'Bad Request | Example {"error": "body contains badly-formated
+            JSON"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'Unauthorized | Example {"error": "this resourse avaliable
+            only for authenticated users"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: 'Unprocessable Entity | Example {"error": "validation error"}'
+          schema:
+            additionalProperties:
+              type: string
             type: object
         "500":
           description: 'Internal Server Error | Example {"error": "server encountered
@@ -436,6 +461,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get predict movie
       tags:
       - movies
@@ -589,7 +616,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/data.User'
+            $ref: '#/definitions/main.activateInput'
         "400":
           description: 'Bad Request | Example {"error": "body contains badly-formated
             JSON"}'
