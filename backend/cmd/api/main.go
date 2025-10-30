@@ -12,6 +12,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/mailer"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // @title Movie Recommendation System API
@@ -134,7 +135,7 @@ func main() {
 	logger.Info("database connection pool established")
 
 	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithInsecure())
+	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	conn, err := grpc.NewClient(":50051", opts...)
 	if err != nil {
