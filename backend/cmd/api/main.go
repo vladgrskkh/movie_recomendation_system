@@ -191,16 +191,14 @@ func openDB(cfg config) (*sql.DB, error) {
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
 // TO DO: write tests for the handlers and other components (2 hours)
-// TO DO: python ml microservice (grpc)
-// TO DO: resolve issues with imports in proto
 // fix bug: mailer on vps dial i/o timeout (fix: firewall blocks 587 so switch to api can help)
 // ::::::::::::::::::::::::::::::::
 
 // TO DO: write tests for the handlers and other components
 // TO DO: think about how to serve images for movies
-// TO DO: python ml microservice (grpc)
 // TO DO: reset password handler
 // TO DO: user profile handler
 // bug: mailer on vps dial i/o timeout
 // TODO: add more metrics, grafana settings (best practice)
 // TODO: add redis db for ip rate limmiter
+// TODO: add cicd for python service
