@@ -39,6 +39,11 @@ jobs:
       - name: 🛎 Checkout code
         uses: actions/checkout@v4
 
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
       - name: 🧰 Setup Go
         uses: actions/setup-go@v5
         with:
@@ -56,6 +61,16 @@ jobs:
             -path=/github/workspace/backend/migrations
             -database=${{ env.MRS_DB_DSN }}
             up
+        
+      - name: Generate Go gRPC code
+        run: |
+          mkdir -p backend/genproto
+          protoc \
+            -I=proto \
+            --go_out=backend/genproto \
+            --go-grpc_out=backend/genproto \
+            proto/common/types.proto \
+            proto/v1/predict/predict.proto
 
       - name: ✅ Run linters
         uses: golangci/golangci-lint-action@v7
