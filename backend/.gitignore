@@ -4,4 +4,4 @@
 .dockerignore
 .DS_STORE
 bin/
-genproto/
+genproto/*
