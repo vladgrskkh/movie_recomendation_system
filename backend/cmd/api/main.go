@@ -11,6 +11,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/mailer"
+	"google.golang.org/grpc"
 )
 
 // @title Movie Recommendation System API
@@ -132,7 +133,27 @@ func main() {
 
 	logger.Info("database connection pool established")
 
-	app := newApplication(cfg, logger, db, mailer)
+	var opts []grpc.DialOption
+	opts = append(opts, grpc.WithInsecure())
+
+	conn, err := grpc.NewClient(":50051", opts...)
+	if err != nil {
+		logger.Log(ctx, LevelFatal, "cannot connect to gRPC server: "+err.Error())
+		os.Exit(1)
+	}
+
+	defer func() {
+		e := conn.Close()
+		if err != nil {
+			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
+		} else {
+			err = e
+		}
+	}()
+
+	logger.Info("gRPC connection established")
+
+	app := newApplication(cfg, logger, db, mailer, conn)
 
 	logger.Info("Starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {
@@ -170,6 +191,7 @@ func openDB(cfg config) (*sql.DB, error) {
 // ::::::::::::::::::::::::::::::::
 // TO DO: write tests for the handlers and other components (2 hours)
 // TO DO: python ml microservice (grpc)
+// TO DO: resolve issues with imports in proto
 // fix bug: mailer on vps dial i/o timeout (fix: firewall blocks 587 so switch to api can help)
 // ::::::::::::::::::::::::::::::::
 

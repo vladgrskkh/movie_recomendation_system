@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "github.com/vladgrskkh/movie_recomendation_system/genproto/common;common";
+
+message Recommendation {
+    string title = 1;
+    double score = 2;
+}

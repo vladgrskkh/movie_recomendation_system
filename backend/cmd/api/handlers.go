@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/invopop/validation"
 	"github.com/invopop/validation/is"
+
+	pb "github.com/vladgrskkh/movie_recomendation_system/genproto/v1/predict"
 
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/validate"
@@ -684,6 +687,10 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 	}
 }
 
+type predictionInput struct {
+	Title string `json:"title" example:"The Shawshank Redemption"`
+}
+
 // Predict Handler godoc
 //
 // @Summary Get predict movie
@@ -696,11 +703,38 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Router /movie/predict [post]
 func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
-	mock := envelope{
-		"predict": "movie_id number",
+	var input predictionInput
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
 	}
 
-	err := app.writeJSON(w, http.StatusOK, mock, nil)
+	err = validation.ValidateStruct(&input,
+		validation.Field(&input.Title, validation.Required, validation.Length(1, 500)),
+	)
+	if err != nil {
+		app.failedValidationResponse(w, r, err)
+		return
+	}
+
+	client := pb.NewRecommendationClient(app.grpcConn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	recommendation, err := client.Recommend(ctx, &pb.RecommendRequest{
+		MovieTitle: input.Title,
+	})
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	data := envelope{"recommendations": recommendation.GetRecommendations()}
+
+	err = app.writeJSON(w, http.StatusOK, data, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

@@ -1,0 +1,7 @@
+models/data/*
+models/__pycache__/
+*.pyc
+__pycache__/
+common/__pycache__/
+v1/predict/__pycache__/
+train_model.py

@@ -26,7 +26,7 @@ func (f Filters) sortColumn() string {
 	panic("unsafe sort parameter: " + f.Sort)
 }
 
-// sortDirection returns a string representing the SQL sort direction based on the provided sort parameter.
+// sortDirection returns a string representing the SQL sort direction based o pn the provided sort parameter.
 // If the sort parameter starts with a '-', it returns "DESC", otherwise it returns "ASC".
 func (f Filters) sortDirection() string {
 	if strings.HasPrefix(f.Sort, "-") {

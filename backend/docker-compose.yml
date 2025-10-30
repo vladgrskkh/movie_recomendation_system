@@ -12,6 +12,12 @@ services:
     depends_on:
       - db
       - migrate
+
+  recommender:
+    image: vladgrskkh/mrs-recommender:latest
+    restart: always
+    expose: 
+      - "50051"
   
   db:
     image: postgres:18
