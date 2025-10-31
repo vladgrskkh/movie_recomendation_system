@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	ScopeActivation = "activation"
-	ScopeRefresh    = "refresh"
+	ScopeActivation    = "activation"
+	ScopeRefresh       = "refresh"
+	ScopePasswordReset = "password-reset"
 )
 
 // Token represents an application token used for account activation or refresh flows.
@@ -34,7 +35,13 @@ func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error
 		Scope:  scope,
 	}
 
-	randomBytes := make([]byte, 16)
+	var randomBytes []byte
+
+	if scope == ScopeRefresh {
+		randomBytes = make([]byte, 16)
+	} else {
+		randomBytes = make([]byte, 3)
+	}
 
 	_, err := rand.Read(randomBytes)
 	if err != nil {

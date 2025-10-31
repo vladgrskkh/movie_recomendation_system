@@ -2,23 +2,24 @@ package mailer
 
 import (
 	"bytes"
+	"context"
 	"embed"
 	"text/template"
 	"time"
 
-	"gopkg.in/gomail.v2"
+	"github.com/mailersend/mailersend-go"
 )
 
 //go:embed "templates"
 var templateFS embed.FS
 
 type Mailer struct {
-	dialer *gomail.Dialer
+	dialer *mailersend.Mailersend
 	sender string
 }
 
-func New(host string, port int, username, password, sender string) Mailer {
-	dialer := gomail.NewDialer(host, port, username, password)
+func New(APIKey, sender string) Mailer {
+	dialer := mailersend.NewMailersend(APIKey)
 
 	return Mailer{
 		dialer: dialer,
@@ -27,6 +28,9 @@ func New(host string, port int, username, password, sender string) Mailer {
 }
 
 func (m Mailer) Send(recipient, templateFile string, data interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	tmpl, err := template.New("email").ParseFS(templateFS, "templates/"+templateFile)
 	if err != nil {
 		return err
@@ -50,15 +54,25 @@ func (m Mailer) Send(recipient, templateFile string, data interface{}) error {
 		return err
 	}
 
-	msg := gomail.NewMessage()
-	msg.SetHeader("To", recipient)
-	msg.SetHeader("From", m.sender)
-	msg.SetHeader("Subject", subject.String())
-	msg.SetBody("text/plain", plainBody.String())
-	msg.AddAlternative("text/html", htmlBody.String())
+	from := mailersend.From{
+		Email: m.sender,
+	}
+
+	recipientMailer := []mailersend.Recipient{
+		{
+			Email: recipient,
+		},
+	}
+
+	msg := m.dialer.Email.NewMessage()
+	msg.SetFrom(from)
+	msg.SetRecipients(recipientMailer)
+	msg.SetSubject(subject.String())
+	msg.SetText(plainBody.String())
+	msg.SetHTML(htmlBody.String())
 
 	for i := 1; i <= 3; i++ {
-		err = m.dialer.DialAndSend(msg)
+		_, err = m.dialer.Email.Send(ctx, msg)
 		if nil == err {
 			return nil
 		}

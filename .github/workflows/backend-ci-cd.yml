@@ -167,6 +167,7 @@ jobs:
             echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" > ~/mrs/backend/.env_db
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> ~/mrs/backend/.env_db
             echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> ~/mrs/backend/.env_db
+            echo "MAILERSEND_API_KEYD=${{ secrets.MAILERSEND_API_KEYD }}" >> ~/mrs/backend/.env
 
 
       - name: 🔐 Copy files to VPS

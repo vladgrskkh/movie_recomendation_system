@@ -69,15 +69,19 @@ type config struct {
 		maxIdleTime  string
 	}
 	smtp struct {
-		host     string
-		port     int
-		username string
-		password string
-		sender   string
+		// host     string
+		// port     int
+		// username string
+		// password string
+		mailerAPIKey string
+		sender       string
 	}
 	limiter struct {
 		rps    int
 		enable bool
+	}
+	grpc struct {
+		address string
 	}
 }
 
@@ -93,14 +97,17 @@ func main() {
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "5m", "PostgreSQL max idle time")
 
-	flag.StringVar(&cfg.smtp.host, "smtp-host", "smtp.mailersend.net", "SMTP host")
-	flag.IntVar(&cfg.smtp.port, "smtp-port", 587, "SMTP port")
-	flag.StringVar(&cfg.smtp.username, "smtp-username", "", "SMTP username")
-	flag.StringVar(&cfg.smtp.password, "smtp-password", "", "SMTP password")
-	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "MS_rGhIm9@test-r83ql3pqpxxgzw1j.mlsender.net", "SMTP sender")
+	// flag.StringVar(&cfg.smtp.host, "smtp-host", "smtp.mailersend.net", "SMTP host")
+	// flag.IntVar(&cfg.smtp.port, "smtp-port", 587, "SMTP port")
+	// flag.StringVar(&cfg.smtp.username, "smtp-username", "", "SMTP username")
+	// flag.StringVar(&cfg.smtp.password, "smtp-password", "", "SMTP password")
+	flag.StringVar(&cfg.smtp.mailerAPIKey, "smtp-mailer-api-key", "", "SMTP MailerSend API key")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "", "SMTP sender")
 
 	flag.IntVar(&cfg.limiter.rps, "limiter-rps", 10, "Rate limiter maximum requests per second")
 	flag.BoolVar(&cfg.limiter.enable, "limiter-enable", true, "Enable rate limiter")
+
+	flag.StringVar(&cfg.grpc.address, "grpc-address", "", "gRPC server address")
 
 	displayVersion := flag.Bool("version", false, "Display version and quit")
 
@@ -111,7 +118,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	mailer := mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender)
+	mailer := mailer.New(cfg.smtp.mailerAPIKey, cfg.smtp.sender)
 
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, loggerOpts))
 
@@ -137,7 +144,7 @@ func main() {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
-	conn, err := grpc.NewClient(":50051", opts...)
+	conn, err := grpc.NewClient(cfg.grpc.address+":50051", opts...)
 	if err != nil {
 		logger.Log(ctx, LevelFatal, "cannot connect to gRPC server: "+err.Error())
 		os.Exit(1)
@@ -201,6 +208,5 @@ func openDB(cfg config) (*sql.DB, error) {
 // bug: mailer on vps dial i/o timeout
 // TODO: add more metrics, grafana settings (best practice)
 // TODO: add redis db for ip rate limmiter
-// TODO: add cicd for python service
 // TODO: new makefile rules
 // TODO: make use of makefile in cicd pipelines

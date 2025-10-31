@@ -412,7 +412,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	token, err := app.models.Tokens.New(user.ID, 72*time.Hour, data.ScopeActivation)
+	token, err := app.models.Tokens.New(user.ID, 5*time.Minute, data.ScopeActivation)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -422,7 +422,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	data := envelope{
 		"activationToken": token.Plaintext,
-		"userID":          user.ID,
+		"name":            user.Name,
 	}
 
 	app.background(func() {
@@ -465,7 +465,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = validation.Validate(input.Token, validation.Required, validation.Length(26, 26))
+	err = validation.Validate(input.Token, validation.Required, validation.Length(5, 5))
 	if err != nil {
 		app.failedValidationResponse(w, r, err)
 		return
@@ -698,7 +698,7 @@ type predictionInput struct {
 // @Tags movies
 // @Accept json
 // @Produce json
-// @Param credentials body object true "Moive payload"
+// @Param credentials body predictionInput true "Moive payload"
 // @Security BearerAuth
 // @Success 200 {object} predictionInput
 // @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
@@ -708,8 +708,6 @@ type predictionInput struct {
 // @Router /movie/predict [post]
 func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 	var input predictionInput
-
-	app.logger.Info("Starting to read json")
 
 	err := app.readJSON(w, r, &input)
 	if err != nil {
@@ -725,13 +723,11 @@ func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.logger.Info("connt to python server")
 	client := pb.NewRecommendationClient(app.grpcConn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	app.logger.Info("calling method on python server")
 	recommendation, err := client.Recommend(ctx, &pb.RecommendRequest{
 		MovieTitle: input.Title,
 	})
@@ -739,10 +735,167 @@ func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-	app.logger.Info("successfully got recommendation from python server")
+
 	data := envelope{"recommendations": recommendation.GetRecommendations()}
 
 	err = app.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+type inputChangePassword struct {
+	Email string `json:"email" example:"something@example.com"`
+}
+
+// createPasswordResetCodeHandler godoc
+//
+// @Summary Post create password reset
+// @Description Validates email and checks if user exists and activated than sends email with code
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param credentials body inputChangePassword true "Change password payload"
+// @Success 200 {object} map[string]string "OK | Exmaple {"message": "check your email for reset code"}"
+// @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
+// @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
+// @Router /tokens/password-reset [post]
+func (app *application) createPasswordResetCodeHandler(w http.ResponseWriter, r *http.Request) {
+	var input inputChangePassword
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = validation.ValidateStruct(&input,
+		validation.Field(&input.Email, validation.Required, is.Email),
+	)
+	if err != nil {
+		app.failedValidationResponse(w, r, err)
+		return
+	}
+
+	user, err := app.models.Users.GetByEmail(input.Email)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.invalidCredentialResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	if !user.Activated {
+		app.failedValidationResponse(w, r, errors.New("user account must be activated"))
+		return
+	}
+
+	// implement all logic (gen reset code, email template)
+	resetCode, err := app.models.Tokens.New(user.ID, 2*time.Minute, data.ScopePasswordReset)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	data := envelope{
+		"resetCode": resetCode.Plaintext,
+		"name":      user.Name,
+	}
+
+	app.background(func() {
+		err = app.mailer.Send(user.Email, "user_reset_password.html", data)
+		if err != nil {
+			app.logger.Error(err.Error())
+		}
+	})
+
+	err = app.writeJSON(w, http.StatusAccepted, envelope{"message": "check your email for reset code"}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+type inputUpdatePassword struct {
+	Code        string `json:"code" example:"123454"`
+	NewPassword string `json:"new_password" example:"n3wP@ssw0rd!"`
+}
+
+// updateUserPasswordHandler godoc
+//
+// @Summary Put update user password
+// @Description Validates new password and code, sets new password for user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param credentials body inputUpdatePassword true "Update password payload"
+// @Success 200 {object} map[string]string "OK | Exmaple {"message": "your password was successfully reset"}"
+// @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
+// @Failure 409 {object} map[string]string "Conflict | Example {"error": "unable to update the record due to an edit conflict, please try again"}"
+// @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
+// @Router /users/password [put]
+func (app *application) updateUserPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var input inputUpdatePassword
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = validation.ValidateStruct(&input,
+		validation.Field(&input.NewPassword, validation.Required, validation.Length(8, 72)),
+		validation.Field(&input.Code, validation.Required, validation.Length(5, 5)),
+	)
+	if err != nil {
+		app.failedValidationResponse(w, r, err)
+		return
+	}
+
+	user, err := app.models.Users.GetForToken(data.ScopePasswordReset, input.Code)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.failedValidationResponse(w, r, errors.New("invalid or expired password code"))
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	err = user.Password.Set(input.NewPassword)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.models.Users.Update(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	err = app.models.Tokens.DeleteAllForUser(data.ScopePasswordReset, user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	msg := envelope{"message": "your password was successfully reset"}
+
+	err = app.writeJSON(w, http.StatusOK, msg, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

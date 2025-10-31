@@ -25,14 +25,14 @@ _sym_db = _symbol_database.Default()
 from common import types_pb2 as common_dot_types__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18v1/predict/predict.proto\x12\nv1.predict\x1a\x12\x63ommon/types.proto\"&\n\x10RecommendRequest\x12\x12\n\nmovieTitle\x18\x01 \x01(\t\"D\n\x11RecommendResponse\x12/\n\x0frecommendations\x18\x01 \x03(\x0b\x32\x16.common.Recommendation2Z\n\x0eRecommendation\x12H\n\tRecommend\x12\x1c.v1.predict.RecommendRequest\x1a\x1d.v1.predict.RecommendResponseBQZOgithub.com/vladgrskkh/movie_recomendation_system/genproto/go/v1/predict;predictb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18v1/predict/predict.proto\x12\nv1.predict\x1a\x12\x63ommon/types.proto\"&\n\x10RecommendRequest\x12\x12\n\nmovieTitle\x18\x01 \x01(\t\"D\n\x11RecommendResponse\x12/\n\x0frecommendations\x18\x01 \x03(\x0b\x32\x16.common.Recommendation2Z\n\x0eRecommendation\x12H\n\tRecommend\x12\x1c.v1.predict.RecommendRequest\x1a\x1d.v1.predict.RecommendResponseBNZLgithub.com/vladgrskkh/movie_recomendation_system/genproto/v1/predict;predictb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'v1.predict.predict_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'ZOgithub.com/vladgrskkh/movie_recomendation_system/genproto/go/v1/predict;predict'
+  _globals['DESCRIPTOR']._serialized_options = b'ZLgithub.com/vladgrskkh/movie_recomendation_system/genproto/v1/predict;predict'
   _globals['_RECOMMENDREQUEST']._serialized_start=60
   _globals['_RECOMMENDREQUEST']._serialized_end=98
   _globals['_RECOMMENDRESPONSE']._serialized_start=100
