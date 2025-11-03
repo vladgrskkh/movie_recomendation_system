@@ -1,0 +1,97 @@
+version: "3.9"
+
+services:
+  api:
+    image: vladgrskkh/mrs-api:latest
+    env_file:
+      - .env
+    restart: always
+    expose: 
+      - "8080"
+    command: ["-db-dsn=${MRS_DB_DSND}", "-smtp-mailer-api-key=${MAILERSEND_API_KEYD}", "-smtp-sender=${SMTP_USERNAMED}", "-grpc-address=recommender", "-jwt-secret=${JWT_SECRET_KEYD}"]
+    depends_on:
+      - db
+      - migrate
+
+  recommender:
+    image: vladgrskkh/mrs-recommender:latest
+    restart: always
+    expose: 
+      - "50051"
+  
+  db:
+    image: postgres:18
+    env_file:
+      - .env_db 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mrs_user -d mrs"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+  migrate:
+    image: migrate/migrate
+    env_file:
+      - .env
+    depends_on:
+        db:
+          condition: service_healthy
+    command: [
+      "-path", "/migrations",
+      "-database", "${MRS_DB_DSND}",
+      "up"
+    ]
+    volumes:
+      - ./migrations:/migrations
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - $PWD/conf/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.55.0
+    volumes:
+      - $PWD/conf/prometheus.yml:/etc/prometheus/prometheus.yml
+    expose:
+      - "9090"
+    depends_on:
+      - api
+  
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:11.3.0
+    env_file:
+      - .env
+    volumes:
+      - $PWD/conf/grafana.yml:/etc/grafana/provisioning/datasources/datasource.yaml
+      - grafana-data:/var/lib/grafana
+    expose:
+      - "3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
+    depends_on:
+      - api
+      - prometheus
+
+
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
+  grafana-data:
