@@ -4,7 +4,7 @@
 
 ![Work in Progress](https://img.shields.io/badge/status-WIP-yellow)
 
-[Swagger Docs](https://movierecomendation.duckdns.org/v1/swagger)
+[Swagger Docs](https://movierecomendation.duckdns.org/v1/swagger/)
 A modern movie recommendation platform built with **Go** and **Python**, designed to provide personalized film suggestions through a clean REST API.
 
 ## 🚀 Features
