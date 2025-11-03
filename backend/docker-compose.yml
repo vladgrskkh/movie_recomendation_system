@@ -8,7 +8,7 @@ services:
     restart: always
     expose: 
       - "8080"
-    command: ["-db-dsn=${MRS_DB_DSND}", "smtp-mailer-api-key=${SMTP_MAILER_API_KEYD}", "-smtp-sender=${SMTP_USERNAMED}", "-grpc-address=recommender"]
+    command: ["-db-dsn=${MRS_DB_DSND}", "-smtp-mailer-api-key=${MAILERSEND_API_KEYD}", "-smtp-sender=${SMTP_USERNAMED}", "-grpc-address=recommender"]
     depends_on:
       - db
       - migrate

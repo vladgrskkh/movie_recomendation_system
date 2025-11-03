@@ -489,6 +489,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/tokens/activation": {
+            "post": {
+                "description": "Validates email and checks if user exists, if not activated we send mail with activation code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tokens"
+                ],
+                "summary": "Create new activation token",
+                "parameters": [
+                    {
+                        "description": "Create activation token payload",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.inputChangePassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted | Exmaple {\"message\": \"check your email for activation code\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity | Example {\"error\": \"validation error\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/tokens/authentication": {
             "post": {
                 "description": "Creates authentication and refresh tokens",
@@ -584,8 +648,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK | Exmaple {\"message\": \"check your email for reset code\"}",
+                    "202": {
+                        "description": "Accepted | Exmaple {\"message\": \"check your email for reset code\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

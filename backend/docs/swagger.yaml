@@ -481,6 +481,52 @@ paths:
       summary: Get predict movie
       tags:
       - movies
+  /tokens/activation:
+    post:
+      consumes:
+      - application/json
+      description: Validates email and checks if user exists, if not activated we
+        send mail with activation code
+      parameters:
+      - description: Create activation token payload
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/main.inputChangePassword'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: 'Accepted | Exmaple {"message": "check your email for activation
+            code"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'Bad Request | Example {"error": "body contains badly-formated
+            JSON"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: 'Unprocessable Entity | Example {"error": "validation error"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {"error": "server encountered
+            a problem and could not process your request"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create new activation token
+      tags:
+      - tokens
   /tokens/authentication:
     post:
       consumes:
@@ -545,8 +591,9 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: 'OK | Exmaple {"message": "check your email for reset code"}'
+        "202":
+          description: 'Accepted | Exmaple {"message": "check your email for reset
+            code"}'
           schema:
             additionalProperties:
               type: string

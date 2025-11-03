@@ -55,6 +55,7 @@ func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) 
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
+		return
 	}
 
 	movie, err := app.models.Movies.Get(id)
@@ -756,7 +757,7 @@ type inputChangePassword struct {
 // @Accept json
 // @Produce json
 // @Param credentials body inputChangePassword true "Change password payload"
-// @Success 200 {object} map[string]string "OK | Exmaple {"message": "check your email for reset code"}"
+// @Success 202 {object} map[string]string "Accepted | Exmaple {"message": "check your email for reset code"}"
 // @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
 // @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
@@ -795,7 +796,6 @@ func (app *application) createPasswordResetCodeHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	// implement all logic (gen reset code, email template)
 	resetCode, err := app.models.Tokens.New(user.ID, 2*time.Minute, data.ScopePasswordReset)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -896,6 +896,81 @@ func (app *application) updateUserPasswordHandler(w http.ResponseWriter, r *http
 	msg := envelope{"message": "your password was successfully reset"}
 
 	err = app.writeJSON(w, http.StatusOK, msg, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+// createActivationTokenHandler godoc
+//
+// @Summary Create new activation token
+// @Description Validates email and checks if user exists, if not activated we send mail with activation code
+// @Tags tokens
+// @Accept json
+// @Produce json
+// @Param credentials body inputChangePassword true "Create activation token payload"
+// @Success 202 {object} map[string]string "Accepted | Exmaple {"message": "check your email for activation code"}"
+// @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
+// @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
+// @Router /tokens/activation [post]
+func (app *application) createActivationTokenHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email string `json:"email" example:"something@example.com"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = validation.ValidateStruct(&input,
+		validation.Field(&input.Email, validation.Required, is.Email),
+	)
+	if err != nil {
+		app.failedValidationResponse(w, r, err)
+		return
+	}
+
+	user, err := app.models.Users.GetByEmail(input.Email)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.failedValidationResponse(w, r, errors.New("no matching email address found"))
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	if user.Activated {
+		app.failedValidationResponse(w, r, errors.New("user has already been activated"))
+		return
+	}
+
+	token, err := app.models.Tokens.New(user.ID, 5*time.Minute, data.ScopeActivation)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	data := envelope{
+		"activationToken": token.Plaintext,
+		"name":            user.Name,
+	}
+
+	app.background(func() {
+		err = app.mailer.Send(user.Email, "user_activation_token.html", data)
+		if err != nil {
+			app.logger.Error(err.Error())
+		}
+	})
+
+	msg := envelope{"message": "check your email for activation code"}
+
+	err = app.writeJSON(w, http.StatusAccepted, msg, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

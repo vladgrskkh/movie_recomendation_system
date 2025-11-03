@@ -69,10 +69,6 @@ type config struct {
 		maxIdleTime  string
 	}
 	smtp struct {
-		// host     string
-		// port     int
-		// username string
-		// password string
 		mailerAPIKey string
 		sender       string
 	}
@@ -97,10 +93,6 @@ func main() {
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "5m", "PostgreSQL max idle time")
 
-	// flag.StringVar(&cfg.smtp.host, "smtp-host", "smtp.mailersend.net", "SMTP host")
-	// flag.IntVar(&cfg.smtp.port, "smtp-port", 587, "SMTP port")
-	// flag.StringVar(&cfg.smtp.username, "smtp-username", "", "SMTP username")
-	// flag.StringVar(&cfg.smtp.password, "smtp-password", "", "SMTP password")
 	flag.StringVar(&cfg.smtp.mailerAPIKey, "smtp-mailer-api-key", "", "SMTP MailerSend API key")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "", "SMTP sender")
 
@@ -134,8 +126,8 @@ func main() {
 		e := db.Close()
 		if err != nil {
 			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
-		} else {
-			err = e
+		} else if e != nil {
+			logger.Error(err.Error())
 		}
 	}()
 
@@ -154,8 +146,8 @@ func main() {
 		e := conn.Close()
 		if err != nil {
 			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
-		} else {
-			err = e
+		} else if e != nil {
+			logger.Error(err.Error())
 		}
 	}()
 
@@ -198,15 +190,11 @@ func openDB(cfg config) (*sql.DB, error) {
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
 // TO DO: write tests for the handlers and other components (2 hours)
-// fix bug: mailer on vps dial i/o timeout (fix: firewall blocks 587 so switch to api can help)
 // ::::::::::::::::::::::::::::::::
 
 // TO DO: write tests for the handlers and other components
 // TO DO: think about how to serve images for movies
-// TO DO: reset password handler
 // TO DO: user profile handler
-// bug: mailer on vps dial i/o timeout
 // TODO: add more metrics, grafana settings (best practice)
 // TODO: add redis db for ip rate limmiter
-// TODO: new makefile rules
 // TODO: make use of makefile in cicd pipelines

@@ -111,15 +111,6 @@ func (app *application) metrics(next http.Handler) http.Handler {
 		Name: "in_flight_requests",
 		Help: "The number of 'active' in-flight requests",
 	})
-	// avgRequestReceivedPerRequest := promauto.NewGauge(prometheus.GaugeOpts{
-	// Name: "avg_request_received_per_request",
-	// Help: "The average amount of requests received per second (between scrapes)",
-	// })
-	// avgProcessingTimePerRequest := promauto.NewGauge(prometheus.GaugeOpts{
-	// Name: "avg_processing_time_per_request",
-	// Help: "The average processing time per request in microseconds (between scrapes)",
-	// })
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
