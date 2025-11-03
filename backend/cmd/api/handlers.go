@@ -505,7 +505,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// auth token with updated payload (user.Actavated field)
-	authToken, err := createToken(user.ID, user.Activated)
+	authToken, err := createToken(user.ID, user.Activated, app)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -578,7 +578,7 @@ func (app *application) refreshTokenHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// auth token
-	authToken, err := createToken(user.ID, user.Activated)
+	authToken, err := createToken(user.ID, user.Activated, app)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -671,7 +671,7 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 	}
 
 	// auth token
-	authToken, err := createToken(user.ID, user.Activated)
+	authToken, err := createToken(user.ID, user.Activated, app)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

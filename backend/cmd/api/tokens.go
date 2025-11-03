@@ -12,16 +12,13 @@ var (
 	ErrNotEnoughTimeElapsed = errors.New("not enough time elapsed before you can renew token")
 )
 
-// Placeholder will change it later
-var jwtKey = []byte("my secret key")
-
 type Claims struct {
 	UserID    int64 `json:"userID"`
 	Activated bool  `json:"activated"`
 	jwt.RegisteredClaims
 }
 
-func createToken(userID int64, activated bool) (string, error) {
+func createToken(userID int64, activated bool, app *application) (string, error) {
 	expireTime := time.Now().Add(30 * time.Minute)
 
 	claims := Claims{
@@ -34,7 +31,7 @@ func createToken(userID int64, activated bool) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tokenString, err := token.SignedString(jwtKey)
+	tokenString, err := token.SignedString(app.config.jwt.secretKey)
 	if err != nil {
 		return "", err
 	}
@@ -43,9 +40,9 @@ func createToken(userID int64, activated bool) (string, error) {
 }
 
 // jwt.Validate
-func validateToken(token string) (*Claims, error) {
+func validateToken(token string, app *application) (*Claims, error) {
 	tkn, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (any, error) {
-		return jwtKey, nil
+		return app.config.jwt.secretKey, nil
 	})
 	if err != nil {
 		return nil, ErrInvalidToken

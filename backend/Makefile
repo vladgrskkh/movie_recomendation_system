@@ -21,7 +21,8 @@ confirm:
 ## run/api: run the API application
 .PHONY: run/api
 run/api:
-	go run ./cmd/api -db-dsn=${MRS_DB_DSN} -smtp-mailer-api-key=${MAILERSEND_API_KEY} -smtp-sender=${SMTP_USERNAME}
+	go run ./cmd/api -db-dsn=${MRS_DB_DSN} -smtp-mailer-api-key=${MAILERSEND_API_KEY} -smtp-sender=${SMTP_USERNAME} -jwt-secret=${JWT_SECRET_KEY}
+
 ## run/recommender: run the python grpc service
 .PHONY: run/recommender
 run/recommender:
@@ -47,7 +48,7 @@ db/migrations/up: confirm
 ## run/docker/api: run the docker container
 .PHONY: run/docker/api
 run/docker/api:
-	docker run -p 8080:8080 vladgrskkh/mrs-api:latest -db-dsn=${MRS_DB_DSN} -smtp-mailer-api-key=${MAILERSEND_API_KEY}
+	docker run -p 8080:8080 vladgrskkh/mrs-api:latest -db-dsn=${MRS_DB_DSN} -smtp-mailer-api-key=${MAILERSEND_API_KEY} -smtp-sender=${SMTP_USERNAME} -jwt-secret=${JWT_SECRET_KEY}
 
 ## run/docker/api: run the docker container
 .PHONY: run/docker/recommender

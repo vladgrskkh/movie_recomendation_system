@@ -31,7 +31,7 @@ func (app *application) authentication(next http.Handler) http.Handler {
 		}
 
 		token := headerParts[1]
-		claims, err := validateToken(token)
+		claims, err := validateToken(token, app)
 		if err != nil {
 			switch {
 			case errors.Is(err, ErrInvalidToken):

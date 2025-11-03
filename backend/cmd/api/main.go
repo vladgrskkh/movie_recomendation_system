@@ -79,6 +79,9 @@ type config struct {
 	grpc struct {
 		address string
 	}
+	jwt struct {
+		secretKey string
+	}
 }
 
 func main() {
@@ -100,6 +103,8 @@ func main() {
 	flag.BoolVar(&cfg.limiter.enable, "limiter-enable", true, "Enable rate limiter")
 
 	flag.StringVar(&cfg.grpc.address, "grpc-address", "", "gRPC server address")
+
+	flag.StringVar(&cfg.jwt.secretKey, "jwt-secret", "", "Secret key for signing and verifying JWT tokens")
 
 	displayVersion := flag.Bool("version", false, "Display version and quit")
 
