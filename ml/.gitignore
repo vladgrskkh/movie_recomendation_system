@@ -1,0 +1,8 @@
+__pycache__/
+data/
+ml-32m/
+venv/
+dataset.py
+structurs.txt
+test.py
+tmdb_movies.json
