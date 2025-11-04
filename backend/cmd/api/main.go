@@ -80,7 +80,8 @@ type config struct {
 		address string
 	}
 	jwt struct {
-		secretKey string
+		secretKey      string
+		secretKeyBytes []byte
 	}
 }
 
@@ -114,6 +115,9 @@ func main() {
 		fmt.Printf("Build time:\t%s\nVersion:\t%s\n", buildTime, version)
 		os.Exit(0)
 	}
+
+	// Convert JWT secret key to byte slice
+	cfg.jwt.secretKeyBytes = []byte(cfg.jwt.secretKey)
 
 	mailer := mailer.New(cfg.smtp.mailerAPIKey, cfg.smtp.sender)
 

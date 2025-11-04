@@ -169,6 +169,7 @@ jobs:
             echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> ~/mrs/backend/.env_db
             echo "MAILERSEND_API_KEYD=${{ secrets.MAILERSEND_API_KEYD }}" >> ~/mrs/backend/.env
             echo "JWT_SECRET_KEYD=${{ secrets.JWT_SECRET_KEYD }}" >> ~/mrs/backend/.env
+            echo "DUCKDNS_TOKEN=${{ secrets.DUCKDNS_TOKEN }}" >> ~/mrs/backend/.env
 
 
       - name: 🔐 Copy files to VPS

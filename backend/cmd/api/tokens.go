@@ -31,7 +31,7 @@ func createToken(userID int64, activated bool, app *application) (string, error)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tokenString, err := token.SignedString(app.config.jwt.secretKey)
+	tokenString, err := token.SignedString(app.config.jwt.secretKeyBytes)
 	if err != nil {
 		return "", err
 	}
@@ -42,7 +42,7 @@ func createToken(userID int64, activated bool, app *application) (string, error)
 // jwt.Validate
 func validateToken(token string, app *application) (*Claims, error) {
 	tkn, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (any, error) {
-		return app.config.jwt.secretKey, nil
+		return app.config.jwt.secretKeyBytes, nil
 	})
 	if err != nil {
 		return nil, ErrInvalidToken

@@ -47,8 +47,10 @@ services:
       - ./migrations:/migrations
 
   caddy:
-    image: caddy:2.10-alpine
+    image: serfriz/caddy-duckdns:latest
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "80:80"
       - "443:443"
