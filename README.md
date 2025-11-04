@@ -27,8 +27,8 @@ A modern movie recommendation platform built with **Go** and **Python**, designe
 The system is composed of two core services connected via gRPC:
 
 Client → Caddy → REST API (Go) → ML Service (Python) → Recommendations
-                    ↓
-                PostgreSQL
+↓
+PostgreSQL
 
 - **Go Backend**: Handles REST API requests, user authentication, and communicates with the ML service.  
 - **Python ML Service**: Generates personalized recommendations using machine learning models.  
@@ -53,22 +53,29 @@ Client → Caddy → REST API (Go) → ML Service (Python) → Recommendations
 ## 📡 API Endpoints
 
 ### Health
-- `Get /v1/healthcheck` — Health check
-- `POST /api/v1/login` — User login and JWT token  
+- `Get /v1/healthcheck` — Health check 
 
 ### Movies
-- `GET /api/v1/movies` — List all movies  
-- `GET /api/v1/movies/:id` — Get movie details  
-- `POST /api/v1/movies` — Add a movie (admin only)  
-- `DELETE /api/v1/movies/:id` — Delete a movie  
+- `GET /v1/movie` — List all movies  
+- `GET /v1/movie/{id}` — Get movie details  
+- `POST /v1/movie` — Add a movie
+- `POST /v1/movie/predict` — Get a movie recommendation
+- `DELETE /v1/movie/{id}` — Delete a movie  
+- `PATCH /v1/movie/{id}` — Update a movie (supports partial update)
 
-### Recommendations
-- `GET /api/v1/recommendations?user_id={id}` — Get personalized recommendations  
+### Users
+- `POST /v1/users` — Resister a new user
+- `PUT /v1/users/activate` — Activate a user
+- `PUT /v1/users/password` — Update user password
+
+### Authentication
+- `POST /v1/tokens/authentication` — Login user
+- `POST /v1/tokens/password-reset` — Create token for password reset
+- `PUT /v1/tokens/refresh` — Create refresh token
 
 ### System
-- `GET /health` — Health check  
 - `GET /metrics` — Prometheus metrics  
-- `GET /swagger/index.html` — API documentation  
+- `GET /swagger/` — API documentation  
 
 ---
 
