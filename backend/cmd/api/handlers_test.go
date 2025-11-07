@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data/mocks"
 )
@@ -110,4 +112,54 @@ func TestGetMovieHandler(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPostMovieHandler(t *testing.T) {
+	app := newTestApplication(t)
+
+	ts := newTestServer(t, testRoutes(app))
+	defer ts.Close()
+
+	mockMovies := mocks.NewMoviesInterface(t)
+
+	movieReq := movieInput{
+		Title:   "Test Movie",
+		Year:    2024,
+		Runtime: 125,
+		Genres:  []string{"Drama", "Action"},
+	}
+
+	movie := data.Movie{
+		Title:   movieReq.Title,
+		Year:    movieReq.Year,
+		Runtime: movieReq.Runtime,
+		Genres:  movieReq.Genres,
+	}
+
+	mockMovies.On("Insert", &movie).Return(nil).Run(func(args mock.Arguments) {
+		arg := args.Get(0).(*data.Movie)
+		arg.ID = 1
+		arg.Version = 1
+	})
+
+	app.models.Movies = mockMovies
+
+	requestBody, err := json.MarshalIndent(&movieReq, "", "\t")
+	assert.NoError(t, err)
+
+	buffer := bytes.NewBuffer(requestBody)
+	code, _, body := ts.post(t, "/v1/movie", buffer)
+
+	var movieResp map[string]data.Movie
+
+	err = json.Unmarshal(body, &movieResp)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusCreated, code, "status code should be 201")
+	assert.Equal(t, int64(1), movieResp["movie"].ID, "movie ID should be 1")
+	assert.Equal(t, int32(1), movieResp["movie"].Version, "movie version should be 1")
+	assert.Equal(t, movie.Title, movieResp["movie"].Title, "movie title should be equal")
+	assert.Equal(t, movie.Year, movieResp["movie"].Year, "movie year should be equal")
+	assert.Equal(t, movie.Runtime, movieResp["movie"].Runtime, "movie runtime should be equal")
+	assert.Equal(t, movie.Genres, movieResp["movie"].Genres, "movie genres should be equal")
 }

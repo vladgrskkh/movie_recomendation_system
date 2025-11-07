@@ -207,3 +207,4 @@ func openDB(cfg config) (*sql.DB, error) {
 // TODO: add more metrics, grafana settings (best practice)
 // TODO: add redis db for ip rate limmiter
 // TODO: make use of makefile in cicd pipelines
+// TODO: grafana storage persistence

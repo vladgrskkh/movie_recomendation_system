@@ -51,6 +51,30 @@ func (ts *testServer) get(t *testing.T, urlPath string) (int, http.Header, []byt
 	return rs.StatusCode, rs.Header, body
 }
 
+func (ts *testServer) post(t *testing.T, urlPath string, requestBody io.Reader) (int, http.Header, []byte) {
+	rs, err := ts.Client().Post(ts.URL+urlPath, "application/json", requestBody)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		e := rs.Body.Close()
+		if err != nil {
+			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
+		} else if e != nil {
+			t.Fatal(e)
+		}
+	}()
+
+	body, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return rs.StatusCode, rs.Header, body
+
+}
+
 func testRoutes(app *application) http.Handler {
 	r := chi.NewRouter()
 

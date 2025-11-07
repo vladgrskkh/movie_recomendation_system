@@ -1,8 +1,12 @@
 {
     email contactme12314q@gmail.com
+    ocsp_stapling off
 }
 
 movierecomendation.duckdns.org {
+    tls {
+        dns duckdns {$DUCKDNS_TOKEN}
+    }
     encode gzip
     log {
         output file /data/caddy/access.log
