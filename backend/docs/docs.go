@@ -379,8 +379,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "400": {
-                        "description": "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}",
+                    "404": {
+                        "description": "Not Found | Example {\"error\": \"requested resource could not be found\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -688,7 +688,7 @@ const docTemplate = `{
             }
         },
         "/tokens/refresh": {
-            "put": {
+            "post": {
                 "description": "Exchange refresh token for new auth and refresh tokens",
                 "consumes": [
                     "application/json"

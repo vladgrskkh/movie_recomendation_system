@@ -16,11 +16,7 @@ import (
 func TestHealthCheckHandler(t *testing.T) {
 	app := newTestApplication(t)
 
-	cfg := config{
-		env: "development",
-	}
-
-	app.config = cfg
+	app.config.env = "development"
 
 	ts := newTestServer(t, testRoutes(app))
 	defer ts.Close()
@@ -144,22 +140,167 @@ func TestPostMovieHandler(t *testing.T) {
 
 	app.models.Movies = mockMovies
 
-	requestBody, err := json.MarshalIndent(&movieReq, "", "\t")
-	assert.NoError(t, err)
+	tests := []struct {
+		name     string
+		reqBody  interface{}
+		wantCode int
+		wantBody *data.Movie
+	}{
+		{
+			name:     "Valid Movie",
+			reqBody:  movieReq,
+			wantCode: http.StatusCreated,
+			wantBody: &data.Movie{
+				ID:      1,
+				Title:   movieReq.Title,
+				Year:    movieReq.Year,
+				Runtime: movieReq.Runtime,
+				Genres:  movieReq.Genres,
+				Version: 1,
+			},
+		},
+		{
+			name: "Invalid Movie (missing title)",
+			reqBody: movieInput{
+				Year:    2024,
+				Runtime: 125,
+				Genres:  []string{"Drama", "Action"},
+			},
+			wantCode: http.StatusUnprocessableEntity,
+		},
+		{
+			name: "Invalid Movie (year out of range)",
+			reqBody: movieInput{
+				Title:   "Test Movie",
+				Year:    3,
+				Runtime: 125,
+				Genres:  []string{"Drama", "Action"},
+			},
+			wantCode: http.StatusUnprocessableEntity,
+		},
+		{
+			name: "Invalid Movie (negative runtime)",
+			reqBody: movieInput{
+				Title:   "Test Movie",
+				Year:    2024,
+				Runtime: -125,
+				Genres:  []string{"Drama", "Action"},
+			},
+			wantCode: http.StatusUnprocessableEntity,
+		},
+		{
+			name: "Invalid Movie (empty genres)",
+			reqBody: movieInput{
+				Title:   "Test Movie",
+				Year:    2024,
+				Runtime: 125,
+				Genres:  []string{},
+			},
+			wantCode: http.StatusUnprocessableEntity,
+		},
+		{
+			name: "Invalid Movie (too many genres)",
+			reqBody: movieInput{
+				Title:   "Test Movie",
+				Year:    2024,
+				Runtime: 125,
+				Genres:  []string{"Drama", "Action", "Comedy", "Horror", "Sci-Fi", "Romance"},
+			},
+			wantCode: http.StatusUnprocessableEntity,
+		},
+		{
+			name: "Invalid Movie (duplicate genres)",
+			reqBody: movieInput{
+				Title:   "Test Movie",
+				Year:    2024,
+				Runtime: 125,
+				Genres:  []string{"Drama", "Action", "Drama"},
+			},
+			wantCode: http.StatusUnprocessableEntity,
+		},
+		{
+			name:     "Invalid JSON",
+			reqBody:  map[string]string{"invalid_json": "invalid_json"},
+			wantCode: http.StatusBadRequest,
+		},
+	}
 
-	buffer := bytes.NewBuffer(requestBody)
-	code, _, body := ts.post(t, "/v1/movie", buffer)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			requestBody, err := json.MarshalIndent(&tt.reqBody, "", "\t")
+			assert.NoError(t, err)
 
-	var movieResp map[string]data.Movie
+			buffer := bytes.NewBuffer(requestBody)
+			code, _, body := ts.post(t, "/v1/movie", buffer)
 
-	err = json.Unmarshal(body, &movieResp)
-	assert.NoError(t, err)
+			assert.Equal(t, tt.wantCode, code, fmt.Sprintf("status code should be %d", tt.wantCode))
+			if tt.wantBody != nil {
+				var movieResp map[string]data.Movie
 
-	assert.Equal(t, http.StatusCreated, code, "status code should be 201")
-	assert.Equal(t, int64(1), movieResp["movie"].ID, "movie ID should be 1")
-	assert.Equal(t, int32(1), movieResp["movie"].Version, "movie version should be 1")
-	assert.Equal(t, movie.Title, movieResp["movie"].Title, "movie title should be equal")
-	assert.Equal(t, movie.Year, movieResp["movie"].Year, "movie year should be equal")
-	assert.Equal(t, movie.Runtime, movieResp["movie"].Runtime, "movie runtime should be equal")
-	assert.Equal(t, movie.Genres, movieResp["movie"].Genres, "movie genres should be equal")
+				err = json.Unmarshal(body, &movieResp)
+				assert.NoError(t, err)
+
+				assert.Equal(t, int64(1), movieResp["movie"].ID, "movie ID should be 1")
+				assert.Equal(t, int32(1), movieResp["movie"].Version, "movie version should be 1")
+				assert.Equal(t, movie.Title, movieResp["movie"].Title, "movie title should be equal")
+				assert.Equal(t, movie.Year, movieResp["movie"].Year, "movie year should be equal")
+				assert.Equal(t, movie.Runtime, movieResp["movie"].Runtime, "movie runtime should be equal")
+				assert.Equal(t, movie.Genres, movieResp["movie"].Genres, "movie genres should be equal")
+			}
+		})
+	}
+}
+
+func TestDeleteMovieHandler(t *testing.T) {
+	app := newTestApplication(t)
+
+	ts := newTestServer(t, testRoutes(app))
+	defer ts.Close()
+
+	mockMovies := mocks.NewMoviesInterface(t)
+
+	mockMovies.On("Delete", int64(1)).Return(nil)
+	mockMovies.On("Delete", int64(2)).Return(data.ErrRecordNotFound)
+
+	app.models.Movies = mockMovies
+
+	tests := []struct {
+		name     string
+		urlPath  string
+		wantCode int
+	}{
+		{
+			name:     "Valid ID",
+			urlPath:  "/v1/movie/1",
+			wantCode: http.StatusOK,
+		},
+		{
+			name:     "Non-existent ID",
+			urlPath:  "/v1/movie/2",
+			wantCode: http.StatusNotFound,
+		},
+		{
+			name:     "Negative ID",
+			urlPath:  "/v1/movie/-1",
+			wantCode: http.StatusNotFound,
+		},
+		{
+			name:     "Decimal ID",
+			urlPath:  "/v1/movie/1.23",
+			wantCode: http.StatusNotFound,
+		},
+		{
+			name:     "String ID",
+			urlPath:  "/v1/movie/smth",
+			wantCode: http.StatusNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			code, _, _ := ts.delete(t, tt.urlPath)
+
+			assert.Equal(t, tt.wantCode, code, fmt.Sprintf("status code should be %d", tt.wantCode))
+		})
+	}
 }

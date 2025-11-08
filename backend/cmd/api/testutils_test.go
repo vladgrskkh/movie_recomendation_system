@@ -7,15 +7,23 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/go-chi/httprate"
 )
 
 func newTestApplication(t *testing.T) *application {
 	return &application{
 		logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
+		config: config{
+			jwt: struct {
+				secretKey      string
+				secretKeyBytes []byte
+			}{
+				secretKeyBytes: []byte("my_secret_key"),
+			},
+		},
 	}
 }
 
@@ -29,7 +37,19 @@ func newTestServer(t *testing.T, h http.Handler) *testServer {
 }
 
 func (ts *testServer) get(t *testing.T, urlPath string) (int, http.Header, []byte) {
-	rs, err := ts.Client().Get(ts.URL + urlPath)
+	req, err := http.NewRequest(http.MethodGet, ts.URL+urlPath, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	token, err := testAuth(1, true, newTestApplication(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	rs, err := ts.Client().Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +72,20 @@ func (ts *testServer) get(t *testing.T, urlPath string) (int, http.Header, []byt
 }
 
 func (ts *testServer) post(t *testing.T, urlPath string, requestBody io.Reader) (int, http.Header, []byte) {
-	rs, err := ts.Client().Post(ts.URL+urlPath, "application/json", requestBody)
+	req, err := http.NewRequest(http.MethodPost, ts.URL+urlPath, requestBody)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	token, err := testAuth(1, true, newTestApplication(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	rs, err := ts.Client().Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,21 +108,74 @@ func (ts *testServer) post(t *testing.T, urlPath string, requestBody io.Reader) 
 
 }
 
+func (ts *testServer) delete(t *testing.T, urlPath string) (int, http.Header, []byte) {
+	req, err := http.NewRequest(http.MethodDelete, ts.URL+urlPath, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	token, err := testAuth(1, true, newTestApplication(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	rs, err := ts.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		e := rs.Body.Close()
+		if err != nil {
+			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
+		} else if e != nil {
+			t.Fatal(e)
+		}
+	}()
+
+	body, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return rs.StatusCode, rs.Header, body
+}
+
+func testAuth(userID int64, activation bool, app *application) (string, error) {
+	token, err := createToken(userID, activation, app)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
 func testRoutes(app *application) http.Handler {
 	r := chi.NewRouter()
 
+	r.Use(app.recoverPanic)
+	r.Use(app.authentication)
+
+	// Rate-limit all routes
+	// Think about adding rate limmiter for specific routes(registaration, login)
+	if app.config.limiter.enable {
+		r.Use(httprate.LimitByIP(app.config.limiter.rps, time.Second))
+	}
+
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/healthcheck", app.healthCheckHandler)
-		r.Get("/swagger/*", httpSwagger.Handler())
 
 		r.Route("/movie", func(r chi.Router) {
+			r.Use(app.requireAuthenticatedUser)
 			r.Get("/", app.listMoviesHandler)
-			r.Post("/", app.postMovieHandler)
+			r.With(app.requireActivatedUser).Post("/", app.postMovieHandler)
 			r.Post("/predict", app.predictHandler)
 
 			r.Route("/{movieID}", func(r chi.Router) {
 				r.Get("/", app.getMovieHandler)
-				r.Patch("/", app.updateMovieHandler)
+				r.With(app.requireActivatedUser).Patch("/", app.updateMovieHandler)
 				r.Delete("/", app.deleteMovieHandler)
 			})
 		})
@@ -107,8 +193,6 @@ func testRoutes(app *application) http.Handler {
 			r.Post("/activation", app.createActivationTokenHandler)
 		})
 	})
-
-	r.Method(http.MethodGet, "/metrics", promhttp.Handler())
 
 	return r
 }

@@ -152,14 +152,14 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 // @Produce json
 // @Param movieID path int true "Movie ID"
 // @Success 200 {object} map[string]string "OK | Example {"message": "movie successfully deleted"}"
-// @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
+// @Failure 404 {object} map[string]string "Not Found | Example {"error": "requested resource could not be found"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Security BearerAuth
 // @Router /movie/{movieID} [delete]
 func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
-		app.badRequestResponse(w, r, err)
+		app.notFoundResponse(w, r)
 		return
 	}
 
@@ -167,7 +167,7 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.badRequestResponse(w, r, err)
+			app.notFoundResponse(w, r)
 			return
 		default:
 			app.serverErrorResponse(w, r, err)
@@ -541,7 +541,7 @@ type tokenPair struct {
 // @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
 // @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
-// @Router /tokens/refresh [put]
+// @Router /tokens/refresh [post]
 func (app *application) refreshTokenHandler(w http.ResponseWriter, r *http.Request) {
 	var input refreshInput
 

@@ -308,9 +308,9 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "400":
-          description: 'Bad Request | Example {"error": "body contains badly-formated
-            JSON"}'
+        "404":
+          description: 'Not Found | Example {"error": "requested resource could not
+            be found"}'
           schema:
             additionalProperties:
               type: string
@@ -622,7 +622,7 @@ paths:
       tags:
       - auth
   /tokens/refresh:
-    put:
+    post:
       consumes:
       - application/json
       description: Exchange refresh token for new auth and refresh tokens
