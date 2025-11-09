@@ -152,6 +152,8 @@ func testAuth(userID int64, activation bool, app *application) (string, error) {
 	return token, nil
 }
 
+// testRoutes is a helper function used to create routes without metrics(while delete this method
+// if I find a clever way to remove duplicate metric creation)
 func testRoutes(app *application) http.Handler {
 	r := chi.NewRouter()
 
