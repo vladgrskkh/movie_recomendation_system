@@ -208,3 +208,5 @@ func openDB(cfg config) (*sql.DB, error) {
 // TODO: add redis db for ip rate limmiter
 // TODO: make use of makefile in cicd pipelines
 // TODO: grafana storage persistence
+// TODO: mb pass app to helper test methods instead of creating a new app(if tests is slow)
+// TODO: prometheus work around duplicate metrics with tests
