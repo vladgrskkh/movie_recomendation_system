@@ -23,12 +23,6 @@ type Consumer struct {
 	consumerNumber int
 }
 
-type ConsumerGroup struct {
-	consumerGroup string    `toml:"consumer_group"`
-	consumerCount int32     `toml:"consumer_count"`
-	consumer      *Consumer `toml:"consumer"`
-}
-
 func NewConsumer(handler Handler, address []string, topic, consumerGroup string, consumerNumber int) (*Consumer, error) {
 	cfg := &kafka.ConfigMap{
 		"bootstrap.servers":        strings.Join(address, ","),
@@ -58,11 +52,7 @@ func NewConsumer(handler Handler, address []string, topic, consumerGroup string,
 }
 
 func (c *Consumer) Start() {
-	for {
-		if c.stop {
-			break
-		}
-
+	for !c.stop {
 		kafkaMessage, err := c.consumer.ReadMessage(noTimeout)
 		if err != nil {
 			slog.Error(err.Error())
