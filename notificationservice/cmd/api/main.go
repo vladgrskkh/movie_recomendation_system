@@ -63,7 +63,7 @@ func main() {
 
 	metadata, err := toml.DecodeFile("config.toml", &cfg)
 	if err != nil {
-		logger.Log(ctx, LevelFatal, "error loading configuration", err.Error())
+		logger.Log(ctx, LevelFatal, "error loading configuration", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
