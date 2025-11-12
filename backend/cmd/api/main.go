@@ -235,3 +235,5 @@ func openDB(cfg config) (*sql.DB, error) {
 // TODO: make use of makefile in cicd pipelines
 // TODO: grafana storage persistence
 // TODO: need to check if i may need more than one producer
+// TODO: ci/cd issue backend dont trigger ci pipeline
+// TODO: add handler that simply generates messages for kafka (test puprpose)
