@@ -17,6 +17,10 @@ var (
 	ErrKeyNotInteger = errors.New("must be an integer")
 )
 
+// const (
+// 	numberOfKeys = 20 // for generating kafka keys
+// )
+
 type envelope map[string]interface{}
 
 // readIDParam extracts and validates the ID parameter from the URL
@@ -199,4 +203,14 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int) (in
 // 	}
 
 // 	return validationErrors
+// }
+
+// dont need this for now so comment it
+// func generateUUIDString() [numberOfKeys]string {
+// 	var uuids [numberOfKeys]string
+// 	for i := 0; i < numberOfKeys; i++ {
+// 		uuids[i] = uuid.NewString()
+// 	}
+
+// 	return uuids
 // }

@@ -357,6 +357,17 @@ type registerInput struct {
 	Password string `json:"password" example:"s1mplepA$$word"`
 }
 
+// kafkaMessage struct hold info about user activation/reset password
+// need to work on naming
+type kafkaMessage struct {
+	UserID       int64  `json:"user_id"`
+	Email        string `json:"email"`
+	Name         string `json:"name"`
+	Token        string `json:"token"`
+	TemplateName string `json:"template_name,omitempty"`
+	Task         string `json:"task"`
+}
+
 // RegisterUser godoc
 //
 // @Summary Register a new user
@@ -420,6 +431,23 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// SMTP
+
+	// kafka producer handling
+	message := &kafkaMessage{
+		UserID:       user.ID,
+		Email:        user.Email,
+		Name:         user.Name,
+		Token:        token.Plaintext,
+		TemplateName: "user_welcome.html",
+		Task:         "send welcome email with activation token to user's email",
+	}
+
+	// change key later (need to test how it works)
+	err = app.producer.Produce(message, app.config.kafka.topic, nil, time.Now())
+	if err != nil {
+		// log or return if cannot produce msg (either bad json format or some problem with brokers)
+		app.logger.Error(err.Error())
+	}
 
 	data := envelope{
 		"activationToken": token.Plaintext,
@@ -802,6 +830,23 @@ func (app *application) createPasswordResetCodeHandler(w http.ResponseWriter, r 
 		return
 	}
 
+	// kafka producer handling
+	message := &kafkaMessage{
+		UserID:       user.ID,
+		Email:        user.Email,
+		Name:         user.Name,
+		Token:        resetCode.Plaintext,
+		TemplateName: "user_reset_password.html",
+		Task:         "send reset password token to user email",
+	}
+
+	// change key later (need to test how it works)
+	err = app.producer.Produce(message, app.config.kafka.topic, nil, time.Now())
+	if err != nil {
+		// log or return if cannot produce msg (either bad json format or some problem with brokers)
+		app.logger.Error(err.Error())
+	}
+
 	data := envelope{
 		"resetCode": resetCode.Plaintext,
 		"name":      user.Name,
@@ -959,6 +1004,23 @@ func (app *application) createActivationTokenHandler(w http.ResponseWriter, r *h
 	data := envelope{
 		"activationToken": token.Plaintext,
 		"name":            user.Name,
+	}
+
+	// kafka producer handling
+	message := &kafkaMessage{
+		UserID:       user.ID,
+		Email:        user.Email,
+		Name:         user.Name,
+		Token:        token.Plaintext,
+		TemplateName: "user_activation_token.html",
+		Task:         "send activation token to user email",
+	}
+
+	// change key later (need to test how it works)
+	err = app.producer.Produce(message, app.config.kafka.topic, nil, time.Now())
+	if err != nil {
+		// log or return if cannot produce msg (either bad json format or some problem with brokers)
+		app.logger.Error(err.Error())
 	}
 
 	app.background(func() {

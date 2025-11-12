@@ -7,12 +7,16 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
-	"github.com/vladgrskkh/movie_recomendation_system/internal/mailer"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/vladgrskkh/movie_recomendation_system/internal/kafka"
+	"github.com/vladgrskkh/movie_recomendation_system/internal/mailer"
 )
 
 // @title Movie Recommendation System API
@@ -83,6 +87,10 @@ type config struct {
 		secretKey      string
 		secretKeyBytes []byte
 	}
+	kafka struct {
+		address []string
+		topic   string
+	}
 }
 
 func main() {
@@ -106,6 +114,16 @@ func main() {
 	flag.StringVar(&cfg.grpc.address, "grpc-address", "", "gRPC server address")
 
 	flag.StringVar(&cfg.jwt.secretKey, "jwt-secret", "", "Secret key for signing and verifying JWT tokens")
+
+	flag.StringVar(&cfg.kafka.topic, "kafka-topic", "", "Kafka topic")
+	flag.Func("kafka-address", "addresses for kafka brokers", func(s string) error {
+		if s == "" {
+			return fmt.Errorf("kafka-address flag cannot be empty")
+		}
+
+		cfg.kafka.address = strings.Split(s, ",")
+		return nil
+	})
 
 	displayVersion := flag.Bool("version", false, "Display version and quit")
 
@@ -162,9 +180,17 @@ func main() {
 
 	logger.Info("gRPC connection established")
 
-	app := newApplication(cfg, logger, db, mailer, conn)
+	p, err := kafka.NewProducer(cfg.kafka.address)
+	if err != nil {
+		logger.Log(ctx, LevelFatal, err.Error())
+		os.Exit(1)
+	}
 
-	logger.Info("Starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
+	logger.Info("new kafka producer started")
+
+	app := newApplication(cfg, logger, db, mailer, conn, p)
+
+	logger.Info("starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {
 		logger.Log(ctx, LevelFatal, err.Error())
 		os.Exit(1)
@@ -208,3 +234,4 @@ func openDB(cfg config) (*sql.DB, error) {
 // TODO: add redis db for ip rate limmiter
 // TODO: make use of makefile in cicd pipelines
 // TODO: grafana storage persistence
+// TODO: need to check if i may need more than one producer
