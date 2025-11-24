@@ -12,11 +12,14 @@ import (
 // This struct is used with consumers that reads messages, logs them and sends email to recepient.
 type SendEmailHandler struct {
 	mailer *mailer.Mailer
+	logger *slog.Logger
 }
 
+// delete dependency app
 func (app *application) NewSendEmailHandler() *SendEmailHandler {
 	return &SendEmailHandler{
 		mailer: app.mailer,
+		logger: app.logger,
 	}
 }
 
@@ -37,7 +40,7 @@ func (h *SendEmailHandler) HandleMessage(message []byte, topic kafka.TopicPartit
 	}
 
 	msg := fmt.Sprintf("Consumer %d, Message from kafka with offset %d task:'%s' on partition %d", consumerNumber, topic.Offset, details.Task, topic.Partition)
-	slog.Info(msg)
+	h.logger.Info(msg)
 
 	if details.TemplateName == nil {
 		return nil

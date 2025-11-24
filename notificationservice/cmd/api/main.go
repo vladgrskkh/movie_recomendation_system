@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log/slog"
 	"os"
 
 	"github.com/BurntSushi/toml"
+	"github.com/joho/godotenv"
 
 	"github.com/vladgrskkh/movie_recomendation_system/notificationservice/internal/mailer"
 )
@@ -44,9 +46,9 @@ var (
 type config struct {
 	Address []string `toml:"address"`
 	Mailer  struct {
-		MailerAPIKey string `toml:"mailer_API_key"`
-		Sender       string `toml:"sender"`
-	} `toml:"mailer"`
+		MailerAPIKey string
+		Sender       string
+	}
 	ConsumerMailer struct {
 		ConsumerGroup string `toml:"consumer_group"`
 		ConsumerCount int    `toml:"consumer_count"`
@@ -56,12 +58,26 @@ type config struct {
 
 func main() {
 	var cfg config
+	var cfgFile string
+
+	flag.StringVar(&cfgFile, "cfg", "config.toml", "TOML config file path(vary based on where deploy)")
+
+	flag.Parse()
 
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, loggerOpts))
 
 	ctx := context.Background()
 
-	metadata, err := toml.DecodeFile("config.toml", &cfg)
+	err := godotenv.Load()
+	if err != nil {
+		logger.Log(ctx, LevelFatal, "error loading .env", slog.String("error", err.Error()))
+		// os.Exit(1)
+	}
+
+	cfg.Mailer.MailerAPIKey = os.Getenv("MAILERSEND_API_KEYD")
+	cfg.Mailer.Sender = os.Getenv("SMTP_USERNAMED")
+
+	metadata, err := toml.DecodeFile(cfgFile, &cfg)
 	if err != nil {
 		logger.Log(ctx, LevelFatal, "error loading configuration", slog.String("error", err.Error()))
 		os.Exit(1)
@@ -80,11 +96,13 @@ func main() {
 
 	err = app.server()
 	if err != nil {
-		app.logger.Log(ctx, LevelFatal, err.Error())
-		os.Exit(1)
+		app.logger.Error(err.Error())
 	}
 }
 
 // TODO: use mongodb to store details about message (think about why i may need this etc)
 // TODO: add logic for push notification (firebase)
 // TODO: check best practice for shutting down kafka consumers
+// TODO: wrap errors and change log messages
+// TODO: delete first docker containter
+// TODO: cannot run notification containre (cannot find .server notification-service-1  | exec ./server: no such file or directory)

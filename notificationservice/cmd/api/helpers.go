@@ -15,13 +15,13 @@ func (app *application) startMailerConsumers() error {
 	handler := app.NewSendEmailHandler()
 	consumers := make([]*consumer.Consumer, app.config.ConsumerMailer.ConsumerCount)
 	for i := 1; i <= app.config.ConsumerMailer.ConsumerCount; i++ {
-		c, err := consumer.NewConsumer(handler, app.config.Address, app.config.ConsumerMailer.Topic, app.config.ConsumerMailer.ConsumerGroup, i)
+		c, err := consumer.NewConsumer(app.logger, handler, app.config.Address, app.config.ConsumerMailer.Topic, app.config.ConsumerMailer.ConsumerGroup, i)
 		if err != nil {
 			return fmt.Errorf("failed to start consumer %d, error detail: %s", i, err.Error())
 		}
 
 		go c.Start()
-		consumers = append(consumers, c)
+		consumers[i-1] = c
 	}
 
 	app.mailerConsumers = consumers

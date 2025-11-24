@@ -19,11 +19,12 @@ type Handler interface {
 type Consumer struct {
 	consumer       *kafka.Consumer
 	handler        Handler
+	logger         *slog.Logger
 	stop           bool
 	consumerNumber int
 }
 
-func NewConsumer(handler Handler, address []string, topic, consumerGroup string, consumerNumber int) (*Consumer, error) {
+func NewConsumer(logger *slog.Logger, handler Handler, address []string, topic, consumerGroup string, consumerNumber int) (*Consumer, error) {
 	cfg := &kafka.ConfigMap{
 		"bootstrap.servers":        strings.Join(address, ","),
 		"group.id":                 consumerGroup,
@@ -47,6 +48,7 @@ func NewConsumer(handler Handler, address []string, topic, consumerGroup string,
 	return &Consumer{
 		consumer:       c,
 		handler:        handler,
+		logger:         logger,
 		consumerNumber: consumerNumber,
 	}, nil
 }
@@ -55,7 +57,7 @@ func (c *Consumer) Start() {
 	for !c.stop {
 		kafkaMessage, err := c.consumer.ReadMessage(noTimeout)
 		if err != nil {
-			slog.Error(err.Error())
+			c.logger.Error(err.Error())
 		}
 
 		if kafkaMessage == nil {
@@ -68,12 +70,12 @@ func (c *Consumer) Start() {
 		err = c.handler.HandleMessage(kafkaMessage.Value, kafkaMessage.TopicPartition, c.consumerNumber)
 		if err != nil {
 			// think about dlq
-			slog.Error(err.Error())
+			c.logger.Error(err.Error())
 		}
 
 		_, err = c.consumer.StoreMessage(kafkaMessage)
 		if err != nil {
-			slog.Error(err.Error())
+			c.logger.Error(err.Error())
 			continue
 		}
 	}
@@ -87,6 +89,6 @@ func (c *Consumer) Stop() error {
 		return err
 	}
 
-	slog.Info("Commited offset")
+	c.logger.Info("Commited offset")
 	return c.consumer.Close()
 }
