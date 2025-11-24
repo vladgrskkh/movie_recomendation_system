@@ -237,3 +237,5 @@ func openDB(cfg config) (*sql.DB, error) {
 // TODO: need to check if i may need more than one producer
 // TODO: ci/cd issue backend dont trigger ci pipeline
 // TODO: add handler that simply generates messages for kafka (test puprpose)
+// TODO: mb pass app to helper test methods instead of creating a new app(if tests is slow)
+// TODO: prometheus work around duplicate metrics with tests

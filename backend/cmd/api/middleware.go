@@ -12,6 +12,25 @@ import (
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 )
 
+var (
+	totalRequestsReceived = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "total_requests_received",
+		Help: "The total number of requests received",
+	})
+	totalResponsesSent = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "total_responses_sent",
+		Help: "The total number of responses sent",
+	})
+	totalProcessingTimeMicroseconds = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "total_processing_time_microseconds",
+		Help: "The total (cumulative) time taken to process all requests in microseconds",
+	})
+	activeRequests = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "in_flight_requests",
+		Help: "The number of 'active' in-flight requests",
+	})
+)
+
 func (app *application) authentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "Authorization")
@@ -94,23 +113,6 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 }
 
 func (app *application) metrics(next http.Handler) http.Handler {
-	// TODO: think how to add avg stats to prometheus
-	totalRequestsReceived := promauto.NewCounter(prometheus.CounterOpts{
-		Name: "total_requests_received",
-		Help: "The total number of requests received",
-	})
-	totalResponsesSent := promauto.NewCounter(prometheus.CounterOpts{
-		Name: "total_responses_sent",
-		Help: "The total number of responses sent",
-	})
-	totalProcessingTimeMicroseconds := promauto.NewCounter(prometheus.CounterOpts{
-		Name: "total_processing_time_microseconds",
-		Help: "The total (cumulative) time taken to process all requests in microseconds",
-	})
-	activeRequests := promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "in_flight_requests",
-		Help: "The number of 'active' in-flight requests",
-	})
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 

@@ -1,0 +1,67 @@
+name: CI Backend Pipeline
+
+on:
+  push:
+    branches:
+      - dev/backend
+      - development
+  pull_request:
+    branches:
+      - dev/backend
+      - development
+
+jobs:
+  build-test:
+    name: 🧪 Build, Migrate, and Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mrs
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mrs"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      MRS_DB_DSN: postgres://postgres:postgres@postgres:5432/mrs?sslmode=disable
+
+    steps:
+      - name: 🛎 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🧰 Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: 📦 Install dependencies
+        run: |
+          cd backend
+          go mod download
+
+      - name: 🗄️ Run database migrations
+        uses: docker://migrate/migrate
+        with:
+          args: >
+            -path=/github/workspace/backend/migrations
+            -database=${{ env.MRS_DB_DSN }}
+            up
+        
+      - name: ✅ Run linters
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.5.0
+          working-directory: backend
+
+      - name: 🧪 Run tests
+        run: |
+          cd backend
+          go test ./... -v
