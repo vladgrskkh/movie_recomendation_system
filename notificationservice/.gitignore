@@ -1,4 +1,3 @@
-*.toml
 .envrc
 .env
 .env_db

@@ -1,0 +1,7 @@
+# Server configuration
+address = [ "localhost:9092", "localhost:9094", "localhost:9096"]
+
+[consumer_mailer]
+consumer_group = "mailer-group"
+consumer_count = 3
+topic = "email"
