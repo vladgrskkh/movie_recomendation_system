@@ -101,7 +101,7 @@ services:
       - prometheus
 
   kafka1:
-    image: confluentinc/cp-kafka:7.7.0
+    image: confluentinc/cp-kafka:latest
     container_name: kafka1
     hostname: kafka1
     ports:
@@ -127,7 +127,7 @@ services:
       - kafka1_data:/var/lib/kafka/data
 
   kafka2:
-    image: confluentinc/cp-kafka:7.7.0
+    image: confluentinc/cp-kafka:latest
     container_name: kafka2
     hostname: kafka2
     ports:
@@ -155,7 +155,7 @@ services:
       - kafka1
 
   kafka3:
-    image: confluentinc/cp-kafka:7.7.0
+    image: confluentinc/cp-kafka:latest
     container_name: kafka3
     hostname: kafka3
     ports:
@@ -183,7 +183,7 @@ services:
       - kafka1
 
   schema-registry:
-    image: confluentinc/cp-schema-registry:7.7.0
+    image: confluentinc/cp-schema-registry:latest
     container_name: schema-registry
     hostname: schema-registry
     ports:

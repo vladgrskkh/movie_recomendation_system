@@ -230,3 +230,5 @@ func openDB(cfg config) (*sql.DB, error) {
 // TODO: add handler that simply generates messages for kafka (test puprpose)
 // TODO: mb pass app to helper test methods instead of creating a new app(if tests is slow)
 // TODO: prometheus work around duplicate metrics with tests
+// TODO: kafka ui auth
+// TODO: mb separate services or change ci/cd pipeline
