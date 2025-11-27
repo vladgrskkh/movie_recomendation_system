@@ -36,7 +36,7 @@ func (app *application) readIDParam(r *http.Request) (int64, error) {
 }
 
 // writeJSON is a helper method for writing JSON responses
-func (app *application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
+func (app *application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers http.Header) error {
 	// Convert the data to JSON
 	js, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {

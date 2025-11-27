@@ -47,6 +47,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/kafka/messages": {
+            "post": {
+                "description": "Produces a specified number of identical messages to the \"dummy\" Kafka topic",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "kafka"
+                ],
+                "summary": "Send test Kafka messages",
+                "parameters": [
+                    {
+                        "description": "Payload with message content and count",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.inputDummyKafka"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created | Example {\\\"message\\\": \\\"successfully send 5 messages to topic dummy\\\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request | Example {\\\"error\\\": \\\"body contains badly-formated JSON\\\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error | Example {\\\"error\\\": \\\"server encountered a problem and could not process your request\\\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/movie": {
             "get": {
                 "security": [
@@ -515,7 +570,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "202": {
-                        "description": "Accepted | Exmaple {\"message\": \"check your email for activation code\"}",
+                        "description": "Accepted | Example {\"message\": \"check your email for activation code\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -649,7 +704,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "202": {
-                        "description": "Accepted | Exmaple {\"message\": \"check your email for reset code\"}",
+                        "description": "Accepted | Example {\"message\": \"check your email for reset code\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -905,7 +960,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK | Exmaple {\"message\": \"your password was successfully reset\"}",
+                        "description": "OK | Example {\"message\": \"your password was successfully reset\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1067,6 +1122,19 @@ const docTemplate = `{
                 "email": {
                     "type": "string",
                     "example": "something@example.com"
+                }
+            }
+        },
+        "main.inputDummyKafka": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "message": {
+                    "type": "string",
+                    "example": "hello world"
                 }
             }
         },

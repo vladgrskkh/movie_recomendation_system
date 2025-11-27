@@ -12,6 +12,7 @@ type application struct {
 	logger          *slog.Logger
 	mailer          *mailer.Mailer
 	mailerConsumers []*consumer.Consumer
+	dummyConsumers  []*consumer.Consumer
 }
 
 func newApplication(cfg config, logger *slog.Logger, mailer *mailer.Mailer) *application {

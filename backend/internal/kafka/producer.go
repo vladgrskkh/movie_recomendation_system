@@ -22,11 +22,8 @@ type Producer struct {
 	producer *kafka.Producer
 }
 
-<<<<<<< HEAD
-=======
 // NewProducer func creates new Producer struct
 // need to check if i may need more than one producer
->>>>>>> dev/notification-service
 func NewProducer(address []string) (*Producer, error) {
 	cfg := &kafka.ConfigMap{
 		"bootstrap.servers": strings.Join(address, ","),
@@ -42,10 +39,7 @@ func NewProducer(address []string) (*Producer, error) {
 	}, nil
 }
 
-<<<<<<< HEAD
-=======
 // Produce function produces message to kafka brokers and handles any error that occur during delivery
->>>>>>> dev/notification-service
 func (p *Producer) Produce(message interface{}, topic string, key []byte, timestamp time.Time) error {
 	js, err := json.MarshalIndent(message, "", "\t")
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 )
 
@@ -38,13 +39,31 @@ func (app *application) server() error {
 
 func (app *application) shutdown() error {
 	var err error
+	var wg sync.WaitGroup
 
-	for _, c := range app.mailerConsumers {
-		closeErr := c.Stop()
-		if closeErr != nil && err == nil {
-			err = closeErr
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		for _, c := range app.mailerConsumers {
+			closeErr := c.Stop()
+			if closeErr != nil && err == nil {
+				err = closeErr
+			}
 		}
-	}
+	}()
+
+	go func() {
+		defer wg.Done()
+		for _, c := range app.dummyConsumers {
+			closeErr := c.Stop()
+			if closeErr != nil && err == nil {
+				err = closeErr
+			}
+		}
+	}()
+
+	wg.Wait()
 
 	return err
 }

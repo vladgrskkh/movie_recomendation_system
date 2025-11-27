@@ -1,18 +1,18 @@
 services:
   api:
-    image: vladgrskkh/mrs-api:latest
+    build: ./backend
     env_file:
       - ./backend/.env
     restart: always
     ports: 
       - "8080:8080"
-    command: ["-db-dsn=${MRS_DB_DSND}", "-smtp-mailer-api-key=${MAILERSEND_API_KEYD}", "-smtp-sender=${SMTP_USERNAMED}", "-grpc-address=recommender", "-jwt-secret=${JWT_SECRET_KEYD}"]
+    command: ["-db-dsn=${MRS_DB_DSN}", "-smtp-mailer-api-key=${MAILERSEND_API_KEY}", "-smtp-sender=${SMTP_USERNAME}", "-grpc-address=recommender", "-jwt-secret=${JWT_SECRET_KEY}", "-kafka-topic=email", "-kafka-address=kafka1:9092,kafka2:9094,kafka3:9096"]
     depends_on:
       - db
       - migrate
 
   notification-service:
-    image: vladgrskkh/mrs-notification-service:latest
+    build: ./notificationservice
     env_file:
       - ./notificationservice/.env
     expose:
@@ -50,7 +50,7 @@ services:
           condition: service_healthy
     command: [
       "-path", "/migrations",
-      "-database", "${MRS_DB_DSND}",
+      "-database", "${MRS_DB_DSN}",
       "up"
     ]
     volumes:

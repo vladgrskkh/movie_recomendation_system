@@ -106,3 +106,5 @@ func main() {
 // TODO: wrap errors and change log messages
 // TODO: delete first docker containter
 // TODO: cannot run notification containre (cannot find .server notification-service-1  | exec ./server: no such file or directory)
+// TODO: pass .env to prod with github actions
+// TODO: push notification with firebase

@@ -145,7 +145,7 @@ func main() {
 
 	db, err := openDB(cfg)
 	if err != nil {
-		logger.Log(ctx, LevelFatal, err.Error())
+		logger.Log(ctx, LevelFatal, "cannot connect to database:", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
@@ -165,7 +165,7 @@ func main() {
 
 	conn, err := grpc.NewClient(cfg.grpc.address+":50051", opts...)
 	if err != nil {
-		logger.Log(ctx, LevelFatal, "cannot connect to gRPC server: "+err.Error())
+		logger.Log(ctx, LevelFatal, "cannot connect to gRPC server:", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
@@ -182,7 +182,7 @@ func main() {
 
 	p, err := kafka.NewProducer(cfg.kafka.address)
 	if err != nil {
-		logger.Log(ctx, LevelFatal, err.Error())
+		logger.Log(ctx, LevelFatal, "cannot connect to kafka brokers", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
@@ -225,6 +225,7 @@ func openDB(cfg config) (*sql.DB, error) {
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
 // TO DO: write tests for the handlers and other components (2 hours)
+// TODO: deploy into server ready kafka service, also some bug fixes
 // ::::::::::::::::::::::::::::::::
 
 // TO DO: write tests for the handlers and other components
