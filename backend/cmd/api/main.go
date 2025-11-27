@@ -16,7 +16,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/vladgrskkh/movie_recomendation_system/internal/kafka"
-	"github.com/vladgrskkh/movie_recomendation_system/internal/mailer"
 )
 
 // @title Movie Recommendation System API
@@ -72,10 +71,6 @@ type config struct {
 		maxIdleConns int
 		maxIdleTime  string
 	}
-	smtp struct {
-		mailerAPIKey string
-		sender       string
-	}
 	limiter struct {
 		rps    int
 		enable bool
@@ -105,9 +100,6 @@ func main() {
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "5m", "PostgreSQL max idle time")
 
-	flag.StringVar(&cfg.smtp.mailerAPIKey, "smtp-mailer-api-key", "", "SMTP MailerSend API key")
-	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "", "SMTP sender")
-
 	flag.IntVar(&cfg.limiter.rps, "limiter-rps", 10, "Rate limiter maximum requests per second")
 	flag.BoolVar(&cfg.limiter.enable, "limiter-enable", true, "Enable rate limiter")
 
@@ -136,8 +128,6 @@ func main() {
 
 	// Convert JWT secret key to byte slice
 	cfg.jwt.secretKeyBytes = []byte(cfg.jwt.secretKey)
-
-	mailer := mailer.New(cfg.smtp.mailerAPIKey, cfg.smtp.sender)
 
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, loggerOpts))
 
@@ -188,7 +178,7 @@ func main() {
 
 	logger.Info("new kafka producer started")
 
-	app := newApplication(cfg, logger, db, mailer, conn, p)
+	app := newApplication(cfg, logger, db, conn, p)
 
 	logger.Info("starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {
