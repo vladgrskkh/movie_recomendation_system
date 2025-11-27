@@ -28,6 +28,11 @@ func (app *application) server() error {
 		return err
 	}
 
+	err = app.startDummyKafkaConsumers()
+	if err != nil {
+		return err
+	}
+
 	err = <-shutdownError
 	if err != nil {
 		return err

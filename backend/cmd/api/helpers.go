@@ -111,21 +111,6 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 	return nil
 }
 
-func (app *application) background(fn func()) {
-	app.wg.Add(1)
-	go func() {
-		defer app.wg.Done()
-
-		defer func() {
-			if err := recover(); err != nil {
-				app.logger.Error(fmt.Sprint(err))
-			}
-		}()
-
-		fn()
-	}()
-}
-
 // readString is a helper method for retrieving a string value from a url.Values object.
 // If the value is not present, it returns the defaultValue.
 func (app *application) readString(qs url.Values, key string, defaultValue string) string {
@@ -213,4 +198,20 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int) (in
 // 	}
 
 // 	return uuids
+// }
+
+// depreciated for now
+// func (app *application) background(fn func()) {
+// 	app.wg.Add(1)
+// 	go func() {
+// 		defer app.wg.Done()
+
+// 		defer func() {
+// 			if err := recover(); err != nil {
+// 				app.logger.Error(fmt.Sprint(err))
+// 			}
+// 		}()
+
+// 		fn()
+// 	}()
 // }
