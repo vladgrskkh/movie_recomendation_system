@@ -186,7 +186,7 @@ paths:
       summary: Health check
       tags:
       - health
-  /kafka/messages:
+  /kafka/dummy:
     post:
       consumes:
       - application/json

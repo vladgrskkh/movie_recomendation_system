@@ -1016,7 +1016,7 @@ type inputDummyKafka struct {
 // @Success 201 {object} map[string]string "Created | Example {\"message\": \"successfully send 5 messages to topic dummy\"}"
 // @Failure 400 {object} map[string]string "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}"
-// @Router /kafka/messages [post]
+// @Router /kafka/dummy [post]
 func (app *application) createKafkaMessage(w http.ResponseWriter, r *http.Request) {
 	var input inputDummyKafka
 
