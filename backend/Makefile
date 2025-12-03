@@ -58,7 +58,7 @@ run/docker/recommender:
 ## gen/swag: generate swagger documentation
 .PHONY: gen/swag
 gen/swag:
-	swag init -d ./cmd/api -g main.go --parseDependency --output docs/
+	swag init -d ./cmd/api -g main.go --parseDependency --output ./cmd/api/docs/
 
 ## gen/proto/api: generate protobuf code for the API service (golang)
 .PHONY: gen/proto/api
@@ -116,7 +116,7 @@ build/api:
 
 ## build/docker/api: build the docker image and push it to docker hub
 .PHONY: build/docker/api
-build/docker:
+build/docker/api:
 	@echo 'Building docker image...'
 	docker build --build-arg LINKER_FLAGS=${linker_flags} --tag vladgrskkh/mrs-api .
 	@echo 'Pushing docker image...'

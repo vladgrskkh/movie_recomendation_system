@@ -47,6 +47,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/kafka/messages": {
+            "post": {
+                "description": "Produces a specified number of identical messages to the \"dummy\" Kafka topic",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "kafka"
+                ],
+                "summary": "Send test Kafka messages",
+                "parameters": [
+                    {
+                        "description": "Payload with message content and count",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.inputDummyKafka"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created | Example {\\\"message\\\": \\\"successfully send 5 messages to topic dummy\\\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request | Example {\\\"error\\\": \\\"body contains badly-formated JSON\\\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error | Example {\\\"error\\\": \\\"server encountered a problem and could not process your request\\\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/movie": {
             "get": {
                 "security": [
@@ -379,8 +434,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "400": {
-                        "description": "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}",
+                    "404": {
+                        "description": "Not Found | Example {\"error\": \"requested resource could not be found\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -461,6 +516,70 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Conflict | Example {\"error\": \"unable to update the record due to an edit conflict, please try again\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity | Example {\"error\": \"validation error\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tokens/activation": {
+            "post": {
+                "description": "Validates email and checks if user exists, if not activated we send mail with activation code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tokens"
+                ],
+                "summary": "Create new activation token",
+                "parameters": [
+                    {
+                        "description": "Create activation token payload",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.inputChangePassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted | Example {\"message\": \"check your email for activation code\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -584,8 +703,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK | Exmaple {\"message\": \"check your email for reset code\"}",
+                    "202": {
+                        "description": "Accepted | Example {\"message\": \"check your email for reset code\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -624,7 +743,7 @@ const docTemplate = `{
             }
         },
         "/tokens/refresh": {
-            "put": {
+            "post": {
                 "description": "Exchange refresh token for new auth and refresh tokens",
                 "consumes": [
                     "application/json"
@@ -841,7 +960,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK | Exmaple {\"message\": \"your password was successfully reset\"}",
+                        "description": "OK | Example {\"message\": \"your password was successfully reset\"}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1003,6 +1122,19 @@ const docTemplate = `{
                 "email": {
                     "type": "string",
                     "example": "something@example.com"
+                }
+            }
+        },
+        "main.inputDummyKafka": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "message": {
+                    "type": "string",
+                    "example": "hello world"
                 }
             }
         },

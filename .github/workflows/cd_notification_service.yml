@@ -43,8 +43,8 @@ jobs:
         #   build-args: |
         #     LINKER_FLAGS=${{ steps.meta.outputs.linker_flags}}
           tags: |
-            vladgrskkh/notification-service:latest
-            vladgrskkh/notification-service:${{ github.sha }}
+            vladgrskkh/mrs-notification-service:latest
+            vladgrskkh/mrs-notification-service:${{ github.sha }}
 
   deploy:
     name: 🚀 Deploy to VPS

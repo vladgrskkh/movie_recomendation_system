@@ -17,6 +17,10 @@ var (
 	ErrKeyNotInteger = errors.New("must be an integer")
 )
 
+// const (
+// 	numberOfKeys = 20 // for generating kafka keys
+// )
+
 type envelope map[string]interface{}
 
 // readIDParam extracts and validates the ID parameter from the URL
@@ -32,7 +36,7 @@ func (app *application) readIDParam(r *http.Request) (int64, error) {
 }
 
 // writeJSON is a helper method for writing JSON responses
-func (app *application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
+func (app *application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers http.Header) error {
 	// Convert the data to JSON
 	js, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
@@ -105,21 +109,6 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 	}
 
 	return nil
-}
-
-func (app *application) background(fn func()) {
-	app.wg.Add(1)
-	go func() {
-		defer app.wg.Done()
-
-		defer func() {
-			if err := recover(); err != nil {
-				app.logger.Error(fmt.Sprint(err))
-			}
-		}()
-
-		fn()
-	}()
 }
 
 // readString is a helper method for retrieving a string value from a url.Values object.
@@ -199,4 +188,30 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int) (in
 // 	}
 
 // 	return validationErrors
+// }
+
+// dont need this for now so comment it
+// func generateUUIDString() [numberOfKeys]string {
+// 	var uuids [numberOfKeys]string
+// 	for i := 0; i < numberOfKeys; i++ {
+// 		uuids[i] = uuid.NewString()
+// 	}
+
+// 	return uuids
+// }
+
+// depreciated for now
+// func (app *application) background(fn func()) {
+// 	app.wg.Add(1)
+// 	go func() {
+// 		defer app.wg.Done()
+
+// 		defer func() {
+// 			if err := recover(); err != nil {
+// 				app.logger.Error(fmt.Sprint(err))
+// 			}
+// 		}()
+
+// 		fn()
+// 	}()
 // }

@@ -7,12 +7,15 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
-	"github.com/vladgrskkh/movie_recomendation_system/internal/mailer"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/vladgrskkh/movie_recomendation_system/internal/kafka"
 )
 
 // @title Movie Recommendation System API
@@ -68,10 +71,6 @@ type config struct {
 		maxIdleConns int
 		maxIdleTime  string
 	}
-	smtp struct {
-		mailerAPIKey string
-		sender       string
-	}
 	limiter struct {
 		rps    int
 		enable bool
@@ -82,6 +81,10 @@ type config struct {
 	jwt struct {
 		secretKey      string
 		secretKeyBytes []byte
+	}
+	kafka struct {
+		address []string
+		topic   string
 	}
 }
 
@@ -97,15 +100,22 @@ func main() {
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "5m", "PostgreSQL max idle time")
 
-	flag.StringVar(&cfg.smtp.mailerAPIKey, "smtp-mailer-api-key", "", "SMTP MailerSend API key")
-	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "", "SMTP sender")
-
 	flag.IntVar(&cfg.limiter.rps, "limiter-rps", 10, "Rate limiter maximum requests per second")
 	flag.BoolVar(&cfg.limiter.enable, "limiter-enable", true, "Enable rate limiter")
 
 	flag.StringVar(&cfg.grpc.address, "grpc-address", "", "gRPC server address")
 
 	flag.StringVar(&cfg.jwt.secretKey, "jwt-secret", "", "Secret key for signing and verifying JWT tokens")
+
+	flag.StringVar(&cfg.kafka.topic, "kafka-topic", "", "Kafka topic")
+	flag.Func("kafka-address", "addresses for kafka brokers", func(s string) error {
+		if s == "" {
+			return fmt.Errorf("kafka-address flag cannot be empty")
+		}
+
+		cfg.kafka.address = strings.Split(s, ",")
+		return nil
+	})
 
 	displayVersion := flag.Bool("version", false, "Display version and quit")
 
@@ -119,15 +129,13 @@ func main() {
 	// Convert JWT secret key to byte slice
 	cfg.jwt.secretKeyBytes = []byte(cfg.jwt.secretKey)
 
-	mailer := mailer.New(cfg.smtp.mailerAPIKey, cfg.smtp.sender)
-
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, loggerOpts))
 
 	ctx := context.Background()
 
 	db, err := openDB(cfg)
 	if err != nil {
-		logger.Log(ctx, LevelFatal, err.Error())
+		logger.Log(ctx, LevelFatal, "cannot connect to database:", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
@@ -147,7 +155,7 @@ func main() {
 
 	conn, err := grpc.NewClient(cfg.grpc.address+":50051", opts...)
 	if err != nil {
-		logger.Log(ctx, LevelFatal, "cannot connect to gRPC server: "+err.Error())
+		logger.Log(ctx, LevelFatal, "cannot connect to gRPC server:", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
@@ -162,9 +170,17 @@ func main() {
 
 	logger.Info("gRPC connection established")
 
-	app := newApplication(cfg, logger, db, mailer, conn)
+	p, err := kafka.NewProducer(cfg.kafka.address)
+	if err != nil {
+		logger.Log(ctx, LevelFatal, "cannot connect to kafka brokers", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
 
-	logger.Info("Starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
+	logger.Info("new kafka producer started")
+
+	app := newApplication(cfg, logger, db, conn, p)
+
+	logger.Info("starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {
 		logger.Log(ctx, LevelFatal, err.Error())
 		os.Exit(1)
@@ -199,6 +215,7 @@ func openDB(cfg config) (*sql.DB, error) {
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
 // TO DO: write tests for the handlers and other components (2 hours)
+// TODO: deploy into server ready kafka service, also some bug fixes
 // ::::::::::::::::::::::::::::::::
 
 // TO DO: write tests for the handlers and other components
@@ -208,5 +225,10 @@ func openDB(cfg config) (*sql.DB, error) {
 // TODO: add redis db for ip rate limmiter
 // TODO: make use of makefile in cicd pipelines
 // TODO: grafana storage persistence
+// TODO: need to check if i may need more than one producer
+// TODO: ci/cd issue backend dont trigger ci pipeline
+// TODO: add handler that simply generates messages for kafka (test puprpose)
 // TODO: mb pass app to helper test methods instead of creating a new app(if tests is slow)
 // TODO: prometheus work around duplicate metrics with tests
+// TODO: kafka ui auth
+// TODO: mb separate services or change ci/cd pipeline

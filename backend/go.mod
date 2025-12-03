@@ -1,14 +1,14 @@
 module github.com/vladgrskkh/movie_recomendation_system
 
-go 1.25.1
+go 1.25.3
 
 require (
+	github.com/confluentinc/confluent-kafka-go/v2 v2.12.0
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-chi/httprate v0.15.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/invopop/validation v0.8.0
 	github.com/lib/pq v1.10.9
-	github.com/mailersend/mailersend-go v1.6.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/http-swagger v1.3.4
@@ -34,7 +34,6 @@ require (
 	github.com/go-openapi/swag/stringutils v0.25.1 // indirect
 	github.com/go-openapi/swag/typeutils v0.25.1 // indirect
 	github.com/go-openapi/swag/yamlutils v0.25.1 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
