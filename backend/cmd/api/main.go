@@ -83,8 +83,11 @@ type config struct {
 		secretKeyBytes []byte
 	}
 	kafka struct {
-		address []string
-		topic   string
+		address      []string
+		topic        string
+		passwordSSL  string
+		username     string
+		passwordUser string
 	}
 }
 
@@ -108,6 +111,9 @@ func main() {
 	flag.StringVar(&cfg.jwt.secretKey, "jwt-secret", "", "Secret key for signing and verifying JWT tokens")
 
 	flag.StringVar(&cfg.kafka.topic, "kafka-topic", "", "Kafka topic")
+	flag.StringVar(&cfg.kafka.passwordSSL, "kafka-password-ssl", "", "Kafka SSL password")
+	flag.StringVar(&cfg.kafka.username, "kafka-username", "", "Kafka username for user SASL_SSL")
+	flag.StringVar(&cfg.kafka.passwordUser, "kafka-password-user", "", "Kafka password for user SASL_SSL")
 	flag.Func("kafka-address", "addresses for kafka brokers", func(s string) error {
 		if s == "" {
 			return fmt.Errorf("kafka-address flag cannot be empty")
@@ -170,7 +176,7 @@ func main() {
 
 	logger.Info("gRPC connection established")
 
-	p, err := kafka.NewProducer(cfg.kafka.address)
+	p, err := kafka.NewProducer(cfg.kafka.address, cfg.kafka.passwordSSL, cfg.kafka.username, cfg.kafka.passwordUser)
 	if err != nil {
 		logger.Log(ctx, LevelFatal, "cannot connect to kafka brokers", slog.String("error", err.Error()))
 		os.Exit(1)
@@ -232,3 +238,4 @@ func openDB(cfg config) (*sql.DB, error) {
 // TODO: prometheus work around duplicate metrics with tests
 // TODO: kafka ui auth
 // TODO: mb separate services or change ci/cd pipeline
+// TODO: remove kafka-topic flag

@@ -15,7 +15,7 @@ func (app *application) startMailerConsumers() error {
 	handler := app.NewSendEmailHandler()
 	consumers := make([]*consumer.Consumer, app.config.ConsumerMailer.ConsumerCount)
 	for i := 1; i <= app.config.ConsumerMailer.ConsumerCount; i++ {
-		c, err := consumer.NewConsumer(app.logger, handler, app.config.Address, app.config.ConsumerMailer.Topic, app.config.ConsumerMailer.ConsumerGroup, i)
+		c, err := consumer.NewConsumer(app.logger, handler, app.config.ConsumerMailer.Topic, app.config.ConsumerMailer.ConsumerGroup, i)
 		if err != nil {
 			return fmt.Errorf("failed to start consumer %d, error detail: %s", i, err.Error())
 		}
@@ -32,7 +32,7 @@ func (app *application) startDummyKafkaConsumers() error {
 	handler := app.NewDummyKafkaHanler()
 	consumers := make([]*consumer.Consumer, 3)
 	for i := 1; i <= 3; i++ {
-		c, err := consumer.NewConsumer(app.logger, handler, app.config.Address, "dummy", "dummy_group", i)
+		c, err := consumer.NewConsumer(app.logger, handler, "dummy", "dummy_group", i)
 		if err != nil {
 			return fmt.Errorf("failed to start consumer %d, error detail: %s", i, err.Error())
 		}

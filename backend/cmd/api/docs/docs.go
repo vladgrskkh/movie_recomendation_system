@@ -47,7 +47,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/kafka/messages": {
+        "/kafka/dummy": {
             "post": {
                 "description": "Produces a specified number of identical messages to the \"dummy\" Kafka topic",
                 "consumes": [

@@ -1,6 +1,3 @@
-# Server configuration
-address = ["kafka1:9092", "kafka2:9092", "kafka3:9092"]
-
 [consumer_mailer]
 consumer_group = "mailer-group"
 consumer_count = 3

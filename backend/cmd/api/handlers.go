@@ -441,7 +441,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// change key later (need to test how it works)
-	err = app.producer.Produce(message, app.config.kafka.topic, nil, time.Now())
+	err = app.producer.Produce(message, "email", nil, time.Now())
 	if err != nil {
 		// log or return if cannot produce msg (either bad json format or some problem with brokers)
 		app.logger.Error(err.Error())
@@ -827,7 +827,7 @@ func (app *application) createPasswordResetCodeHandler(w http.ResponseWriter, r 
 	}
 
 	// change key later (need to test how it works)
-	err = app.producer.Produce(message, app.config.kafka.topic, nil, time.Now())
+	err = app.producer.Produce(message, "email", nil, time.Now())
 	if err != nil {
 		// log or return if cannot produce msg (either bad json format or some problem with brokers)
 		app.logger.Error(err.Error())
@@ -986,7 +986,7 @@ func (app *application) createActivationTokenHandler(w http.ResponseWriter, r *h
 	}
 
 	// change key later (need to test how it works)
-	err = app.producer.Produce(message, app.config.kafka.topic, nil, time.Now())
+	err = app.producer.Produce(message, "email", nil, time.Now())
 	if err != nil {
 		// log or return if cannot produce msg (either bad json format or some problem with brokers)
 		app.logger.Error(err.Error())
@@ -1016,7 +1016,7 @@ type inputDummyKafka struct {
 // @Success 201 {object} map[string]string "Created | Example {\"message\": \"successfully send 5 messages to topic dummy\"}"
 // @Failure 400 {object} map[string]string "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}"
-// @Router /kafka/messages [post]
+// @Router /kafka/dummy [post]
 func (app *application) createKafkaMessage(w http.ResponseWriter, r *http.Request) {
 	var input inputDummyKafka
 
@@ -1025,9 +1025,13 @@ func (app *application) createKafkaMessage(w http.ResponseWriter, r *http.Reques
 		app.badRequestResponse(w, r, err)
 		return
 	}
+	var kafkaMsg struct {
+		Message string `json:"message"`
+	}
+	kafkaMsg.Message = input.Message
 
 	for range input.Count {
-		err := app.producer.Produce(input.Message, "dummy", nil, time.Now())
+		err := app.producer.Produce(kafkaMsg, "dummy", nil, time.Now())
 		if err != nil {
 			app.logger.Error(err.Error())
 			input.Count--
