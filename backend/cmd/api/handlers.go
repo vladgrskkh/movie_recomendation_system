@@ -441,7 +441,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// change key later (need to test how it works)
-	err = app.producer.Produce(message, app.config.kafka.topic, nil, time.Now())
+	err = app.producer.Produce(message, "email", nil, time.Now())
 	if err != nil {
 		// log or return if cannot produce msg (either bad json format or some problem with brokers)
 		app.logger.Error(err.Error())
@@ -827,7 +827,7 @@ func (app *application) createPasswordResetCodeHandler(w http.ResponseWriter, r 
 	}
 
 	// change key later (need to test how it works)
-	err = app.producer.Produce(message, app.config.kafka.topic, nil, time.Now())
+	err = app.producer.Produce(message, "email", nil, time.Now())
 	if err != nil {
 		// log or return if cannot produce msg (either bad json format or some problem with brokers)
 		app.logger.Error(err.Error())
@@ -986,7 +986,7 @@ func (app *application) createActivationTokenHandler(w http.ResponseWriter, r *h
 	}
 
 	// change key later (need to test how it works)
-	err = app.producer.Produce(message, app.config.kafka.topic, nil, time.Now())
+	err = app.producer.Produce(message, "email", nil, time.Now())
 	if err != nil {
 		// log or return if cannot produce msg (either bad json format or some problem with brokers)
 		app.logger.Error(err.Error())
