@@ -89,7 +89,7 @@ jobs:
             echo "DUCKDNS_TOKEN=${{ secrets.DUCKDNS_TOKEN }}" >> ~/mrs/backend/.env
             echo "KAFKA_PASSWORD_SSL=${{ secrets.KAFKA_PASSWORD_SSL }}" >> ~/mrs/backend/.env
             echo "KAFKA_ADDRESS"="${{ secrets.KAFKA_ADDRESS }}" >> ~/mrs/backend/.env
-            echo "KAFKA_USERNAMEL=${{ secrets.KAFKA_USERNAME }}" >> ~/mrs/backend/.env
+            echo "KAFKA_USERNAME=${{ secrets.KAFKA_USERNAME }}" >> ~/mrs/backend/.env
             echo "KAFKA_PASSWORD_USER=${{ secrets.KAFKA_PASSWORD_USER }}" >> ~/mrs/backend/.env
 
 

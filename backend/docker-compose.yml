@@ -10,6 +10,8 @@ services:
     depends_on:
       - db
       - migrate
+    volumes:
+      - ./cert:/app/cert
 
   recommender:
     image: vladgrskkh/mrs-recommender:latest
