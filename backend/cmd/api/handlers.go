@@ -357,6 +357,17 @@ type registerInput struct {
 	Password string `json:"password" example:"s1mplepA$$word"`
 }
 
+// kafkaMessage struct hold info about user activation/reset password
+// need to work on naming, maybe place it somewhere else
+type kafkaMessage struct {
+	UserID       int64  `json:"user_id"`
+	Email        string `json:"email"`
+	Name         string `json:"name"`
+	Token        string `json:"token"`
+	TemplateName string `json:"template_name,omitempty"`
+	Task         string `json:"task"`
+}
+
 // RegisterUser godoc
 //
 // @Summary Register a new user
@@ -419,19 +430,22 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// SMTP
-
-	data := envelope{
-		"activationToken": token.Plaintext,
-		"name":            user.Name,
+	// forwarding message to kafka
+	message := &kafkaMessage{
+		UserID:       user.ID,
+		Email:        user.Email,
+		Name:         user.Name,
+		Token:        token.Plaintext,
+		TemplateName: "user_welcome.html",
+		Task:         "send welcome email with activation token to user's email",
 	}
 
-	app.background(func() {
-		err = app.mailer.Send(user.Email, "user_welcome.html", data)
-		if err != nil {
-			app.logger.Error(err.Error())
-		}
-	})
+	// change key later (need to test how it works)
+	err = app.producer.Produce(message, "email", nil, time.Now())
+	if err != nil {
+		// log or return if cannot produce msg (either bad json format or some problem with brokers)
+		app.logger.Error(err.Error())
+	}
 
 	err = app.writeJSON(w, http.StatusAccepted, envelope{"user": user}, nil)
 	if err != nil {
@@ -589,7 +603,7 @@ func (app *application) refreshTokenHandler(w http.ResponseWriter, r *http.Reque
 		RefreshToken:        refreshToken.Plaintext,
 	}
 
-	err = app.writeJSON(w, http.StatusCreated, envelope{"token_pair": tokenPair}, nil)
+	err = app.writeJSON(w, http.StatusCreated, tokenPair, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -682,7 +696,7 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 		RefreshToken:        refreshToken.Plaintext,
 	}
 
-	err = app.writeJSON(w, http.StatusCreated, envelope{"token_pair": tokenPair}, nil)
+	err = app.writeJSON(w, http.StatusCreated, tokenPair, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -757,7 +771,7 @@ type inputChangePassword struct {
 // @Accept json
 // @Produce json
 // @Param credentials body inputChangePassword true "Change password payload"
-// @Success 202 {object} map[string]string "Accepted | Exmaple {"message": "check your email for reset code"}"
+// @Success 202 {object} map[string]string "Accepted | Example {"message": "check your email for reset code"}"
 // @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
 // @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
@@ -802,17 +816,22 @@ func (app *application) createPasswordResetCodeHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	data := envelope{
-		"resetCode": resetCode.Plaintext,
-		"name":      user.Name,
+	// kafka producer handling
+	message := &kafkaMessage{
+		UserID:       user.ID,
+		Email:        user.Email,
+		Name:         user.Name,
+		Token:        resetCode.Plaintext,
+		TemplateName: "user_reset_password.html",
+		Task:         "send reset password token to user email",
 	}
 
-	app.background(func() {
-		err = app.mailer.Send(user.Email, "user_reset_password.html", data)
-		if err != nil {
-			app.logger.Error(err.Error())
-		}
-	})
+	// change key later (need to test how it works)
+	err = app.producer.Produce(message, "email", nil, time.Now())
+	if err != nil {
+		// log or return if cannot produce msg (either bad json format or some problem with brokers)
+		app.logger.Error(err.Error())
+	}
 
 	err = app.writeJSON(w, http.StatusAccepted, envelope{"message": "check your email for reset code"}, nil)
 	if err != nil {
@@ -833,7 +852,7 @@ type inputUpdatePassword struct {
 // @Accept json
 // @Produce json
 // @Param credentials body inputUpdatePassword true "Update password payload"
-// @Success 200 {object} map[string]string "OK | Exmaple {"message": "your password was successfully reset"}"
+// @Success 200 {object} map[string]string "OK | Example {"message": "your password was successfully reset"}"
 // @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
 // @Failure 409 {object} map[string]string "Conflict | Example {"error": "unable to update the record due to an edit conflict, please try again"}"
 // @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
@@ -909,7 +928,7 @@ func (app *application) updateUserPasswordHandler(w http.ResponseWriter, r *http
 // @Accept json
 // @Produce json
 // @Param credentials body inputChangePassword true "Create activation token payload"
-// @Success 202 {object} map[string]string "Accepted | Exmaple {"message": "check your email for activation code"}"
+// @Success 202 {object} map[string]string "Accepted | Example {"message": "check your email for activation code"}"
 // @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
 // @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
@@ -956,21 +975,68 @@ func (app *application) createActivationTokenHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	data := envelope{
-		"activationToken": token.Plaintext,
-		"name":            user.Name,
+	// kafka producer handling
+	message := &kafkaMessage{
+		UserID:       user.ID,
+		Email:        user.Email,
+		Name:         user.Name,
+		Token:        token.Plaintext,
+		TemplateName: "user_activation_token.html",
+		Task:         "send activation token to user email",
 	}
 
-	app.background(func() {
-		err = app.mailer.Send(user.Email, "user_activation_token.html", data)
-		if err != nil {
-			app.logger.Error(err.Error())
-		}
-	})
+	// change key later (need to test how it works)
+	err = app.producer.Produce(message, "email", nil, time.Now())
+	if err != nil {
+		// log or return if cannot produce msg (either bad json format or some problem with brokers)
+		app.logger.Error(err.Error())
+	}
 
 	msg := envelope{"message": "check your email for activation code"}
 
 	err = app.writeJSON(w, http.StatusAccepted, msg, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+type inputDummyKafka struct {
+	Message string `json:"message" example:"hello world"`
+	Count   int    `json:"count" example:"5"`
+}
+
+// createKafkaMessage godoc
+//
+// @Summary Send test Kafka messages
+// @Description Produces a specified number of identical messages to the "dummy" Kafka topic
+// @Tags kafka
+// @Accept json
+// @Produce json
+// @Param input body inputDummyKafka true "Payload with message content and count"
+// @Success 201 {object} map[string]string "Created | Example {\"message\": \"successfully send 5 messages to topic dummy\"}"
+// @Failure 400 {object} map[string]string "Bad Request | Example {\"error\": \"body contains badly-formated JSON\"}"
+// @Failure 500 {object} map[string]string "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}"
+// @Router /kafka/dummy [post]
+func (app *application) createKafkaMessage(w http.ResponseWriter, r *http.Request) {
+	var input inputDummyKafka
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	for range input.Count {
+		err := app.producer.Produce(input.Message, "dummy", nil, time.Now())
+		if err != nil {
+			app.logger.Error(err.Error())
+			input.Count--
+		}
+	}
+
+	msg := envelope{"message": fmt.Sprintf("successfully send %d messages to topic dummy", input.Count)}
+
+	err = app.writeJSON(w, http.StatusCreated, msg, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

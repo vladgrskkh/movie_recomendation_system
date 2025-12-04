@@ -38,7 +38,7 @@ PostgreSQL
 
 ## 🛠️ Tech Stack
 
-- **Language**: Go 1.24.4
+- **Language**: Go 1.25.3
 - **Router**: Chi
 - **Database**: PostgreSQL 18
 - **Authentication**: JWT tokens

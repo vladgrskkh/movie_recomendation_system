@@ -116,7 +116,7 @@ build/api:
 
 ## build/docker/api: build the docker image and push it to docker hub
 .PHONY: build/docker/api
-build/docker:
+build/docker/api:
 	@echo 'Building docker image...'
 	docker build --build-arg LINKER_FLAGS=${linker_flags} --tag vladgrskkh/mrs-api .
 	@echo 'Pushing docker image...'

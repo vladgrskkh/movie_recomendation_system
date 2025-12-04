@@ -6,7 +6,7 @@ services:
     restart: always
     expose: 
       - "8080"
-    command: ["-db-dsn=${MRS_DB_DSND}", "-smtp-mailer-api-key=${MAILERSEND_API_KEYD}", "-smtp-sender=${SMTP_USERNAMED}", "-grpc-address=recommender", "-jwt-secret=${JWT_SECRET_KEYD}"]
+    command: ["-db-dsn=${MRS_DB_DSND}", "-grpc-address=recommender", "-jwt-secret=${JWT_SECRET_KEYD}", "-kafka-address=${KAFKA_ADDRESS}", "-kafka-password-ssl=${KAFKA_PASSWORD_SSL}", "-kafka-username=${KAFKA_USERNAME}", "-kafka-password-user=${KAFKA_PASSWORD_USER}"]
     depends_on:
       - db
       - migrate
@@ -87,8 +87,6 @@ services:
     depends_on:
       - api
       - prometheus
-
-
 
 volumes:
   pgdata:

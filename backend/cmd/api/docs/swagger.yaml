@@ -81,6 +81,15 @@ definitions:
         example: something@example.com
         type: string
     type: object
+  main.inputDummyKafka:
+    properties:
+      count:
+        example: 5
+        type: integer
+      message:
+        example: hello world
+        type: string
+    type: object
   main.inputUpdatePassword:
     properties:
       code:
@@ -177,6 +186,46 @@ paths:
       summary: Health check
       tags:
       - health
+  /kafka/dummy:
+    post:
+      consumes:
+      - application/json
+      description: Produces a specified number of identical messages to the "dummy"
+        Kafka topic
+      parameters:
+      - description: Payload with message content and count
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/main.inputDummyKafka'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'Created | Example {\"message\": \"successfully send 5 messages
+            to topic dummy\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'Bad Request | Example {\"error\": \"body contains badly-formated
+            JSON\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {\"error\": \"server encountered
+            a problem and could not process your request\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Send test Kafka messages
+      tags:
+      - kafka
   /movie:
     get:
       description: Retrieve a list of movies filtered by title and genres with pagination
@@ -498,7 +547,7 @@ paths:
       - application/json
       responses:
         "202":
-          description: 'Accepted | Exmaple {"message": "check your email for activation
+          description: 'Accepted | Example {"message": "check your email for activation
             code"}'
           schema:
             additionalProperties:
@@ -592,7 +641,7 @@ paths:
       - application/json
       responses:
         "202":
-          description: 'Accepted | Exmaple {"message": "check your email for reset
+          description: 'Accepted | Example {"message": "check your email for reset
             code"}'
           schema:
             additionalProperties:
@@ -770,7 +819,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: 'OK | Exmaple {"message": "your password was successfully reset"}'
+          description: 'OK | Example {"message": "your password was successfully reset"}'
           schema:
             additionalProperties:
               type: string

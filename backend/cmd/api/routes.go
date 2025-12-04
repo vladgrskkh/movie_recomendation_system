@@ -54,6 +54,10 @@ func (app *application) routes() http.Handler {
 			r.Post("/password-reset", app.createPasswordResetCodeHandler)
 			r.Post("/activation", app.createActivationTokenHandler)
 		})
+
+		r.Route("/kafka", func(r chi.Router) {
+			r.Post("/dummy", app.createKafkaMessage)
+		})
 	})
 
 	r.Method(http.MethodGet, "/metrics", promhttp.Handler())

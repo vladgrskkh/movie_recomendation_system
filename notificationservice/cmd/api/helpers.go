@@ -28,6 +28,23 @@ func (app *application) startMailerConsumers() error {
 	return nil
 }
 
+func (app *application) startDummyKafkaConsumers() error {
+	handler := app.NewDummyKafkaHanler()
+	consumers := make([]*consumer.Consumer, 3)
+	for i := 1; i <= 3; i++ {
+		c, err := consumer.NewConsumer(app.logger, handler, app.config.Address, "dummy", "dummy_group", i)
+		if err != nil {
+			return fmt.Errorf("failed to start consumer %d, error detail: %s", i, err.Error())
+		}
+
+		go c.Start()
+		consumers[i-1] = c
+	}
+
+	app.dummyConsumers = consumers
+	return nil
+}
+
 func readJSON(body []byte, dst interface{}) error {
 	byteReader := bytes.NewBuffer(body)
 	dec := json.NewDecoder(byteReader)

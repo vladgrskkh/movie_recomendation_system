@@ -1,0 +1,7 @@
+# Server configuration
+address = ["kafka1:9092", "kafka2:9094", "kafka3:9096"]
+
+[consumer_mailer]
+consumer_group = "mailer-group"
+consumer_count = 3
+topic = "email"

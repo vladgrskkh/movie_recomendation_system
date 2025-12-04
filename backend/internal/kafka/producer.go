@@ -24,9 +24,17 @@ type Producer struct {
 
 // NewProducer func creates new Producer struct
 // need to check if i may need more than one producer
-func NewProducer(address []string) (*Producer, error) {
+func NewProducer(address []string, passwordSSL, username, passwordUser string) (*Producer, error) {
 	cfg := &kafka.ConfigMap{
-		"bootstrap.servers": strings.Join(address, ","),
+		"bootstrap.servers":        strings.Join(address, ","),
+		"security.protocol":        "SASL_SSL",
+		"ssl.ca.location":          "./cert/ca-root.pem",
+		"ssl.certificate.location": "./cert/client-certificate.pem",
+		"ssl.key.location":         "./cert/client-private-key.pem",
+		"ssl.key.password":         passwordSSL,
+		"sasl.mechanisms":          "PLAIN",
+		"sasl.username":            username,
+		"sasl.password":            passwordUser,
 	}
 
 	p, err := kafka.NewProducer(cfg)

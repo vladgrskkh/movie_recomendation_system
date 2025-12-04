@@ -6,6 +6,10 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/base32"
+	"fmt"
+	"math/big"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -26,8 +30,9 @@ type Token struct {
 	Scope     string
 }
 
-// generateToken creates a new Token with a random plaintext value and SHA-256 hash.
+// generateToken creates a new Token with a random plaintext value and SHA-256 hash for refresh tokens.
 // The plaintext is Base32(no padding) encoded. The caller is responsible for persisting it.
+// Also generates 5 digits for reset password and activation codes based on scope.
 func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error) {
 	token := &Token{
 		UserID: userID,
@@ -35,13 +40,22 @@ func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error
 		Scope:  scope,
 	}
 
-	var randomBytes []byte
+	// generate 5 digits code for reset password and activation
+	if scope != ScopeRefresh {
+		randNumber, err := rand.Int(rand.Reader, big.NewInt(100000))
+		if err != nil {
+			return nil, err
+		}
 
-	if scope == ScopeRefresh {
-		randomBytes = make([]byte, 16)
-	} else {
-		randomBytes = make([]byte, 3)
+		strNumber := strconv.FormatInt(randNumber.Int64(), 10)
+		if len(strNumber) < 5 {
+			token.Plaintext = fmt.Sprintf("%s%s", strNumber, strings.Repeat("0", 5-len(strNumber)))
+		}
+
+		return token, nil
 	}
+
+	randomBytes := make([]byte, 16)
 
 	_, err := rand.Read(randomBytes)
 	if err != nil {

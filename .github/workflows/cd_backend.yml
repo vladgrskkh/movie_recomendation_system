@@ -87,6 +87,10 @@ jobs:
             echo "MAILERSEND_API_KEYD=${{ secrets.MAILERSEND_API_KEYD }}" >> ~/mrs/backend/.env
             echo "JWT_SECRET_KEYD=${{ secrets.JWT_SECRET_KEYD }}" >> ~/mrs/backend/.env
             echo "DUCKDNS_TOKEN=${{ secrets.DUCKDNS_TOKEN }}" >> ~/mrs/backend/.env
+            echo "KAFKA_PASSWORD_SSL=${{ secrets.KAFKA_PASSWORD_SSL }}" >> ~/mrs/backend/.env
+            echo "KAFKA_ADDRESS"="${{ secrets.KAFKA_ADDRESS }}" >> ~/mrs/backend/.env
+            echo "KAFKA_USERNAMEL=${{ secrets.KAFKA_USERNAME }}" >> ~/mrs/backend/.env
+            echo "KAFKA_PASSWORD_USER=${{ secrets.KAFKA_PASSWORD_USER }}" >> ~/mrs/backend/.env
 
 
       - name: 🔐 Copy files to VPS

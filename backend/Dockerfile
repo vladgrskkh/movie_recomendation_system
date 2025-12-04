@@ -13,10 +13,10 @@ RUN go mod download
 COPY . .
 
 # Собираем бинарь
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="${LINKER_FLAGS}" -o server ./cmd/api
+RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="${LINKER_FLAGS}" -o server ./cmd/api
 
 # ---------- Stage 2: Runtime ----------
-FROM alpine:3.20
+FROM frolvlad/alpine-glibc
 
 # Добавим сертификаты (для HTTPS-запросов, SMTP и т.п.)
 RUN apk add --no-cache ca-certificates
