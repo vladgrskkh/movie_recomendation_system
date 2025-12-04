@@ -44,8 +44,7 @@ var (
 )
 
 type config struct {
-	Address []string `toml:"address"`
-	Mailer  struct {
+	Mailer struct {
 		MailerAPIKey string
 		Sender       string
 	}
@@ -71,7 +70,7 @@ func main() {
 	err := godotenv.Load()
 	if err != nil {
 		logger.Log(ctx, LevelFatal, "error loading .env", slog.String("error", err.Error()))
-		// os.Exit(1)
+		os.Exit(1)
 	}
 
 	cfg.Mailer.MailerAPIKey = os.Getenv("MAILERSEND_API_KEYD")

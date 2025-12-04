@@ -61,6 +61,6 @@ build/notification-service:
 .PHONY: build/docker
 build/docker:
 	@echo 'Building docker image...'
-	docker build --tag vladgrskkh/mrs-notification-service .
+	docker build --platform linux/amd64,linux/arm64 --tag vladgrskkh/mrs-notification-service .
 	@echo 'Pushing docker image...'
 	docker push vladgrskkh/mrs-notification-service:latest

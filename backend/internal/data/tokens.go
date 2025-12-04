@@ -48,9 +48,13 @@ func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error
 		}
 
 		strNumber := strconv.FormatInt(randNumber.Int64(), 10)
+		token.Plaintext = strNumber
 		if len(strNumber) < 5 {
 			token.Plaintext = fmt.Sprintf("%s%s", strNumber, strings.Repeat("0", 5-len(strNumber)))
 		}
+
+		hash := sha256.Sum256([]byte(token.Plaintext))
+		token.Hash = hash[:]
 
 		return token, nil
 	}

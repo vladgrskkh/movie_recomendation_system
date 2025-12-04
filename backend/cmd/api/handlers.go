@@ -1025,9 +1025,13 @@ func (app *application) createKafkaMessage(w http.ResponseWriter, r *http.Reques
 		app.badRequestResponse(w, r, err)
 		return
 	}
+	var kafkaMsg struct {
+		Message string `json:"message"`
+	}
+	kafkaMsg.Message = input.Message
 
 	for range input.Count {
-		err := app.producer.Produce(input.Message, "dummy", nil, time.Now())
+		err := app.producer.Produce(kafkaMsg, "dummy", nil, time.Now())
 		if err != nil {
 			app.logger.Error(err.Error())
 			input.Count--
