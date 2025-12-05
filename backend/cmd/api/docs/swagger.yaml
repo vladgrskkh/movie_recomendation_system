@@ -75,6 +75,15 @@ definitions:
       token:
         type: string
     type: object
+  main.deleteUserInput:
+    properties:
+      email:
+        example: something@example.com
+        type: string
+      password:
+        example: s1mplepA$$word
+        type: string
+    type: object
   main.inputChangePassword:
     properties:
       email:
@@ -713,6 +722,65 @@ paths:
       tags:
       - auth
   /users:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a user account after validating email and password
+      parameters:
+      - description: User deletion payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/main.deleteUserInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'OK | Example {\"message\": \"user successfully deleted\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'Bad Request | Example {\"error\": \"body contains badly-formated
+            JSON\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'Unauthorized | Example {\"error\": \"invalid authentication
+            credentials\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: 'Forbidden | Example {\"error\": \"this resourse doesn''t belong
+            to authenticated user\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: 'Unprocessable Entity | Example {\"error\": \"validation error\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {\"error\": \"server encountered
+            a problem and could not process your request\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a user account
+      tags:
+      - users
     post:
       consumes:
       - application/json

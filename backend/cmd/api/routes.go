@@ -46,6 +46,7 @@ func (app *application) routes() http.Handler {
 			r.Post("/", app.registerUserHandler)
 			r.Put("/activate", app.activateUserHandler)
 			r.Put("/password", app.updateUserPasswordHandler)
+			r.With(app.requireAuthenticatedUser).Delete("/", app.deleteUserHandler)
 		})
 
 		r.Route("/tokens", func(r chi.Router) {

@@ -89,3 +89,8 @@ func (app *application) invalidRefreshTokenResponse(w http.ResponseWriter, r *ht
 	message := "invalid or expired refresh token"
 	app.errorResponse(w, r, http.StatusUnprocessableEntity, message)
 }
+
+func (app *application) forbiddenUserResponse(w http.ResponseWriter, r *http.Request) {
+	message := "this resource doesn't belong to the authenticated user"
+	app.errorResponse(w, r, http.StatusForbidden, message)
+}
