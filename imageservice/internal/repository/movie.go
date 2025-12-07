@@ -1,0 +1,67 @@
+package repository
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"log/slog"
+
+	"github.com/minio/minio-go/v7"
+)
+
+type MovieImageRepo struct {
+	logger  *slog.Logger
+	storage *minio.Client
+}
+
+func NewMovieImageRepo(storage *minio.Client) *MovieImageRepo {
+	return &MovieImageRepo{
+		storage: storage,
+	}
+}
+
+func (r *MovieImageRepo) MakeBucket(ctx context.Context, bucketName string, opts minio.MakeBucketOptions) error {
+	exists, err := r.storage.BucketExists(ctx, bucketName)
+	if err != nil {
+		return fmt.Errorf("error checking if bucket exists: %w", err)
+	}
+
+	if exists {
+		return nil
+	}
+
+	err = r.storage.MakeBucket(ctx, bucketName, opts)
+	if err != nil {
+		return fmt.Errorf("error creating bucket: %w", err)
+	}
+
+	return nil
+}
+
+func (r *MovieImageRepo) Upload(ctx context.Context, bucketName string, objectName string, object io.Reader, size int64, opts minio.PutObjectOptions) error {
+	info, err := r.storage.PutObject(ctx, bucketName, objectName, object, size, opts)
+	if err != nil {
+		return fmt.Errorf("error uploading file: %w", err)
+	}
+
+	r.logger.Info("Successfully uploaded file", slog.String("objectName", objectName), slog.Int64("size", size), slog.Int64("size", info.Size))
+	return nil
+}
+
+func (r *MovieImageRepo) Get(ctx context.Context, bucketName string, objectName string, opts minio.GetObjectOptions) (*minio.Object, error) {
+	object, err := r.storage.GetObject(ctx, bucketName, objectName, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return object, nil
+}
+
+func (r *MovieImageRepo) Delete(ctx context.Context, bucketName string, objectName string, opts minio.RemoveObjectOptions) error {
+	err := r.storage.RemoveObject(ctx, bucketName, objectName, opts)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
