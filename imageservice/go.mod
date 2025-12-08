@@ -3,6 +3,7 @@ module github.com/vladgrskkh/movie_recomendation_system/imageservice
 go 1.25.4
 
 require (
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/minio/minio-go/v7 v7.0.97
 	github.com/vladgrskkh/movie-recommender-contracts v0.1.0
 )

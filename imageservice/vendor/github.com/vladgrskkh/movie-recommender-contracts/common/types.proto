@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "github.com/vladgrskkh/movie-recommender-contracts/common;common";
+
+message Recommendation {
+    string title = 1;
+    double score = 2;
+}
+
+message Image {
+    string objectName = 1;
+    string bucketName = 2;
+}
