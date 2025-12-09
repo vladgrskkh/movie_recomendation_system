@@ -2,3 +2,4 @@
 predict_env/
 .envrc
 cert/
+.env
