@@ -17,8 +17,9 @@ type ImageService struct {
 	movieImageRepo *repository.MovieImageRepo
 }
 
-func NewImageService(movieImageRepo *repository.MovieImageRepo) *ImageService {
+func NewImageService(logger *slog.Logger, movieImageRepo *repository.MovieImageRepo) *ImageService {
 	return &ImageService{
+		logger:         logger,
 		movieImageRepo: movieImageRepo,
 	}
 }

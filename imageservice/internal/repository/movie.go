@@ -14,8 +14,9 @@ type MovieImageRepo struct {
 	storage *minio.Client
 }
 
-func NewMovieImageRepo(storage *minio.Client) *MovieImageRepo {
+func NewMovieImageRepo(logger *slog.Logger, storage *minio.Client) *MovieImageRepo {
 	return &MovieImageRepo{
+		logger:  logger,
 		storage: storage,
 	}
 }
