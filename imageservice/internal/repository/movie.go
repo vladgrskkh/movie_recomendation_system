@@ -55,6 +55,7 @@ func (r *MovieImageRepo) Get(ctx context.Context, bucketName string, objectName 
 		return nil, err
 	}
 
+	r.logger.Info("Successfully fetched file", slog.String("objectName", objectName), slog.String("bucket", bucketName))
 	return object, nil
 }
 
@@ -64,5 +65,6 @@ func (r *MovieImageRepo) Delete(ctx context.Context, bucketName string, objectNa
 		return err
 	}
 
+	r.logger.Info("Successfully deleted file", slog.String("objectName", objectName), slog.String("bucket", bucketName))
 	return nil
 }

@@ -11,10 +11,11 @@ import (
 	"github.com/vladgrskkh/movie_recomendation_system/imageservice/internal/handlers"
 	"github.com/vladgrskkh/movie_recomendation_system/imageservice/internal/repository"
 	"github.com/vladgrskkh/movie_recomendation_system/imageservice/internal/service"
+	"github.com/vladgrskkh/movie_recomendation_system/imageservice/pkg/logger"
 )
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{}))
+	logger := logger.New()
 
 	logger.Info("parsing .env into config")
 
@@ -56,6 +57,7 @@ func main() {
 	}
 }
 
-// TODO: minio repo
-// TODO: grpc contract
-// TODO: think about how to serve images
+// TODO: integration tests
+// TODO: caddy for reverse proxy onto 4 minio instanses(also read about caddy load balancer)
+// TODO: logger config to config.go
+// TODO:

@@ -24,9 +24,12 @@ func NewImageService(logger *slog.Logger, movieImageRepo *repository.MovieImageR
 	}
 }
 
-func (s *ImageService) UploadImage(ctx context.Context, bucketName string, objectName string, object []byte, opts minio.PutObjectOptions) error {
+func (s *ImageService) UploadImage(ctx context.Context, bucketName string, objectName string, object []byte) error {
 	reader := bytes.NewReader(object)
 
+	opts := minio.PutObjectOptions{
+		ContentType: "image/jpeg",
+	}
 	err := s.movieImageRepo.Upload(ctx, bucketName, objectName, reader, int64(len(object)), opts)
 	// err domain
 	if err != nil {
@@ -36,8 +39,8 @@ func (s *ImageService) UploadImage(ctx context.Context, bucketName string, objec
 	return nil
 }
 
-func (s *ImageService) GetImage(ctx context.Context, bucketName string, objectName string, opts minio.GetObjectOptions) ([]byte, error) {
-	object, err := s.movieImageRepo.Get(ctx, bucketName, objectName, opts)
+func (s *ImageService) GetImage(ctx context.Context, bucketName string, objectName string) ([]byte, error) {
+	object, err := s.movieImageRepo.Get(ctx, bucketName, objectName, minio.GetObjectOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -57,8 +60,8 @@ func (s *ImageService) GetImage(ctx context.Context, bucketName string, objectNa
 	return image, nil
 }
 
-func (s *ImageService) DeleteImage(ctx context.Context, bucketName string, objectName string, opts minio.RemoveObjectOptions) error {
-	err := s.movieImageRepo.Delete(ctx, bucketName, objectName, opts)
+func (s *ImageService) DeleteImage(ctx context.Context, bucketName string, objectName string) error {
+	err := s.movieImageRepo.Delete(ctx, bucketName, objectName, minio.RemoveObjectOptions{})
 	if err != nil {
 		return err
 	}
