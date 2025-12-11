@@ -12,4 +12,5 @@ message Recommendation {
 message Image {
     string objectName = 1;
     string bucketName = 2;
+    string format = 3;
 }
