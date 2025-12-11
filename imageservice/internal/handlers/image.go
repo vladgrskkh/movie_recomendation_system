@@ -2,9 +2,13 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 
+	"github.com/vladgrskkh/movie_recomendation_system/imageservice/internal/domain"
 	"github.com/vladgrskkh/movie_recomendation_system/imageservice/internal/service"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/vladgrskkh/movie-recommender-contracts/common"
 	pb "github.com/vladgrskkh/movie-recommender-contracts/v1/imageservice"
@@ -24,26 +28,31 @@ func NewImageHandler(logger *slog.Logger, imageService *service.ImageService) *I
 }
 
 func (h *ImageHandler) Upload(ctx context.Context, r *pb.ImageUploadRequest) (*pb.ImageUploadResponse, error) {
-	image := r.GetImage()
-	// TODO: discard minio opts
-	err := h.imageService.UploadImage(ctx, image.GetBucketName(), image.GetObjectName(), r.GetImageBytes())
+	pbImage := r.GetImage()
+
+	imageMetadata := domain.NewImageMetadata(pbImage.ObjectName, pbImage.BucketName, pbImage.Format, int64(len(r.ImageBytes)))
+	err := h.imageService.UploadImage(ctx, imageMetadata, r.ImageBytes)
 	if err != nil {
-		// TODO: look into grpc status codes
-		return nil, err
+		return nil, status.Error(codes.Internal, "server encountered a problem and could not process your request")
 	}
 
 	return &pb.ImageUploadResponse{
-		Image:   image,
+		Image:   pbImage,
 		Message: "Successfully uploaded image",
 	}, nil
 }
 
 // TODO: change proto contract so that request is not common.Image instead pb.ImageGetRequest
 func (h *ImageHandler) Get(ctx context.Context, r *common.Image) (*pb.ImageGetResponse, error) {
-	// TODO: discard minio opts
-	image, err := h.imageService.GetImage(ctx, r.GetBucketName(), r.GetObjectName())
+	imageMetadata := domain.NewImageMetadata(r.GetObjectName(), r.GetBucketName(), r.GetFormat(), 0)
+	image, err := h.imageService.GetImage(ctx, imageMetadata)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, domain.ErrorImageNotFound):
+			return nil, status.Error(codes.NotFound, "image not found")
+		default:
+			return nil, status.Error(codes.Internal, "server encountered a problem and could not process your request")
+		}
 	}
 
 	return &pb.ImageGetResponse{
@@ -53,15 +62,18 @@ func (h *ImageHandler) Get(ctx context.Context, r *common.Image) (*pb.ImageGetRe
 }
 
 func (h *ImageHandler) Delete(ctx context.Context, r *common.Image) (*pb.ImageDeleteResponse, error) {
-	// TODO: discard minio opts
-	err := h.imageService.DeleteImage(ctx, r.GetBucketName(), r.GetObjectName())
+	imageMetadata := domain.NewImageMetadata(r.GetObjectName(), r.GetBucketName(), r.GetFormat(), 0)
+	err := h.imageService.DeleteImage(ctx, imageMetadata)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, domain.ErrorImageNotFound):
+			return nil, status.Error(codes.NotFound, "image not found")
+		default:
+			return nil, status.Error(codes.Internal, "server encountered a problem and could not process your request")
+		}
 	}
 
 	return &pb.ImageDeleteResponse{
 		Message: "Successfully deleted image",
 	}, nil
 }
-
-// TODO: better error handling (grpc status codes)

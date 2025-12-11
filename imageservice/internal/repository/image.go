@@ -9,6 +9,10 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
+var (
+	ErrNotFound = fmt.Errorf("object not found")
+)
+
 type MovieImageRepo struct {
 	logger  *slog.Logger
 	storage *minio.Client
@@ -52,6 +56,14 @@ func (r *MovieImageRepo) Upload(ctx context.Context, bucketName string, objectNa
 func (r *MovieImageRepo) Get(ctx context.Context, bucketName string, objectName string, opts minio.GetObjectOptions) (*minio.Object, error) {
 	object, err := r.storage.GetObject(ctx, bucketName, objectName, opts)
 	if err != nil {
+		v, ok := err.(*minio.ErrorResponse)
+		if ok {
+			switch v.Code {
+			case minio.NoSuchKey:
+				return nil, ErrNotFound
+			}
+		}
+
 		return nil, err
 	}
 
@@ -62,6 +74,14 @@ func (r *MovieImageRepo) Get(ctx context.Context, bucketName string, objectName 
 func (r *MovieImageRepo) Delete(ctx context.Context, bucketName string, objectName string, opts minio.RemoveObjectOptions) error {
 	err := r.storage.RemoveObject(ctx, bucketName, objectName, opts)
 	if err != nil {
+		v, ok := err.(*minio.ErrorResponse)
+		if ok {
+			switch v.Code {
+			case minio.NoSuchKey:
+				return ErrNotFound
+			}
+		}
+
 		return err
 	}
 
