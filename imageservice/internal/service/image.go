@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 
 	"github.com/minio/minio-go/v7"
@@ -40,7 +41,7 @@ func (s *ImageService) UploadImage(ctx context.Context, imageMetadata *domain.Im
 	return nil
 }
 
-func (s *ImageService) GetImage(ctx context.Context, imageMetadata *domain.ImageMetadata) ([]byte, error) {
+func (s *ImageService) GetImage(ctx context.Context, imageMetadata *domain.ImageMetadata) (io.Reader, error) {
 	object, err := s.movieImageRepo.Get(ctx, imageMetadata.Bucket, imageMetadata.Name, minio.GetObjectOptions{})
 	if err != nil {
 		switch {
@@ -51,19 +52,7 @@ func (s *ImageService) GetImage(ctx context.Context, imageMetadata *domain.Image
 		return nil, err
 	}
 
-	info, err := object.Stat()
-	if err != nil {
-		return nil, fmt.Errorf("error getting file info: %w", err)
-	}
-
-	image := make([]byte, info.Size)
-
-	_, err = object.Read(image)
-	if err != nil {
-		return nil, fmt.Errorf("error reading file: %w", err)
-	}
-
-	return image, nil
+	return object, nil
 }
 
 func (s *ImageService) DeleteImage(ctx context.Context, imageMetadata *domain.ImageMetadata) error {

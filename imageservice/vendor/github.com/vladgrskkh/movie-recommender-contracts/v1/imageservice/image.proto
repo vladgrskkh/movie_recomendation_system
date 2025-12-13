@@ -7,14 +7,20 @@ import "common/types.proto";
 option go_package = "github.com/vladgrskkh/movie-recommender-contracts/v1/imageservice;imageservice";
 
 service Image {
-    rpc Upload (ImageUploadRequest) returns (ImageUploadResponse);
-    rpc Get (common.Image) returns (ImageGetResponse);
+    rpc Upload (stream ImageUploadRequest) returns (ImageUploadResponse);
+    rpc Get (common.Image) returns (stream ImageGetResponse);
     rpc Delete (common.Image) returns (ImageDeleteResponse);
 }
 
+message ImageChunk {
+    bytes chunk = 1;
+}
+
 message ImageUploadRequest {
-    bytes imageBytes = 1;
-    common.Image image = 2;
+    oneof payload {
+        ImageChunk chunk = 1;
+        common.Image image = 2;
+    }
 }
 
 message ImageUploadResponse {
@@ -23,8 +29,10 @@ message ImageUploadResponse {
 }
 
 message ImageGetResponse {
-    bytes imageBytes = 1;
-    string message = 2;
+    oneof payload {
+        ImageChunk chunk = 1;
+        string message = 2;
+    }
 }
 
 message ImageDeleteResponse {

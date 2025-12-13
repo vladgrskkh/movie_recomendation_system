@@ -22,17 +22,64 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type ImageUploadRequest struct {
+type ImageChunk struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ImageBytes    []byte                 `protobuf:"bytes,1,opt,name=imageBytes,proto3" json:"imageBytes,omitempty"`
-	Image         *common.Image          `protobuf:"bytes,2,opt,name=image,proto3" json:"image,omitempty"`
+	Chunk         []byte                 `protobuf:"bytes,1,opt,name=chunk,proto3" json:"chunk,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImageChunk) Reset() {
+	*x = ImageChunk{}
+	mi := &file_v1_imageservice_image_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImageChunk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImageChunk) ProtoMessage() {}
+
+func (x *ImageChunk) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_imageservice_image_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImageChunk.ProtoReflect.Descriptor instead.
+func (*ImageChunk) Descriptor() ([]byte, []int) {
+	return file_v1_imageservice_image_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ImageChunk) GetChunk() []byte {
+	if x != nil {
+		return x.Chunk
+	}
+	return nil
+}
+
+type ImageUploadRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Payload:
+	//
+	//	*ImageUploadRequest_Chunk
+	//	*ImageUploadRequest_Image
+	Payload       isImageUploadRequest_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ImageUploadRequest) Reset() {
 	*x = ImageUploadRequest{}
-	mi := &file_v1_imageservice_image_proto_msgTypes[0]
+	mi := &file_v1_imageservice_image_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +91,7 @@ func (x *ImageUploadRequest) String() string {
 func (*ImageUploadRequest) ProtoMessage() {}
 
 func (x *ImageUploadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_imageservice_image_proto_msgTypes[0]
+	mi := &file_v1_imageservice_image_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,22 +104,49 @@ func (x *ImageUploadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImageUploadRequest.ProtoReflect.Descriptor instead.
 func (*ImageUploadRequest) Descriptor() ([]byte, []int) {
-	return file_v1_imageservice_image_proto_rawDescGZIP(), []int{0}
+	return file_v1_imageservice_image_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ImageUploadRequest) GetImageBytes() []byte {
+func (x *ImageUploadRequest) GetPayload() isImageUploadRequest_Payload {
 	if x != nil {
-		return x.ImageBytes
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *ImageUploadRequest) GetChunk() *ImageChunk {
+	if x != nil {
+		if x, ok := x.Payload.(*ImageUploadRequest_Chunk); ok {
+			return x.Chunk
+		}
 	}
 	return nil
 }
 
 func (x *ImageUploadRequest) GetImage() *common.Image {
 	if x != nil {
-		return x.Image
+		if x, ok := x.Payload.(*ImageUploadRequest_Image); ok {
+			return x.Image
+		}
 	}
 	return nil
 }
+
+type isImageUploadRequest_Payload interface {
+	isImageUploadRequest_Payload()
+}
+
+type ImageUploadRequest_Chunk struct {
+	Chunk *ImageChunk `protobuf:"bytes,1,opt,name=chunk,proto3,oneof"`
+}
+
+type ImageUploadRequest_Image struct {
+	Image *common.Image `protobuf:"bytes,2,opt,name=image,proto3,oneof"`
+}
+
+func (*ImageUploadRequest_Chunk) isImageUploadRequest_Payload() {}
+
+func (*ImageUploadRequest_Image) isImageUploadRequest_Payload() {}
 
 type ImageUploadResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -84,7 +158,7 @@ type ImageUploadResponse struct {
 
 func (x *ImageUploadResponse) Reset() {
 	*x = ImageUploadResponse{}
-	mi := &file_v1_imageservice_image_proto_msgTypes[1]
+	mi := &file_v1_imageservice_image_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -96,7 +170,7 @@ func (x *ImageUploadResponse) String() string {
 func (*ImageUploadResponse) ProtoMessage() {}
 
 func (x *ImageUploadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_imageservice_image_proto_msgTypes[1]
+	mi := &file_v1_imageservice_image_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -109,7 +183,7 @@ func (x *ImageUploadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImageUploadResponse.ProtoReflect.Descriptor instead.
 func (*ImageUploadResponse) Descriptor() ([]byte, []int) {
-	return file_v1_imageservice_image_proto_rawDescGZIP(), []int{1}
+	return file_v1_imageservice_image_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ImageUploadResponse) GetImage() *common.Image {
@@ -127,16 +201,19 @@ func (x *ImageUploadResponse) GetMessage() string {
 }
 
 type ImageGetResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ImageBytes    []byte                 `protobuf:"bytes,1,opt,name=imageBytes,proto3" json:"imageBytes,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Payload:
+	//
+	//	*ImageGetResponse_Chunk
+	//	*ImageGetResponse_Message
+	Payload       isImageGetResponse_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ImageGetResponse) Reset() {
 	*x = ImageGetResponse{}
-	mi := &file_v1_imageservice_image_proto_msgTypes[2]
+	mi := &file_v1_imageservice_image_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -148,7 +225,7 @@ func (x *ImageGetResponse) String() string {
 func (*ImageGetResponse) ProtoMessage() {}
 
 func (x *ImageGetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_imageservice_image_proto_msgTypes[2]
+	mi := &file_v1_imageservice_image_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -161,22 +238,49 @@ func (x *ImageGetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImageGetResponse.ProtoReflect.Descriptor instead.
 func (*ImageGetResponse) Descriptor() ([]byte, []int) {
-	return file_v1_imageservice_image_proto_rawDescGZIP(), []int{2}
+	return file_v1_imageservice_image_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ImageGetResponse) GetImageBytes() []byte {
+func (x *ImageGetResponse) GetPayload() isImageGetResponse_Payload {
 	if x != nil {
-		return x.ImageBytes
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *ImageGetResponse) GetChunk() *ImageChunk {
+	if x != nil {
+		if x, ok := x.Payload.(*ImageGetResponse_Chunk); ok {
+			return x.Chunk
+		}
 	}
 	return nil
 }
 
 func (x *ImageGetResponse) GetMessage() string {
 	if x != nil {
-		return x.Message
+		if x, ok := x.Payload.(*ImageGetResponse_Message); ok {
+			return x.Message
+		}
 	}
 	return ""
 }
+
+type isImageGetResponse_Payload interface {
+	isImageGetResponse_Payload()
+}
+
+type ImageGetResponse_Chunk struct {
+	Chunk *ImageChunk `protobuf:"bytes,1,opt,name=chunk,proto3,oneof"`
+}
+
+type ImageGetResponse_Message struct {
+	Message string `protobuf:"bytes,2,opt,name=message,proto3,oneof"`
+}
+
+func (*ImageGetResponse_Chunk) isImageGetResponse_Payload() {}
+
+func (*ImageGetResponse_Message) isImageGetResponse_Payload() {}
 
 type ImageDeleteResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -187,7 +291,7 @@ type ImageDeleteResponse struct {
 
 func (x *ImageDeleteResponse) Reset() {
 	*x = ImageDeleteResponse{}
-	mi := &file_v1_imageservice_image_proto_msgTypes[3]
+	mi := &file_v1_imageservice_image_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -199,7 +303,7 @@ func (x *ImageDeleteResponse) String() string {
 func (*ImageDeleteResponse) ProtoMessage() {}
 
 func (x *ImageDeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_imageservice_image_proto_msgTypes[3]
+	mi := &file_v1_imageservice_image_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -212,7 +316,7 @@ func (x *ImageDeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImageDeleteResponse.ProtoReflect.Descriptor instead.
 func (*ImageDeleteResponse) Descriptor() ([]byte, []int) {
-	return file_v1_imageservice_image_proto_rawDescGZIP(), []int{3}
+	return file_v1_imageservice_image_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ImageDeleteResponse) GetMessage() string {
@@ -226,25 +330,26 @@ var File_v1_imageservice_image_proto protoreflect.FileDescriptor
 
 const file_v1_imageservice_image_proto_rawDesc = "" +
 	"\n" +
-	"\x1bv1/imageservice/image.proto\x12\x0fv1.imageservice\x1a\x12common/types.proto\"Y\n" +
-	"\x12ImageUploadRequest\x12\x1e\n" +
+	"\x1bv1/imageservice/image.proto\x12\x0fv1.imageservice\x1a\x12common/types.proto\"\"\n" +
 	"\n" +
-	"imageBytes\x18\x01 \x01(\fR\n" +
-	"imageBytes\x12#\n" +
-	"\x05image\x18\x02 \x01(\v2\r.common.ImageR\x05image\"T\n" +
+	"ImageChunk\x12\x14\n" +
+	"\x05chunk\x18\x01 \x01(\fR\x05chunk\"{\n" +
+	"\x12ImageUploadRequest\x123\n" +
+	"\x05chunk\x18\x01 \x01(\v2\x1b.v1.imageservice.ImageChunkH\x00R\x05chunk\x12%\n" +
+	"\x05image\x18\x02 \x01(\v2\r.common.ImageH\x00R\x05imageB\t\n" +
+	"\apayload\"T\n" +
 	"\x13ImageUploadResponse\x12#\n" +
 	"\x05image\x18\x01 \x01(\v2\r.common.ImageR\x05image\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"L\n" +
-	"\x10ImageGetResponse\x12\x1e\n" +
-	"\n" +
-	"imageBytes\x18\x01 \x01(\fR\n" +
-	"imageBytes\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"/\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"n\n" +
+	"\x10ImageGetResponse\x123\n" +
+	"\x05chunk\x18\x01 \x01(\v2\x1b.v1.imageservice.ImageChunkH\x00R\x05chunk\x12\x1a\n" +
+	"\amessage\x18\x02 \x01(\tH\x00R\amessageB\t\n" +
+	"\apayload\"/\n" +
 	"\x13ImageDeleteResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage2\xd4\x01\n" +
-	"\x05Image\x12S\n" +
-	"\x06Upload\x12#.v1.imageservice.ImageUploadRequest\x1a$.v1.imageservice.ImageUploadResponse\x127\n" +
-	"\x03Get\x12\r.common.Image\x1a!.v1.imageservice.ImageGetResponse\x12=\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage2\xd8\x01\n" +
+	"\x05Image\x12U\n" +
+	"\x06Upload\x12#.v1.imageservice.ImageUploadRequest\x1a$.v1.imageservice.ImageUploadResponse(\x01\x129\n" +
+	"\x03Get\x12\r.common.Image\x1a!.v1.imageservice.ImageGetResponse0\x01\x12=\n" +
 	"\x06Delete\x12\r.common.Image\x1a$.v1.imageservice.ImageDeleteResponseBPZNgithub.com/vladgrskkh/movie-recommender-contracts/v1/imageservice;imageserviceb\x06proto3"
 
 var (
@@ -259,28 +364,31 @@ func file_v1_imageservice_image_proto_rawDescGZIP() []byte {
 	return file_v1_imageservice_image_proto_rawDescData
 }
 
-var file_v1_imageservice_image_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_v1_imageservice_image_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_v1_imageservice_image_proto_goTypes = []any{
-	(*ImageUploadRequest)(nil),  // 0: v1.imageservice.ImageUploadRequest
-	(*ImageUploadResponse)(nil), // 1: v1.imageservice.ImageUploadResponse
-	(*ImageGetResponse)(nil),    // 2: v1.imageservice.ImageGetResponse
-	(*ImageDeleteResponse)(nil), // 3: v1.imageservice.ImageDeleteResponse
-	(*common.Image)(nil),        // 4: common.Image
+	(*ImageChunk)(nil),          // 0: v1.imageservice.ImageChunk
+	(*ImageUploadRequest)(nil),  // 1: v1.imageservice.ImageUploadRequest
+	(*ImageUploadResponse)(nil), // 2: v1.imageservice.ImageUploadResponse
+	(*ImageGetResponse)(nil),    // 3: v1.imageservice.ImageGetResponse
+	(*ImageDeleteResponse)(nil), // 4: v1.imageservice.ImageDeleteResponse
+	(*common.Image)(nil),        // 5: common.Image
 }
 var file_v1_imageservice_image_proto_depIdxs = []int32{
-	4, // 0: v1.imageservice.ImageUploadRequest.image:type_name -> common.Image
-	4, // 1: v1.imageservice.ImageUploadResponse.image:type_name -> common.Image
-	0, // 2: v1.imageservice.Image.Upload:input_type -> v1.imageservice.ImageUploadRequest
-	4, // 3: v1.imageservice.Image.Get:input_type -> common.Image
-	4, // 4: v1.imageservice.Image.Delete:input_type -> common.Image
-	1, // 5: v1.imageservice.Image.Upload:output_type -> v1.imageservice.ImageUploadResponse
-	2, // 6: v1.imageservice.Image.Get:output_type -> v1.imageservice.ImageGetResponse
-	3, // 7: v1.imageservice.Image.Delete:output_type -> v1.imageservice.ImageDeleteResponse
-	5, // [5:8] is the sub-list for method output_type
-	2, // [2:5] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 0: v1.imageservice.ImageUploadRequest.chunk:type_name -> v1.imageservice.ImageChunk
+	5, // 1: v1.imageservice.ImageUploadRequest.image:type_name -> common.Image
+	5, // 2: v1.imageservice.ImageUploadResponse.image:type_name -> common.Image
+	0, // 3: v1.imageservice.ImageGetResponse.chunk:type_name -> v1.imageservice.ImageChunk
+	1, // 4: v1.imageservice.Image.Upload:input_type -> v1.imageservice.ImageUploadRequest
+	5, // 5: v1.imageservice.Image.Get:input_type -> common.Image
+	5, // 6: v1.imageservice.Image.Delete:input_type -> common.Image
+	2, // 7: v1.imageservice.Image.Upload:output_type -> v1.imageservice.ImageUploadResponse
+	3, // 8: v1.imageservice.Image.Get:output_type -> v1.imageservice.ImageGetResponse
+	4, // 9: v1.imageservice.Image.Delete:output_type -> v1.imageservice.ImageDeleteResponse
+	7, // [7:10] is the sub-list for method output_type
+	4, // [4:7] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_v1_imageservice_image_proto_init() }
@@ -288,13 +396,21 @@ func file_v1_imageservice_image_proto_init() {
 	if File_v1_imageservice_image_proto != nil {
 		return
 	}
+	file_v1_imageservice_image_proto_msgTypes[1].OneofWrappers = []any{
+		(*ImageUploadRequest_Chunk)(nil),
+		(*ImageUploadRequest_Image)(nil),
+	}
+	file_v1_imageservice_image_proto_msgTypes[3].OneofWrappers = []any{
+		(*ImageGetResponse_Chunk)(nil),
+		(*ImageGetResponse_Message)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_imageservice_image_proto_rawDesc), len(file_v1_imageservice_image_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
