@@ -10,7 +10,7 @@ import (
 	"github.com/invopop/validation"
 	"github.com/invopop/validation/is"
 
-	pb "github.com/vladgrskkh/movie_recomendation_system/genproto/v1/predict"
+	pb "github.com/vladgrskkh/movie-recommender-contracts/v1/predict"
 
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/validate"
@@ -739,12 +739,10 @@ func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := pb.NewRecommendationClient(app.grpcConn)
-
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	recommendation, err := client.Recommend(ctx, &pb.RecommendRequest{
+	recommendation, err := app.predictClient.Recommend(ctx, &pb.RecommendRequest{
 		MovieTitle: input.Title,
 	})
 	if err != nil {

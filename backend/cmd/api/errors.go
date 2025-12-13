@@ -94,3 +94,8 @@ func (app *application) forbiddenUserResponse(w http.ResponseWriter, r *http.Req
 	message := "this resource doesn't belong to the authenticated user"
 	app.errorResponse(w, r, http.StatusForbidden, message)
 }
+
+func (app *application) imageUnsupportedMediaTypeResponse(w http.ResponseWriter, r *http.Request) {
+	message := "only jpeg and png images are allowed"
+	app.errorResponse(w, r, http.StatusUnsupportedMediaType, message)
+}

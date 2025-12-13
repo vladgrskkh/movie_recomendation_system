@@ -59,6 +59,13 @@ func (app *application) routes() http.Handler {
 		r.Route("/kafka", func(r chi.Router) {
 			r.Post("/dummy", app.createKafkaMessage)
 		})
+
+		r.Route("/images", func(r chi.Router) {
+			r.Use(app.requireAuthenticatedUser)
+			r.Post("/", app.UploadImageHandler)
+			r.Get("/{imageID}", app.GetImageHandler)
+			r.Delete("/{imageID}", app.DeleteImageHandler)
+		})
 	})
 
 	r.Method(http.MethodGet, "/metrics", promhttp.Handler())

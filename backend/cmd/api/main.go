@@ -12,6 +12,8 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"github.com/vladgrskkh/movie-recommender-contracts/v1/imageservice"
+	"github.com/vladgrskkh/movie-recommender-contracts/v1/predict"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -147,10 +149,10 @@ func main() {
 
 	defer func() {
 		e := db.Close()
-		if err != nil {
+		if err != nil && e != nil {
 			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
 		} else if e != nil {
-			logger.Error(err.Error())
+			err = e
 		}
 	}()
 
@@ -159,22 +161,41 @@ func main() {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
-	conn, err := grpc.NewClient(cfg.grpc.address+":50051", opts...)
+	connRecommender, err := grpc.NewClient(cfg.grpc.address+":50051", opts...)
 	if err != nil {
-		logger.Log(ctx, LevelFatal, "cannot connect to gRPC server:", slog.String("error", err.Error()))
+		logger.Log(ctx, LevelFatal, "cannot connect to gRPC recommender server:", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
+	clientRecommender := predict.NewRecommendationClient(connRecommender)
+
+	connImage, err := grpc.NewClient(cfg.grpc.address+":50052", opts...)
+	if err != nil {
+		logger.Log(ctx, LevelFatal, "cannot connect to gRPC image server:", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+
+	clientImage := imageservice.NewImageClient(connImage)
+
 	defer func() {
-		e := conn.Close()
-		if err != nil {
+		e := connRecommender.Close()
+		if err != nil && e != nil {
 			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
 		} else if e != nil {
-			logger.Error(err.Error())
+			err = e
 		}
 	}()
 
-	logger.Info("gRPC connection established")
+	defer func() {
+		e := connImage.Close()
+		if err != nil && e != nil {
+			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
+		} else if e != nil {
+			err = e
+		}
+	}()
+
+	logger.Info("gRPC connections established")
 
 	p, err := kafka.NewProducer(cfg.kafka.address, cfg.kafka.passwordSSL, cfg.kafka.username, cfg.kafka.passwordUser)
 	if err != nil {
@@ -184,7 +205,7 @@ func main() {
 
 	logger.Info("new kafka producer started")
 
-	app := newApplication(cfg, logger, db, conn, p)
+	app := newApplication(cfg, logger, db, clientRecommender, clientImage, p)
 
 	logger.Info("starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {
