@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/vladgrskkh/movie-recommender-contracts/common"
@@ -96,8 +97,6 @@ forLoop:
 func (app *application) GetImageHandler(w http.ResponseWriter, r *http.Request) {
 	imageID := r.URL.Query().Get("imageID")
 
-	imageBytes := make([]byte, 1024*32)
-
 	stream, err := app.imageClient.Get(context.Background(), &common.Image{ObjectName: imageID, BucketName: "images"})
 	// TODO: check what error is returned here from the server(it can be not found or something else so i need to
 	// handle it better)
@@ -105,6 +104,14 @@ func (app *application) GetImageHandler(w http.ResponseWriter, r *http.Request) 
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+	ext := path.Ext(imageID)
+	if ext == "" {
+		app.badRequestResponse(w, r, err)
+	}
+
+	w.Header().Set("Content-Type", "image/"+ext[1:])
+	w.WriteHeader(http.StatusOK)
+
 forLoop:
 	for {
 		buf, err := stream.Recv()
@@ -118,16 +125,11 @@ forLoop:
 			}
 		}
 
-		// TODO: change this
-		copy(imageBytes, buf.GetChunk().Chunk)
-	}
-
-	w.Header().Set("Content-Type", "image/"+strings.Split(imageID, ".")[1])
-	w.WriteHeader(http.StatusOK)
-
-	_, err = w.Write(imageBytes)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		_, err = w.Write(buf.GetChunk().Chunk)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
 	}
 }
 
