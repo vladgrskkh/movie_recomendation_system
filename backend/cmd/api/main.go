@@ -241,22 +241,20 @@ func openDB(cfg config) (*sql.DB, error) {
 
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
-// TO DO: write tests for the handlers and other components (2 hours)
-// TODO: deploy into server ready kafka service, also some bug fixes
+// TODO: write tests for the handlers and other components (2 hours)
+// TODO: add movies/new movies/recommended movies/popular endopints
 // ::::::::::::::::::::::::::::::::
 
-// TO DO: write tests for the handlers and other components
-// TO DO: think about how to serve images for movies
-// TO DO: user profile handler
+// TODO: write tests for the handlers and other components
+// TODO: think about how to serve images for movies
+// TODO: user profile handler
 // TODO: add more metrics, grafana settings (best practice)
 // TODO: add redis db for ip rate limmiter
 // TODO: make use of makefile in cicd pipelines
 // TODO: grafana storage persistence
-// TODO: need to check if i may need more than one producer
-// TODO: ci/cd issue backend dont trigger ci pipeline
-// TODO: add handler that simply generates messages for kafka (test puprpose)
+// TODO: need to check if i may need more than one producer (worker pool)
 // TODO: mb pass app to helper test methods instead of creating a new app(if tests is slow)
 // TODO: prometheus work around duplicate metrics with tests
-// TODO: kafka ui auth
 // TODO: mb separate services or change ci/cd pipeline
-// TODO: remove kafka-topic flag
+// TODO: fix bug with github tags in ci/cd pipeline
+// TODO: add email input for activating user (also need to create separate table for activation/reset tokens)

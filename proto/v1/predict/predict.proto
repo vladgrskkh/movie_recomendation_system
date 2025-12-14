@@ -4,7 +4,7 @@ package v1.predict;
 
 import "common/types.proto";
 
-option go_package = "github.com/vladgrskkh/movie_recomendation_system/genproto/v1/predict;predict";
+option go_package = "github.com/vladgrskkh/echo-contracts/v1/predict;predict";
 
 service Recommendation {
     rpc Recommend (RecommendRequest) returns (RecommendResponse);
