@@ -112,7 +112,6 @@ forLoop:
 			}
 		}
 
-		// TODO: do it better
 		err = stream.Send(&pb.ImageGetResponse{
 			Payload: &pb.ImageGetResponse_Chunk{
 				Chunk: &pb.ImageChunk{Chunk: buf[:n]},
@@ -121,15 +120,6 @@ forLoop:
 		if err != nil {
 			return status.Error(codes.Internal, "server encountered a problem and could not process your request")
 		}
-	}
-
-	err = stream.Send(&pb.ImageGetResponse{
-		Payload: &pb.ImageGetResponse_Message{
-			Message: "successfully send image",
-		},
-	})
-	if err != nil {
-		return status.Error(codes.Internal, "server encountered a problem and could not process your request")
 	}
 
 	return nil

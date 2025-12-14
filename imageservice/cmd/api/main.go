@@ -50,7 +50,7 @@ func main() {
 	h := handlers.NewImageHandler(logger, s)
 
 	logger.Info("starting grpc server")
-	err = server(logger, cfg.Address, h)
+	err = server(logger, ":50052", h)
 	if err != nil {
 		logger.Error("failed to start grpc server", slog.String("error", err.Error()))
 		os.Exit(1)
@@ -60,3 +60,4 @@ func main() {
 // TODO: integration tests
 // TODO: caddy for reverse proxy onto 4 minio instanses(also read about caddy load balancer)
 // TODO: domain struct and errors(check where to store errors from different layers)
+// TODO: check when uploading image can i do it without allocating full sized buffer

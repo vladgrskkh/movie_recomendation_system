@@ -49,11 +49,6 @@ const docTemplate = `{
         },
         "/images": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Upload an image file (jpg or png). Multipart form: field name ` + "`" + `image` + "`" + `.",
                 "consumes": [
                     "multipart/form-data"
@@ -125,11 +120,6 @@ const docTemplate = `{
         },
         "/images/{imageID}": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Retrieve an image by providing file name",
                 "produces": [
                     "image/png",
@@ -195,11 +185,6 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Delete image by providing file name",
                 "produces": [
                     "application/json"

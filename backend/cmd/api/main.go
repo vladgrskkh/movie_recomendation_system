@@ -168,8 +168,8 @@ func main() {
 	}
 
 	clientRecommender := predict.NewRecommendationClient(connRecommender)
-
-	connImage, err := grpc.NewClient(cfg.grpc.address+":50052", opts...)
+	// TODO: fetch from config
+	connImage, err := grpc.NewClient("image-service:50052", opts...)
 	if err != nil {
 		logger.Log(ctx, LevelFatal, "cannot connect to gRPC image server:", slog.String("error", err.Error()))
 		os.Exit(1)
@@ -258,3 +258,4 @@ func openDB(cfg config) (*sql.DB, error) {
 // TODO: mb separate services or change ci/cd pipeline
 // TODO: fix bug with github tags in ci/cd pipeline
 // TODO: add email input for activating user (also need to create separate table for activation/reset tokens)
+// TODO: ci/cd for image service

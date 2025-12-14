@@ -61,7 +61,8 @@ func (app *application) routes() http.Handler {
 		})
 
 		r.Route("/images", func(r chi.Router) {
-			r.Use(app.requireAuthenticatedUser)
+			// TODO: remove comment when done testing
+			// r.Use(app.requireAuthenticatedUser)
 			r.Post("/", app.UploadImageHandler)
 			r.Get("/{imageID}", app.GetImageHandler)
 			r.Delete("/{imageID}", app.DeleteImageHandler)

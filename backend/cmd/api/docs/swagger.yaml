@@ -243,8 +243,6 @@ paths:
             additionalProperties:
               type: string
             type: object
-      security:
-      - BearerAuth: []
       summary: Upload image
       tags:
       - images
@@ -293,8 +291,6 @@ paths:
             additionalProperties:
               type: string
             type: object
-      security:
-      - BearerAuth: []
       summary: Delete image
       tags:
       - images
@@ -342,8 +338,6 @@ paths:
             additionalProperties:
               type: string
             type: object
-      security:
-      - BearerAuth: []
       summary: Get image
       tags:
       - images
