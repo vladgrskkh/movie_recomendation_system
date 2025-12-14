@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"path"
-	"strings"
 
 	"github.com/vladgrskkh/movie-recommender-contracts/common"
 	pb "github.com/vladgrskkh/movie-recommender-contracts/v1/imageservice"
@@ -46,15 +45,25 @@ func (app *application) UploadImageHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	ext := path.Ext(header.Filename)
+	if ext == "" {
+		app.badRequestResponse(w, r, err)
+	}
+
 	err = stream.Send(&pb.ImageUploadRequest{
 		Payload: &pb.ImageUploadRequest_Image{
 			Image: &common.Image{
 				ObjectName: header.Filename,
 				BucketName: "images",
-				Format:     strings.Split(contentType, "/")[1],
+				Format:     ext[1:],
 			},
 		},
 	})
+	// TODO: think about what error server can return
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
 	buf := make([]byte, 1024*32)
 
