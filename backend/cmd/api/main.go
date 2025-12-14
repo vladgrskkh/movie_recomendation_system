@@ -12,6 +12,8 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"github.com/vladgrskkh/movie-recommender-contracts/v1/imageservice"
+	"github.com/vladgrskkh/movie-recommender-contracts/v1/predict"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -147,10 +149,10 @@ func main() {
 
 	defer func() {
 		e := db.Close()
-		if err != nil {
+		if err != nil && e != nil {
 			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
 		} else if e != nil {
-			logger.Error(err.Error())
+			err = e
 		}
 	}()
 
@@ -159,22 +161,41 @@ func main() {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
-	conn, err := grpc.NewClient(cfg.grpc.address+":50051", opts...)
+	connRecommender, err := grpc.NewClient(cfg.grpc.address+":50051", opts...)
 	if err != nil {
-		logger.Log(ctx, LevelFatal, "cannot connect to gRPC server:", slog.String("error", err.Error()))
+		logger.Log(ctx, LevelFatal, "cannot connect to gRPC recommender server:", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
+	clientRecommender := predict.NewRecommendationClient(connRecommender)
+	// TODO: fetch from config
+	connImage, err := grpc.NewClient("image-service:50052", opts...)
+	if err != nil {
+		logger.Log(ctx, LevelFatal, "cannot connect to gRPC image server:", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+
+	clientImage := imageservice.NewImageClient(connImage)
+
 	defer func() {
-		e := conn.Close()
-		if err != nil {
+		e := connRecommender.Close()
+		if err != nil && e != nil {
 			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
 		} else if e != nil {
-			logger.Error(err.Error())
+			err = e
 		}
 	}()
 
-	logger.Info("gRPC connection established")
+	defer func() {
+		e := connImage.Close()
+		if err != nil && e != nil {
+			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
+		} else if e != nil {
+			err = e
+		}
+	}()
+
+	logger.Info("gRPC connections established")
 
 	p, err := kafka.NewProducer(cfg.kafka.address, cfg.kafka.passwordSSL, cfg.kafka.username, cfg.kafka.passwordUser)
 	if err != nil {
@@ -184,7 +205,7 @@ func main() {
 
 	logger.Info("new kafka producer started")
 
-	app := newApplication(cfg, logger, db, conn, p)
+	app := newApplication(cfg, logger, db, clientRecommender, clientImage, p)
 
 	logger.Info("starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {
@@ -220,22 +241,21 @@ func openDB(cfg config) (*sql.DB, error) {
 
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
-// TO DO: write tests for the handlers and other components (2 hours)
-// TODO: deploy into server ready kafka service, also some bug fixes
+// TODO: write tests for the handlers and other components (2 hours)
+// TODO: add movies/new movies/recommended movies/popular endopints
 // ::::::::::::::::::::::::::::::::
 
-// TO DO: write tests for the handlers and other components
-// TO DO: think about how to serve images for movies
-// TO DO: user profile handler
+// TODO: write tests for the handlers and other components
+// TODO: think about how to serve images for movies
+// TODO: user profile handler
 // TODO: add more metrics, grafana settings (best practice)
 // TODO: add redis db for ip rate limmiter
 // TODO: make use of makefile in cicd pipelines
 // TODO: grafana storage persistence
-// TODO: need to check if i may need more than one producer
-// TODO: ci/cd issue backend dont trigger ci pipeline
-// TODO: add handler that simply generates messages for kafka (test puprpose)
+// TODO: need to check if i may need more than one producer (worker pool)
 // TODO: mb pass app to helper test methods instead of creating a new app(if tests is slow)
 // TODO: prometheus work around duplicate metrics with tests
-// TODO: kafka ui auth
 // TODO: mb separate services or change ci/cd pipeline
-// TODO: remove kafka-topic flag
+// TODO: fix bug with github tags in ci/cd pipeline
+// TODO: add email input for activating user (also need to create separate table for activation/reset tokens)
+// TODO: ci/cd for image service

@@ -46,6 +46,7 @@ func (app *application) routes() http.Handler {
 			r.Post("/", app.registerUserHandler)
 			r.Put("/activate", app.activateUserHandler)
 			r.Put("/password", app.updateUserPasswordHandler)
+			r.With(app.requireAuthenticatedUser).Delete("/", app.deleteUserHandler)
 		})
 
 		r.Route("/tokens", func(r chi.Router) {
@@ -57,6 +58,14 @@ func (app *application) routes() http.Handler {
 
 		r.Route("/kafka", func(r chi.Router) {
 			r.Post("/dummy", app.createKafkaMessage)
+		})
+
+		r.Route("/images", func(r chi.Router) {
+			// TODO: remove comment when done testing
+			// r.Use(app.requireAuthenticatedUser)
+			r.Post("/", app.UploadImageHandler)
+			r.Get("/{imageID}", app.GetImageHandler)
+			r.Delete("/{imageID}", app.DeleteImageHandler)
 		})
 	})
 

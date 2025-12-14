@@ -75,6 +75,15 @@ definitions:
       token:
         type: string
     type: object
+  main.deleteUserInput:
+    properties:
+      email:
+        example: something@example.com
+        type: string
+      password:
+        example: s1mplepA$$word
+        type: string
+    type: object
   main.inputChangePassword:
     properties:
       email:
@@ -186,6 +195,152 @@ paths:
       summary: Health check
       tags:
       - health
+  /images:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 'Upload an image file (jpg or png). Multipart form: field name
+        `image`.'
+      parameters:
+      - description: Image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'Created | Example {\"message\": \"...\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'Bad Request | Example {\"error\": \"...\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'Unauthorized | Example {\"error\": \"this resourse avaliable
+            only for authenticated users\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: 'Unsupported Media Type | Example {\"error\": \"only jpeg and
+            png images are allowed\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {"error": "server encountered
+            a problem and could not process your request"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Upload image
+      tags:
+      - images
+  /images/{imageID}:
+    delete:
+      description: Delete image by providing file name
+      parameters:
+      - description: Image ID
+        in: path
+        name: imageID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'OK | Example {\"message\": \"image deleted\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'Bad Request | Example {\"error\": \"...\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'Unauthorized | Example {\"error\": \"this resourse avaliable
+            only for authenticated users\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Not Found | Example {\"error\": \"requested resource could
+            not be found\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {\"error\": \"server encountered
+            a problem and could not process your request\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete image
+      tags:
+      - images
+    get:
+      description: Retrieve an image by providing file name
+      parameters:
+      - description: Image ID
+        in: path
+        name: imageID
+        required: true
+        type: string
+      produces:
+      - image/png
+      - ' image/jpg'
+      - ' application/json'
+      responses:
+        "200":
+          description: Image file
+          schema:
+            type: file
+        "400":
+          description: 'Bad Request | Example {\"error\": \"...\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'Unauthorized | Example {\"error\": \"this resourse avaliable
+            only for authenticated users\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Not Found | Example {\"error\": \"requested resource could
+            not be found\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {\"error\": \"server encountered
+            a problem and could not process your request\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get image
+      tags:
+      - images
   /kafka/dummy:
     post:
       consumes:
@@ -713,6 +868,65 @@ paths:
       tags:
       - auth
   /users:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a user account after validating email and password
+      parameters:
+      - description: User deletion payload
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/main.deleteUserInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'OK | Example {\"message\": \"user successfully deleted\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'Bad Request | Example {\"error\": \"body contains badly-formated
+            JSON\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'Unauthorized | Example {\"error\": \"invalid authentication
+            credentials\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: 'Forbidden | Example {\"error\": \"this resourse doesn''t belong
+            to authenticated user\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: 'Unprocessable Entity | Example {\"error\": \"validation error\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {\"error\": \"server encountered
+            a problem and could not process your request\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a user account
+      tags:
+      - users
     post:
       consumes:
       - application/json

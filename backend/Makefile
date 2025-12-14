@@ -118,7 +118,7 @@ build/api:
 .PHONY: build/docker/api
 build/docker/api:
 	@echo 'Building docker image...'
-	docker build --build-arg LINKER_FLAGS=${linker_flags} --tag vladgrskkh/mrs-api .
+	docker build --build-arg LINKER_FLAGS=${linker_flags} --platform linux/amd64,linux/arm64 --tag vladgrskkh/mrs-api .
 	@echo 'Pushing docker image...'
 	docker push vladgrskkh/mrs-api:latest
 

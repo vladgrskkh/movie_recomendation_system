@@ -54,7 +54,7 @@ func (app *application) authentication(next http.Handler) http.Handler {
 		if err != nil {
 			switch {
 			case errors.Is(err, ErrInvalidToken):
-				app.failedValidationResponse(w, r, err)
+				app.invalidAuthenticationResponse(w, r)
 			default:
 				app.serverErrorResponse(w, r, err)
 			}

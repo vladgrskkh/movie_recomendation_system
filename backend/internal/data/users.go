@@ -218,3 +218,19 @@ func (m userModel) GetForToken(tokenScope, token string) (*User, error) {
 
 	return &user, nil
 }
+
+func (m userModel) Delete(user *User) error {
+	query := `
+	DELETE FROM users
+	WHERE email = $1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, user.Email)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

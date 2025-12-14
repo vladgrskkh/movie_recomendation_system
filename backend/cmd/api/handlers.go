@@ -10,7 +10,7 @@ import (
 	"github.com/invopop/validation"
 	"github.com/invopop/validation/is"
 
-	pb "github.com/vladgrskkh/movie_recomendation_system/genproto/v1/predict"
+	pb "github.com/vladgrskkh/movie-recommender-contracts/v1/predict"
 
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 	"github.com/vladgrskkh/movie_recomendation_system/internal/validate"
@@ -663,6 +663,7 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 	match, err := user.Password.Matches(input.Password)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
 	}
 
 	if !match {
@@ -738,12 +739,10 @@ func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := pb.NewRecommendationClient(app.grpcConn)
-
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	recommendation, err := client.Recommend(ctx, &pb.RecommendRequest{
+	recommendation, err := app.predictClient.Recommend(ctx, &pb.RecommendRequest{
 		MovieTitle: input.Title,
 	})
 	if err != nil {
@@ -1030,6 +1029,7 @@ func (app *application) createKafkaMessage(w http.ResponseWriter, r *http.Reques
 	}
 	kafkaMsg.Message = input.Message
 
+	// test with worker pool
 	for range input.Count {
 		err := app.producer.Produce(kafkaMsg, "dummy", nil, time.Now())
 		if err != nil {

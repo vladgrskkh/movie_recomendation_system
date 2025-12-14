@@ -12,6 +12,7 @@ var (
 )
 
 type moviesInterface interface {
+	// TODO: add names
 	Get(int64) (*Movie, error)
 	Insert(*Movie) error
 	Delete(int64) error
@@ -25,6 +26,7 @@ type usersInterface interface {
 	GetByID(int64) (*User, error)
 	Update(*User) error
 	GetForToken(string, string) (*User, error)
+	Delete(*User) error
 }
 
 type tokensInterface interface {
