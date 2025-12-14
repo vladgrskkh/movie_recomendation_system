@@ -36,9 +36,15 @@ func (h *ImageHandler) Upload(stream grpc.ClientStreamingServer[pb.ImageUploadRe
 	}
 
 	pbImageMetadata := pbImageResp.GetImage()
-	imageMetadata := domain.NewImageMetadata(pbImageMetadata.GetObjectName(), pbImageMetadata.GetBucketName(), pbImageMetadata.GetFormat(), 0)
+	imageMetadata := domain.NewImageMetadata(pbImageMetadata.GetObjectName(), pbImageMetadata.GetBucketName(), pbImageMetadata.GetFormat(), -1)
 	// TODO: get size from response
-	imageBytes := make([]byte, 1024*1024*3)
+
+	pr, pw := io.Pipe()
+	errChan := make(chan error)
+	go func() {
+		errChan <- h.imageService.UploadImage(context.Background(), imageMetadata, pr)
+	}()
+
 forLoop:
 	for {
 		buf, err := stream.Recv()
@@ -47,19 +53,35 @@ forLoop:
 			case errors.Is(err, io.EOF):
 				break forLoop
 			default:
+				err = pw.CloseWithError(err)
+				if err != nil {
+					h.logger.Error("error closing pipe with error", slog.String("error", err.Error()))
+				}
 				return status.Error(codes.Internal, "error processing image chunk")
 			}
 		}
 
-		imageBytes = append(imageBytes, buf.GetChunk().Chunk...)
+		_, err = pw.Write(buf.GetChunk().Chunk)
+		if err != nil {
+			return status.Error(codes.Internal, "server encountered a problem and could not process your request")
+		}
 	}
 
-	imageMetadata.Size = int64(len(imageBytes))
-	err = h.imageService.UploadImage(context.Background(), imageMetadata, []byte{})
+	err = pw.Close()
 	if err != nil {
 		return status.Error(codes.Internal, "server encountered a problem and could not process your request")
 	}
 
+	if err = <-errChan; err != nil {
+		return status.Error(codes.Internal, "server encountered a problem and could not process your request")
+	}
+
+	err = stream.SendAndClose(&pb.ImageUploadResponse{
+		Message: "succesfully upload image",
+	})
+	if err != nil {
+		return status.Error(codes.Internal, "server encountered a problem and could not process your request")
+	}
 	return nil
 }
 
@@ -93,9 +115,7 @@ forLoop:
 		// TODO: do it better
 		err = stream.Send(&pb.ImageGetResponse{
 			Payload: &pb.ImageGetResponse_Chunk{
-				Chunk: &pb.ImageChunk{
-					Chunk: buf[:n],
-				},
+				Chunk: &pb.ImageChunk{Chunk: buf[:n]},
 			},
 		})
 		if err != nil {
@@ -128,6 +148,8 @@ func (h *ImageHandler) Delete(ctx context.Context, r *common.Image) (*pb.ImageDe
 	}
 
 	return &pb.ImageDeleteResponse{
-		Message: "Successfully deleted image",
+		Message: "successfully delete image",
 	}, nil
 }
+
+// TODO: better status code message when error occur

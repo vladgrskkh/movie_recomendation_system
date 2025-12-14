@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -27,13 +26,12 @@ func NewImageService(logger *slog.Logger, movieImageRepo *repository.MovieImageR
 	}
 }
 
-func (s *ImageService) UploadImage(ctx context.Context, imageMetadata *domain.ImageMetadata, object []byte) error {
-	reader := bytes.NewReader(object)
-
+func (s *ImageService) UploadImage(ctx context.Context, imageMetadata *domain.ImageMetadata, pr io.Reader) error {
 	opts := minio.PutObjectOptions{
 		ContentType: "image/jpeg",
 	}
-	err := s.movieImageRepo.Upload(ctx, imageMetadata.Bucket, imageMetadata.Name, reader, int64(len(object)), opts)
+	// TODO: chang
+	err := s.movieImageRepo.Upload(ctx, imageMetadata.Bucket, imageMetadata.Name, pr, imageMetadata.Size, opts)
 	if err != nil {
 		return fmt.Errorf("error uploading image: %w", err)
 	}
