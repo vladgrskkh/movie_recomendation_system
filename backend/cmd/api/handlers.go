@@ -98,7 +98,7 @@ type movieInput struct {
 // @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Security BearerAuth
-// @Router /movie [post]
+// @Router /movies [post]
 func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request) {
 	var input movieInput
 
@@ -155,7 +155,7 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 // @Failure 404 {object} map[string]string "Not Found | Example {"error": "requested resource could not be found"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Security BearerAuth
-// @Router /movie/{movieID} [delete]
+// @Router /movies/{movieID} [delete]
 func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
@@ -197,7 +197,7 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 // @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Security BearerAuth
-// @Router /movie/{movieID} [patch]
+// @Router /movies/{movieID} [patch]
 func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
@@ -297,7 +297,7 @@ type MoviesListResponse struct {
 // @Failure 401 {object} map[string]string "Unauthorized | Example {"error": "this resourse avaliable only for authenticated users"}"
 // @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
-// @Router /movie [get]
+// @Router /movies [get]
 func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Title  string
@@ -721,7 +721,7 @@ type predictionInput struct {
 // @Failure 401 {object} map[string]string "Unauthorized | Example {"error": "this resourse avaliable only for authenticated users"}"
 // @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
-// @Router /movie/predict [post]
+// @Router /movies/predict [post]
 func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 	var input predictionInput
 

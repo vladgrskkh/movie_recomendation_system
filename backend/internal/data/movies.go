@@ -194,3 +194,157 @@ func (m movieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 
 	return movies, metadata, nil
 }
+
+func (m movieModel) GetPopular() ([]*Movie, error) {
+	query := `
+		SELECT id, created_at, title, year, runtime, genres, version FROM movies
+		JOIN popular_movies ON movies.id = popular_movies.id
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		e := rows.Close()
+		if err != nil {
+			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
+		} else {
+			err = e
+		}
+	}()
+
+	var movies []*Movie
+
+	for rows.Next() {
+		var movie Movie
+
+		err := rows.Scan(
+			movie.ID,
+			movie.CreatedAt,
+			movie.Title,
+			movie.Year,
+			movie.Runtime,
+			pq.Array(&movie.Genres),
+			movie.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		movies = append(movies, &movie)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return movies, nil
+}
+
+func (m movieModel) GetNew(year int) ([]*Movie, error) {
+	query := `
+		SELECT id, created_at, title, year, runtime, genres, version FROM movies
+		WHERE year = $1
+		LIMIT 20
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, year)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		e := rows.Close()
+		if err != nil {
+			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
+		} else {
+			err = e
+		}
+	}()
+
+	var movies []*Movie
+
+	for rows.Next() {
+		var movie Movie
+
+		err := rows.Scan(
+			movie.ID,
+			movie.CreatedAt,
+			movie.Title,
+			movie.Year,
+			movie.Runtime,
+			pq.Array(&movie.Genres),
+			movie.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		movies = append(movies, &movie)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return movies, nil
+}
+
+func (m movieModel) GetRecommended() ([]*Movie, error) {
+	query := `
+		SELECT id, created_at, title, year, runtime, genres, version FROM movies
+		JOIN recommended_movies ON movies.id = recommended_movies.id
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		e := rows.Close()
+		if err != nil {
+			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
+		} else {
+			err = e
+		}
+	}()
+
+	var movies []*Movie
+
+	for rows.Next() {
+		var movie Movie
+
+		err := rows.Scan(
+			movie.ID,
+			movie.CreatedAt,
+			movie.Title,
+			movie.Year,
+			movie.Runtime,
+			pq.Array(&movie.Genres),
+			movie.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		movies = append(movies, &movie)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return movies, nil
+}

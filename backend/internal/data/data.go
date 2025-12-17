@@ -18,6 +18,9 @@ type moviesInterface interface {
 	Delete(int64) error
 	Update(*Movie) error
 	GetAll(string, []string, Filters) ([]*Movie, Metadata, error)
+	GetNew(year int) ([]*Movie, error)
+	GetPopular() ([]*Movie, error)
+	GetRecommended() ([]*Movie, error)
 }
 
 type usersInterface interface {
