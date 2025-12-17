@@ -257,6 +257,7 @@ func TestDeleteMovieHandler(t *testing.T) {
 	ts := newTestServer(t, testRoutes(app))
 	defer ts.Close()
 
+	// FIXME: when gen mocks i need to manualy make this func public
 	mockMovies := mocks.NewMoviesInterface(t)
 
 	mockMovies.On("Delete", int64(1)).Return(nil)

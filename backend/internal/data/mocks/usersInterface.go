@@ -12,6 +12,24 @@ type usersInterface struct {
 	mock.Mock
 }
 
+// Delete provides a mock function with given fields: _a0
+func (_m *usersInterface) Delete(_a0 *data.User) error {
+	ret := _m.Called(_a0)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Delete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*data.User) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetByEmail provides a mock function with given fields: _a0
 func (_m *usersInterface) GetByEmail(_a0 string) (*data.User, error) {
 	ret := _m.Called(_a0)
