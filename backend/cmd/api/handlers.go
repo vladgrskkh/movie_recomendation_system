@@ -78,6 +78,7 @@ func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 type movieInput struct {
+	ID      int64    `json:"id" example:"1"`
 	Title   string   `json:"title" example:"The Shawshank Redemption"`
 	Year    int32    `json:"year" example:"1994"`
 	Runtime int32    `json:"runtime" example:"142"`
@@ -109,6 +110,7 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	movie := &data.Movie{
+		ID:      input.ID,
 		Title:   input.Title,
 		Year:    input.Year,
 		Runtime: input.Runtime,
@@ -117,6 +119,7 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 
 	// Validation of the movie input
 	err = validation.ValidateStruct(movie,
+		validation.Field(&movie.ID, validation.Required, validation.Min(1), validation.Max(10_000_000)),
 		validation.Field(&movie.Title, validation.Required, validation.Length(1, 500)),
 		validation.Field(&movie.Year, validation.Required, validation.Min(1888), validation.Max(int32(time.Now().Year()))),
 		validation.Field(&movie.Runtime, validation.Required, validation.Min(1)),

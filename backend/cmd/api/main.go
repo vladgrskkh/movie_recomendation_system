@@ -242,20 +242,16 @@ func openDB(cfg config) (*sql.DB, error) {
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
 // TODO: write tests for the handlers and other components (2 hours)
-// TODO: add movies/new movies/recommended movies/popular endopints
 // ::::::::::::::::::::::::::::::::
 
 // TODO: write tests for the handlers and other components
-// TODO: think about how to serve images for movies
 // TODO: user profile handler
 // TODO: add more metrics, grafana settings (best practice)
-// TODO: add redis db for ip rate limmiter
 // TODO: make use of makefile in cicd pipelines
-// TODO: grafana storage persistence
 // TODO: need to check if i may need more than one producer (worker pool)
-// TODO: mb pass app to helper test methods instead of creating a new app(if tests is slow)
 // TODO: prometheus work around duplicate metrics with tests
-// TODO: mb separate services or change ci/cd pipeline
 // TODO: fix bug with github tags in ci/cd pipeline
-// TODO: add email input for activating user (also need to create separate table for activation/reset tokens)
 // TODO: ci/cd for image service
+// TODO: handlers_test remade
+// TODO: all movies handlers remade
+// TODO: movies query remade
