@@ -119,6 +119,7 @@ func TestPostMovieHandler(t *testing.T) {
 	mockMovies := mocks.NewMoviesInterface(t)
 
 	movieReq := movieInput{
+		ID:      1,
 		Title:   "Test Movie",
 		Year:    2024,
 		Runtime: 125,
@@ -126,6 +127,7 @@ func TestPostMovieHandler(t *testing.T) {
 	}
 
 	movie := data.Movie{
+		ID:      movieReq.ID,
 		Title:   movieReq.Title,
 		Year:    movieReq.Year,
 		Runtime: movieReq.Runtime,
@@ -134,7 +136,6 @@ func TestPostMovieHandler(t *testing.T) {
 
 	mockMovies.On("Insert", &movie).Return(nil).Run(func(args mock.Arguments) {
 		arg := args.Get(0).(*data.Movie)
-		arg.ID = 1
 		arg.Version = 1
 	})
 
@@ -151,7 +152,7 @@ func TestPostMovieHandler(t *testing.T) {
 			reqBody:  movieReq,
 			wantCode: http.StatusCreated,
 			wantBody: &data.Movie{
-				ID:      1,
+				ID:      movieReq.ID,
 				Title:   movieReq.Title,
 				Year:    movieReq.Year,
 				Runtime: movieReq.Runtime,
