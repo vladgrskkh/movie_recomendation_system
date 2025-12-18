@@ -1,8 +1,6 @@
 __pycache__/
-data/
-ml-32m/
 venv/
-dataset.py
-structurs.txt
-test.py
-tmdb_movies.json
+data/movies/en/
+data/movies/ru/json/
+ml-32m/
+*.pycgit
