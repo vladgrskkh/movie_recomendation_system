@@ -253,5 +253,4 @@ func openDB(cfg config) (*sql.DB, error) {
 // TODO: fix bug with github tags in ci/cd pipeline
 // TODO: ci/cd for image service
 // TODO: handlers_test remade
-// TODO: all movies handlers remade
-// TODO: movies query remade
+// TODO: redis for recommended and watched movies

@@ -165,6 +165,11 @@ func (m movieModel) Update(movie *Movie) error {
 		}
 	}
 
+	// cheking if genres needs to be updated
+	if movie.Genres == nil {
+		return nil
+	}
+
 	queryMovieGenresDelete := `
 		DELETE FROM movie_genres
 		WHERE movie_id = $1;
@@ -357,16 +362,17 @@ func (m movieModel) GetNew(year int) ([]*Movie, error) {
 	return movies, nil
 }
 
-func (m movieModel) GetRecommended() ([]*Movie, error) {
+func (m movieModel) GetRecommended(userID int64) ([]*Movie, error) {
 	query := `
 		SELECT id, title, year, poster_path, backdrop_path, version FROM movies
 		JOIN recommended_movies ON movies.id = recommended_movies.id
+		WHERE recommended_movies.user_id = $1
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query)
+	rows, err := m.DB.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -392,6 +398,88 @@ func (m movieModel) GetRecommended() ([]*Movie, error) {
 			movie.PosterPath,
 			movie.BackdropPath,
 			movie.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		movies = append(movies, &movie)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return movies, nil
+}
+
+func (m movieModel) InsertRecommended(movies []*Movie, userID int64) error {
+	// TODO: check how to insert multiple at once
+	query := `
+		INSERT INTO recommended_movies (id, user_id)
+		VALUES ($1, $2)
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, movies[0].ID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m movieModel) InsertWatched(id int64, userID int64) error {
+	query := `
+		INSERT INTO watched_movies (id, user_id)
+		VALUES ($1, $2)
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, id, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m movieModel) GetWatchedForUser(userID int64) ([]*Movie, error) {
+	query := `
+		SELECT id, title, FROM movies
+		JOIN watched_movies ON movies.id = watched_movies.id
+		WHERE watched_movies.user_id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		e := rows.Close()
+		if err != nil {
+			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
+		} else {
+			err = e
+		}
+	}()
+
+	var movies []*Movie
+
+	for rows.Next() {
+		var movie Movie
+
+		err := rows.Scan(
+			movie.ID,
+			movie.Title,
 		)
 		if err != nil {
 			return nil, err

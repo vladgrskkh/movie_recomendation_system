@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -73,8 +74,48 @@ func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) 
 	err = app.writeJSON(w, http.StatusOK, envelope{"movie": movie}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
 	}
 
+	go func() {
+		user := app.contextGetUser(r)
+
+		if user.IsAnonymous() {
+			return
+		}
+
+		err := app.models.Movies.InsertWatched(id, user.ID)
+		if err != nil {
+			app.logger.Error("error inserting watched movie", slog.String("error", err.Error()))
+			return
+		}
+
+		movies, err := app.models.Movies.GetWatchedForUser(user.ID)
+		if err != nil {
+			app.logger.Error("error getting watched films for user", slog.Int64("userID", user.ID))
+			return
+		}
+
+		if movies == nil {
+			return
+		}
+
+		// TODO: change this when update grpc contract(need to send multiple films at once, number of films will be spec in request)
+		resp, err := app.predictClient.Recommend(context.Background(), &pb.RecommendRequest{MovieTitle: movies[0].Title})
+		if err != nil {
+			app.logger.Error("error getting recommendations for user", slog.Int64("userID", user.ID), slog.String("error", err.Error()))
+			return
+		}
+
+		var recommendedMovies []data.Movie
+
+		for _, movie := range resp.Movies {
+			recommendedMovies = append(recommendedMovies, data.Movie{
+				ID: movie.ID,
+			})
+		}
+		err = app.models.Movies.InsertRecommended(recommendedMovies, user.ID)
+	}()
 }
 
 type movieInput struct {

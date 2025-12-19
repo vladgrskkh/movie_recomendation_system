@@ -79,6 +79,12 @@ func (app *application) getMoviesNew(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Router /movies/recommended [get]
 func (app *application) getMoviesRecommended(w http.ResponseWriter, r *http.Request) {
+	// So I can do this two ways:
+	// 1. check for recommended movies and if nothing found i than go and search for movies user watched
+	// than I go to predict service for recommendations, returning it to user and store it in db
+	// 2. same as 1 but I can generate recommendations not just when recommnedations is empty
+	// problem with first approach is that I need to somehow retain old recommendations
+	// problem with second is in his nature and I also need to mechanism for retaining old recommendations
 	movies, err := app.models.Movies.GetRecommended()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
