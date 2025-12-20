@@ -1,0 +1,3 @@
+CREATE TABLE IF NOT EXISTS popular_movies (
+    id bigserial PRIMARY KEY REFERENCES movies ON DELETE CASCADE
+);

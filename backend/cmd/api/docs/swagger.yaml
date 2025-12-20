@@ -381,7 +381,49 @@ paths:
       summary: Send test Kafka messages
       tags:
       - kafka
-  /movie:
+  /movie/{movieID}:
+    get:
+      description: Returns a single movie by numeric ID
+      parameters:
+      - description: Movie ID
+        in: path
+        name: movieID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/data.Movie'
+        "401":
+          description: 'Unauthorized | Example {"error": "this resourse avaliable
+            only for authenticated users"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Not Found | Example {"error": "requested resource could not
+            be found"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {"error": "server encountered
+            a problem and could not process your request"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a movie by ID
+      tags:
+      - movies
+  /movies:
     get:
       description: Retrieve a list of movies filtered by title and genres with pagination
         and sorting
@@ -494,7 +536,7 @@ paths:
       summary: Create a movie
       tags:
       - movies
-  /movie/{movieID}:
+  /movies/{movieID}:
     delete:
       description: Delete movie by ID (admin only)
       parameters:
@@ -529,47 +571,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete a movie
-      tags:
-      - movies
-    get:
-      description: Returns a single movie by numeric ID
-      parameters:
-      - description: Movie ID
-        in: path
-        name: movieID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/data.Movie'
-        "401":
-          description: 'Unauthorized | Example {"error": "this resourse avaliable
-            only for authenticated users"}'
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: 'Not Found | Example {"error": "requested resource could not
-            be found"}'
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: 'Internal Server Error | Example {"error": "server encountered
-            a problem and could not process your request"}'
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get a movie by ID
       tags:
       - movies
     patch:
@@ -634,7 +635,83 @@ paths:
       summary: Update a movie
       tags:
       - movies
-  /movie/predict:
+  /movies/new:
+    get:
+      description: Retrieve a list of new movies (20 movies by certain year)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/data.Movie'
+            type: array
+        "401":
+          description: 'Unauthorized | Example {"error": "this resourse avaliable
+            only for authenticated users"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Not Found | Example {"error": "requested resource could not
+            be found"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {"error": "server encountered
+            a problem and could not process your request"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List new movies
+      tags:
+      - movies
+  /movies/popular:
+    get:
+      description: Retrieve a list of popular movies (table in db with manual updates)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/data.Movie'
+            type: array
+        "401":
+          description: 'Unauthorized | Example {"error": "this resourse avaliable
+            only for authenticated users"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Not Found | Example {"error": "requested resource could not
+            be found"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {"error": "server encountered
+            a problem and could not process your request"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List popular movies
+      tags:
+      - movies
+  /movies/predict:
     post:
       consumes:
       - application/json
@@ -683,6 +760,45 @@ paths:
       security:
       - BearerAuth: []
       summary: Get predict movie
+      tags:
+      - movies
+  /movies/recommended:
+    get:
+      description: Retrieve a list of recommended movies (table in db with manual
+        updates)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/data.Movie'
+            type: array
+        "401":
+          description: 'Unauthorized | Example {"error": "this resourse avaliable
+            only for authenticated users"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Not Found | Example {"error": "requested resource could not
+            be found"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {"error": "server encountered
+            a problem and could not process your request"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List recommended movies
       tags:
       - movies
   /tokens/activation:

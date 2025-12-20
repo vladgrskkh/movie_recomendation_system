@@ -45,6 +45,7 @@ func TestGetMovieHandler(t *testing.T) {
 
 	mockMovies := mocks.NewMoviesInterface(t)
 
+	// TODO: now i return more values
 	movie := data.Movie{
 		ID:      1,
 		Title:   "Test Movie",
@@ -119,6 +120,7 @@ func TestPostMovieHandler(t *testing.T) {
 	mockMovies := mocks.NewMoviesInterface(t)
 
 	movieReq := movieInput{
+		ID:      1,
 		Title:   "Test Movie",
 		Year:    2024,
 		Runtime: 125,
@@ -126,6 +128,7 @@ func TestPostMovieHandler(t *testing.T) {
 	}
 
 	movie := data.Movie{
+		ID:      movieReq.ID,
 		Title:   movieReq.Title,
 		Year:    movieReq.Year,
 		Runtime: movieReq.Runtime,
@@ -134,7 +137,6 @@ func TestPostMovieHandler(t *testing.T) {
 
 	mockMovies.On("Insert", &movie).Return(nil).Run(func(args mock.Arguments) {
 		arg := args.Get(0).(*data.Movie)
-		arg.ID = 1
 		arg.Version = 1
 	})
 
@@ -151,7 +153,7 @@ func TestPostMovieHandler(t *testing.T) {
 			reqBody:  movieReq,
 			wantCode: http.StatusCreated,
 			wantBody: &data.Movie{
-				ID:      1,
+				ID:      movieReq.ID,
 				Title:   movieReq.Title,
 				Year:    movieReq.Year,
 				Runtime: movieReq.Runtime,
@@ -257,6 +259,7 @@ func TestDeleteMovieHandler(t *testing.T) {
 	ts := newTestServer(t, testRoutes(app))
 	defer ts.Close()
 
+	// FIXME: when gen mocks i need to manualy make this func public
 	mockMovies := mocks.NewMoviesInterface(t)
 
 	mockMovies.On("Delete", int64(1)).Return(nil)

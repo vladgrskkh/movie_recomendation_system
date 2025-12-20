@@ -306,7 +306,68 @@ const docTemplate = `{
                 }
             }
         },
-        "/movie": {
+        "/movie/{movieID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a single movie by numeric ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get a movie by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Movie ID",
+                        "name": "movieID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/data.Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | Example {\"error\": \"this resourse avaliable only for authenticated users\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found | Example {\"error\": \"requested resource could not be found\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/movies": {
             "get": {
                 "security": [
                     {
@@ -470,7 +531,117 @@ const docTemplate = `{
                 }
             }
         },
-        "/movie/predict": {
+        "/movies/new": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a list of new movies (20 movies by certain year)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "List new movies",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/data.Movie"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | Example {\"error\": \"this resourse avaliable only for authenticated users\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found | Example {\"error\": \"requested resource could not be found\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/movies/popular": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a list of popular movies (table in db with manual updates)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "List popular movies",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/data.Movie"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | Example {\"error\": \"this resourse avaliable only for authenticated users\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found | Example {\"error\": \"requested resource could not be found\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/movies/predict": {
             "post": {
                 "security": [
                     {
@@ -545,35 +716,29 @@ const docTemplate = `{
                 }
             }
         },
-        "/movie/{movieID}": {
+        "/movies/recommended": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns a single movie by numeric ID",
+                "description": "Retrieve a list of recommended movies (table in db with manual updates)",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "movies"
                 ],
-                "summary": "Get a movie by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Movie ID",
-                        "name": "movieID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "summary": "List recommended movies",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/data.Movie"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/data.Movie"
+                            }
                         }
                     },
                     "401": {
@@ -604,7 +769,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/movies/{movieID}": {
             "delete": {
                 "security": [
                     {

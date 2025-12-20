@@ -29,11 +29,14 @@ func (app *application) routes() http.Handler {
 		r.Get("/healthcheck", app.healthCheckHandler)
 		r.Get("/swagger/*", httpSwagger.Handler())
 
-		r.Route("/movie", func(r chi.Router) {
+		r.Route("/movies", func(r chi.Router) {
 			r.Use(app.requireAuthenticatedUser)
 			r.Get("/", app.listMoviesHandler)
 			r.With(app.requireActivatedUser).Post("/", app.postMovieHandler)
 			r.Post("/predict", app.predictHandler)
+			r.Get("/new", app.getMoviesNew)
+			r.Get("/recommended", app.getMoviesRecommended)
+			r.Get("/popular", app.getMoviesPopular)
 
 			r.Route("/{movieID}", func(r chi.Router) {
 				r.Get("/", app.getMovieHandler)

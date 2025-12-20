@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS popular_movies;

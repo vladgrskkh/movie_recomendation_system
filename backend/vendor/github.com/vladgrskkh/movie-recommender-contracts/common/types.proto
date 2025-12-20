@@ -5,7 +5,7 @@ package common;
 option go_package = "github.com/vladgrskkh/movie-recommender-contracts/common;common";
 
 message Recommendation {
-    string title = 1;
+    int64 movieID = 1;
     double score = 2;
 }
 

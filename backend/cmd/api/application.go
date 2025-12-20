@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"sync"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/vladgrskkh/movie-recommender-contracts/v1/imageservice"
 	"github.com/vladgrskkh/movie-recommender-contracts/v1/predict"
 
@@ -22,11 +23,11 @@ type application struct {
 	producer      *kafka.Producer
 }
 
-func newApplication(cfg config, logger *slog.Logger, db *sql.DB, predictClient predict.RecommendationClient, imageClient imageservice.ImageClient, producer *kafka.Producer) application {
+func newApplication(cfg config, logger *slog.Logger, db *sql.DB, rdb *redis.Client, predictClient predict.RecommendationClient, imageClient imageservice.ImageClient, producer *kafka.Producer) application {
 	return application{
 		config:        cfg,
 		logger:        logger,
-		models:        data.NewModels(db),
+		models:        data.NewModels(db, rdb),
 		predictClient: predictClient,
 		imageClient:   imageClient,
 		producer:      producer,
