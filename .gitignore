@@ -7,3 +7,4 @@ genres_movie_insert.sql
 insert_tmbd.sql
 movies_array.json
 movies.json
+/__pycache__
