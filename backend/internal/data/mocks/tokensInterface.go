@@ -82,7 +82,7 @@ func (_m *tokensInterface) New(userID int64, ttl time.Duration, scope string) (*
 
 // newTokensInterface creates a new instance of tokensInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
-func NewTokensInterface(t interface {
+func newTokensInterface(t interface {
 	mock.TestingT
 	Cleanup(func())
 }) *tokensInterface {

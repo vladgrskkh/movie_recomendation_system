@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 var (
@@ -12,15 +14,22 @@ var (
 )
 
 type moviesInterface interface {
-	// TODO: add names
-	Get(int64) (*Movie, error)
-	Insert(*Movie) error
-	Delete(int64) error
-	Update(*Movie) error
-	GetAll(string, []string, Filters) ([]*Movie, Metadata, error)
-	GetNew(year int) ([]*Movie, error)
+	Get(id int64) (*Movie, error)
+	GetByIDs(ids []int64) ([]*Movie, error)
+	GetByTitle(title string) (int64, error)
+	Insert(movie *Movie) error
+	Delete(id int64) error
+	Update(movie *Movie) error
+	GetAll(title string, genres []string, fileters Filters) ([]*Movie, Metadata, error)
 	GetPopular() ([]*Movie, error)
-	GetRecommended() ([]*Movie, error)
+	GetNew(year int) ([]*Movie, error)
+	InsertWatched(id int64, userID int64) error
+	GetWatched(userID int64) ([]int64, error)
+}
+
+type recommenderMoviesInterface interface {
+	Get(userID int64) ([]*Movie, error)
+	Set(userID int64, movies []*Movie) error
 }
 
 type usersInterface interface {
@@ -39,16 +48,18 @@ type tokensInterface interface {
 }
 
 type Models struct {
-	Movies moviesInterface
-	Users  usersInterface
-	Tokens tokensInterface
+	Movies            moviesInterface
+	RecommendedMovies recommenderMoviesInterface
+	Users             usersInterface
+	Tokens            tokensInterface
 }
 
-func NewModels(db *sql.DB) Models {
+func NewModels(db *sql.DB, rdb *redis.Client) Models {
 	return Models{
-		Movies: movieModel{DB: db},
-		Users:  userModel{DB: db},
-		Tokens: tokenModel{DB: db},
+		Movies:            movieModel{DB: db},
+		RecommendedMovies: recommendedMoviesModel{rdb: rdb},
+		Users:             userModel{DB: db},
+		Tokens:            tokenModel{DB: db},
 	}
 }
 

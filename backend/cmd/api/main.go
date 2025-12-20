@@ -12,6 +12,7 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/vladgrskkh/movie-recommender-contracts/v1/imageservice"
 	"github.com/vladgrskkh/movie-recommender-contracts/v1/predict"
 	"google.golang.org/grpc"
@@ -91,6 +92,11 @@ type config struct {
 		username     string
 		passwordUser string
 	}
+	redis struct {
+		address  string
+		password string
+		username string
+	}
 }
 
 func main() {
@@ -111,6 +117,10 @@ func main() {
 	flag.StringVar(&cfg.grpc.address, "grpc-address", "", "gRPC server address")
 
 	flag.StringVar(&cfg.jwt.secretKey, "jwt-secret", "", "Secret key for signing and verifying JWT tokens")
+
+	flag.StringVar(&cfg.redis.address, "redis-address", "redis:6379", "Redis address")
+	flag.StringVar(&cfg.redis.password, "redis-password", "default-password", "Redis password")
+	flag.StringVar(&cfg.redis.username, "redis-username", "default-username", "Redis username")
 
 	flag.StringVar(&cfg.kafka.topic, "kafka-topic", "", "Kafka topic")
 	flag.StringVar(&cfg.kafka.passwordSSL, "kafka-password-ssl", "", "Kafka SSL password")
@@ -147,6 +157,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	// TODO: helper func wrapper for this
 	defer func() {
 		e := db.Close()
 		if err != nil && e != nil {
@@ -156,7 +167,24 @@ func main() {
 		}
 	}()
 
-	logger.Info("database connection pool established")
+	logger.Info("postgres database connection pool established")
+
+	rdb, err := redisClient(cfg)
+	if err != nil {
+		logger.Log(ctx, LevelFatal, "cannot connect to redis:", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+
+	defer func() {
+		e := rdb.Close()
+		if err != nil && e != nil {
+			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
+		} else if e != nil {
+			err = e
+		}
+	}()
+
+	logger.Info("redis connection pool established")
 
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -205,7 +233,7 @@ func main() {
 
 	logger.Info("new kafka producer started")
 
-	app := newApplication(cfg, logger, db, clientRecommender, clientImage, p)
+	app := newApplication(cfg, logger, db, rdb, clientRecommender, clientImage, p)
 
 	logger.Info("starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {
@@ -239,6 +267,21 @@ func openDB(cfg config) (*sql.DB, error) {
 	return db, nil
 }
 
+func redisClient(cfg config) (*redis.Client, error) {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.redis.address,
+		Password: cfg.redis.password,
+		DB:       0,
+		Username: cfg.redis.username,
+	})
+
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		return nil, err
+	}
+
+	return rdb, nil
+}
+
 // Task for today::::::::::::::::::
 // ::::::::::::::::::::::::::::::::
 // TODO: write tests for the handlers and other components (2 hours)
@@ -253,4 +296,5 @@ func openDB(cfg config) (*sql.DB, error) {
 // TODO: fix bug with github tags in ci/cd pipeline
 // TODO: ci/cd for image service
 // TODO: handlers_test remade
-// TODO: redis for recommended and watched movies
+// TODO: insert new model into predict service
+// TODO: seed data in db and post images to image service for movies

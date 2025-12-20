@@ -77,6 +77,72 @@ func (m movieModel) Get(id int64) (*Movie, error) {
 	return &movie, nil
 }
 
+func (m movieModel) GetByIDs(ids []int64) ([]*Movie, error) {
+	query := `
+		SELECT id, title, year, poster_path, backdrop_path, version FROM movies
+		WHERE id = ANY($1)
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var movies []*Movie
+
+	rows, err := m.DB.QueryContext(ctx, query, pq.Array(ids))
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var movie Movie
+
+		err := rows.Scan(
+			&movie.ID,
+			&movie.Title,
+			&movie.Year,
+			&movie.PosterPath,
+			&movie.BackdropPath,
+			&movie.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		movies = append(movies, &movie)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return movies, nil
+}
+
+func (m movieModel) GetByTitle(title string) (int64, error) {
+	query := `
+		SELECT id FROM movies
+		WHERE title = $1
+		ORDER BY id DESC
+		LIMIT 1
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var id int64
+	err := m.DB.QueryRowContext(ctx, query, title).Scan(&id)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return 0, ErrRecordNotFound
+		default:
+			return 0, err
+		}
+	}
+
+	return id, nil
+}
+
 // TODO: use transaction here
 func (m movieModel) Insert(movie *Movie) error {
 	queryMovieGenres := `
@@ -290,12 +356,12 @@ func (m movieModel) GetPopular() ([]*Movie, error) {
 		var movie Movie
 
 		err := rows.Scan(
-			movie.ID,
-			movie.Title,
-			movie.Year,
-			movie.PosterPath,
-			movie.BackdropPath,
-			movie.Version,
+			&movie.ID,
+			&movie.Title,
+			&movie.Year,
+			&movie.PosterPath,
+			&movie.BackdropPath,
+			&movie.Version,
 		)
 		if err != nil {
 			return nil, err
@@ -341,12 +407,12 @@ func (m movieModel) GetNew(year int) ([]*Movie, error) {
 		var movie Movie
 
 		err := rows.Scan(
-			movie.ID,
-			movie.Title,
-			movie.Year,
-			movie.PosterPath,
-			movie.BackdropPath,
-			movie.Version,
+			&movie.ID,
+			&movie.Title,
+			&movie.Year,
+			&movie.PosterPath,
+			&movie.BackdropPath,
+			&movie.Version,
 		)
 		if err != nil {
 			return nil, err
@@ -360,75 +426,6 @@ func (m movieModel) GetNew(year int) ([]*Movie, error) {
 	}
 
 	return movies, nil
-}
-
-func (m movieModel) GetRecommended(userID int64) ([]*Movie, error) {
-	query := `
-		SELECT id, title, year, poster_path, backdrop_path, version FROM movies
-		JOIN recommended_movies ON movies.id = recommended_movies.id
-		WHERE recommended_movies.user_id = $1
-	`
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	rows, err := m.DB.QueryContext(ctx, query, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		e := rows.Close()
-		if err != nil {
-			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
-		} else {
-			err = e
-		}
-	}()
-
-	var movies []*Movie
-
-	for rows.Next() {
-		var movie Movie
-
-		err := rows.Scan(
-			movie.ID,
-			movie.Title,
-			movie.Year,
-			movie.PosterPath,
-			movie.BackdropPath,
-			movie.Version,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		movies = append(movies, &movie)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return movies, nil
-}
-
-func (m movieModel) InsertRecommended(movies []*Movie, userID int64) error {
-	// TODO: check how to insert multiple at once
-	query := `
-		INSERT INTO recommended_movies (id, user_id)
-		VALUES ($1, $2)
-	`
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	_, err := m.DB.ExecContext(ctx, query, movies[0].ID, userID)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (m movieModel) InsertWatched(id int64, userID int64) error {
@@ -448,11 +445,10 @@ func (m movieModel) InsertWatched(id int64, userID int64) error {
 	return nil
 }
 
-func (m movieModel) GetWatchedForUser(userID int64) ([]*Movie, error) {
+func (m movieModel) GetWatched(userID int64) ([]int64, error) {
 	query := `
-		SELECT id, title, FROM movies
-		JOIN watched_movies ON movies.id = watched_movies.id
-		WHERE watched_movies.user_id = $1
+		SELECT id, FROM watched_movies
+		WHERE user_id = $1
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -472,25 +468,22 @@ func (m movieModel) GetWatchedForUser(userID int64) ([]*Movie, error) {
 		}
 	}()
 
-	var movies []*Movie
+	var movieIDs []int64
 
 	for rows.Next() {
-		var movie Movie
+		var movieID int64
 
-		err := rows.Scan(
-			movie.ID,
-			movie.Title,
-		)
+		err := rows.Scan(&movieID)
 		if err != nil {
 			return nil, err
 		}
 
-		movies = append(movies, &movie)
+		movieIDs = append(movieIDs, movieID)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	return movies, nil
+	return movieIDs, nil
 }

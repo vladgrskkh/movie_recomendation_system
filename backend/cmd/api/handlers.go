@@ -77,6 +77,7 @@ func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// TODO: wrap in background
 	go func() {
 		user := app.contextGetUser(r)
 
@@ -84,37 +85,12 @@ func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
+		// mb user redis here
 		err := app.models.Movies.InsertWatched(id, user.ID)
 		if err != nil {
 			app.logger.Error("error inserting watched movie", slog.String("error", err.Error()))
 			return
 		}
-
-		movies, err := app.models.Movies.GetWatchedForUser(user.ID)
-		if err != nil {
-			app.logger.Error("error getting watched films for user", slog.Int64("userID", user.ID))
-			return
-		}
-
-		if movies == nil {
-			return
-		}
-
-		// TODO: change this when update grpc contract(need to send multiple films at once, number of films will be spec in request)
-		resp, err := app.predictClient.Recommend(context.Background(), &pb.RecommendRequest{MovieTitle: movies[0].Title})
-		if err != nil {
-			app.logger.Error("error getting recommendations for user", slog.Int64("userID", user.ID), slog.String("error", err.Error()))
-			return
-		}
-
-		var recommendedMovies []data.Movie
-
-		for _, movie := range resp.Movies {
-			recommendedMovies = append(recommendedMovies, data.Movie{
-				ID: movie.ID,
-			})
-		}
-		err = app.models.Movies.InsertRecommended(recommendedMovies, user.ID)
 	}()
 }
 
@@ -775,6 +751,18 @@ func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	movieID, err := app.models.Movies.GetByTitle(input.Title)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
 	err = validation.ValidateStruct(&input,
 		validation.Field(&input.Title, validation.Required, validation.Length(1, 500)),
 	)
@@ -787,7 +775,7 @@ func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	recommendation, err := app.predictClient.Recommend(ctx, &pb.RecommendRequest{
-		MovieTitle: input.Title,
+		MovieID: []int64{movieID},
 	})
 	if err != nil {
 		app.serverErrorResponse(w, r, err)

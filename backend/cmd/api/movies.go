@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"net/http"
+
+	pb "github.com/vladgrskkh/movie-recommender-contracts/v1/predict"
 )
 
 // getMoviesPopular godoc
@@ -85,17 +89,71 @@ func (app *application) getMoviesRecommended(w http.ResponseWriter, r *http.Requ
 	// 2. same as 1 but I can generate recommendations not just when recommnedations is empty
 	// problem with first approach is that I need to somehow retain old recommendations
 	// problem with second is in his nature and I also need to mechanism for retaining old recommendations
-	movies, err := app.models.Movies.GetRecommended()
+	// Maybe for recommended movies I just use redis (solves problem with old recommendations also fast)
+
+	// fetch from redis here
+	user := app.contextGetUser(r)
+
+	// this should not trigger
+	if user.IsAnonymous() {
+		app.authenticationRequiredResponse(w, r)
+		return
+	}
+
+	movies, err := app.models.RecommendedMovies.Get(user.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	// just in case, this should not trigger
-	if len(movies) == 0 {
-		app.notFoundResponse(w, r)
+	if len(movies) != 0 {
+		err = app.writeJSON(w, http.StatusOK, envelope{"movies": movies}, nil)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+	}
+
+	watchedMovies, err := app.models.Movies.GetWatched(user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
 		return
 	}
+
+	// TODO: tune top_k
+	resp, err := app.predictClient.Recommend(context.Background(), &pb.RecommendRequest{MovieID: watchedMovies, TopK: 10})
+	if err != nil {
+		app.serverErrorResponse(w, r, fmt.Errorf("error getting recommendations: %w", err))
+		return
+	}
+
+	// add to redis
+
+	// TODO: need to check behavior when predict service somehow returns zero movies
+	// should not happen, it must return something or error
+	if len(resp.GetRecommendations()) == 0 {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	movieIDs := make([]int64, 0, 10)
+	for _, movie := range resp.GetRecommendations() {
+		movieIDs = append(movieIDs, movie.MovieID)
+	}
+
+	movies, err = app.models.Movies.GetByIDs(movieIDs)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// TODO: wrap in background
+	go func() {
+		err := app.models.RecommendedMovies.Set(user.ID, movies)
+		if err != nil {
+			app.logError(r, err)
+		}
+	}()
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"movies": movies}, nil)
 	if err != nil {

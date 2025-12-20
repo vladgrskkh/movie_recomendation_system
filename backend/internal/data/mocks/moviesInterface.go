@@ -12,9 +12,9 @@ type moviesInterface struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: _a0
-func (_m *moviesInterface) Delete(_a0 int64) error {
-	ret := _m.Called(_a0)
+// Delete provides a mock function with given fields: id
+func (_m *moviesInterface) Delete(id int64) error {
+	ret := _m.Called(id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
@@ -22,7 +22,7 @@ func (_m *moviesInterface) Delete(_a0 int64) error {
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(int64) error); ok {
-		r0 = rf(_a0)
+		r0 = rf(id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -30,9 +30,9 @@ func (_m *moviesInterface) Delete(_a0 int64) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: _a0
-func (_m *moviesInterface) Get(_a0 int64) (*data.Movie, error) {
-	ret := _m.Called(_a0)
+// Get provides a mock function with given fields: id
+func (_m *moviesInterface) Get(id int64) (*data.Movie, error) {
+	ret := _m.Called(id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -41,10 +41,10 @@ func (_m *moviesInterface) Get(_a0 int64) (*data.Movie, error) {
 	var r0 *data.Movie
 	var r1 error
 	if rf, ok := ret.Get(0).(func(int64) (*data.Movie, error)); ok {
-		return rf(_a0)
+		return rf(id)
 	}
 	if rf, ok := ret.Get(0).(func(int64) *data.Movie); ok {
-		r0 = rf(_a0)
+		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*data.Movie)
@@ -52,7 +52,7 @@ func (_m *moviesInterface) Get(_a0 int64) (*data.Movie, error) {
 	}
 
 	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(_a0)
+		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -60,9 +60,9 @@ func (_m *moviesInterface) Get(_a0 int64) (*data.Movie, error) {
 	return r0, r1
 }
 
-// GetAll provides a mock function with given fields: _a0, _a1, _a2
-func (_m *moviesInterface) GetAll(_a0 string, _a1 []string, _a2 data.Filters) ([]*data.Movie, data.Metadata, error) {
-	ret := _m.Called(_a0, _a1, _a2)
+// GetAll provides a mock function with given fields: title, genres, fileters
+func (_m *moviesInterface) GetAll(title string, genres []string, fileters data.Filters) ([]*data.Movie, data.Metadata, error) {
+	ret := _m.Called(title, genres, fileters)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAll")
@@ -72,10 +72,10 @@ func (_m *moviesInterface) GetAll(_a0 string, _a1 []string, _a2 data.Filters) ([
 	var r1 data.Metadata
 	var r2 error
 	if rf, ok := ret.Get(0).(func(string, []string, data.Filters) ([]*data.Movie, data.Metadata, error)); ok {
-		return rf(_a0, _a1, _a2)
+		return rf(title, genres, fileters)
 	}
 	if rf, ok := ret.Get(0).(func(string, []string, data.Filters) []*data.Movie); ok {
-		r0 = rf(_a0, _a1, _a2)
+		r0 = rf(title, genres, fileters)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*data.Movie)
@@ -83,18 +83,76 @@ func (_m *moviesInterface) GetAll(_a0 string, _a1 []string, _a2 data.Filters) ([
 	}
 
 	if rf, ok := ret.Get(1).(func(string, []string, data.Filters) data.Metadata); ok {
-		r1 = rf(_a0, _a1, _a2)
+		r1 = rf(title, genres, fileters)
 	} else {
 		r1 = ret.Get(1).(data.Metadata)
 	}
 
 	if rf, ok := ret.Get(2).(func(string, []string, data.Filters) error); ok {
-		r2 = rf(_a0, _a1, _a2)
+		r2 = rf(title, genres, fileters)
 	} else {
 		r2 = ret.Error(2)
 	}
 
 	return r0, r1, r2
+}
+
+// GetByIDs provides a mock function with given fields: ids
+func (_m *moviesInterface) GetByIDs(ids []int64) ([]*data.Movie, error) {
+	ret := _m.Called(ids)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByIDs")
+	}
+
+	var r0 []*data.Movie
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]int64) ([]*data.Movie, error)); ok {
+		return rf(ids)
+	}
+	if rf, ok := ret.Get(0).(func([]int64) []*data.Movie); ok {
+		r0 = rf(ids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*data.Movie)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]int64) error); ok {
+		r1 = rf(ids)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetByTitle provides a mock function with given fields: title
+func (_m *moviesInterface) GetByTitle(title string) (int64, error) {
+	ret := _m.Called(title)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByTitle")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
+		return rf(title)
+	}
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(title)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(title)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetNew provides a mock function with given fields: year
@@ -157,29 +215,29 @@ func (_m *moviesInterface) GetPopular() ([]*data.Movie, error) {
 	return r0, r1
 }
 
-// GetRecommended provides a mock function with no fields
-func (_m *moviesInterface) GetRecommended() ([]*data.Movie, error) {
-	ret := _m.Called()
+// GetWatched provides a mock function with given fields: userID
+func (_m *moviesInterface) GetWatched(userID int64) ([]int64, error) {
+	ret := _m.Called(userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetRecommended")
+		panic("no return value specified for GetWatched")
 	}
 
-	var r0 []*data.Movie
+	var r0 []int64
 	var r1 error
-	if rf, ok := ret.Get(0).(func() ([]*data.Movie, error)); ok {
-		return rf()
+	if rf, ok := ret.Get(0).(func(int64) ([]int64, error)); ok {
+		return rf(userID)
 	}
-	if rf, ok := ret.Get(0).(func() []*data.Movie); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(int64) []int64); ok {
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*data.Movie)
+			r0 = ret.Get(0).([]int64)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(int64) error); ok {
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -187,9 +245,9 @@ func (_m *moviesInterface) GetRecommended() ([]*data.Movie, error) {
 	return r0, r1
 }
 
-// Insert provides a mock function with given fields: _a0
-func (_m *moviesInterface) Insert(_a0 *data.Movie) error {
-	ret := _m.Called(_a0)
+// Insert provides a mock function with given fields: movie
+func (_m *moviesInterface) Insert(movie *data.Movie) error {
+	ret := _m.Called(movie)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Insert")
@@ -197,7 +255,7 @@ func (_m *moviesInterface) Insert(_a0 *data.Movie) error {
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*data.Movie) error); ok {
-		r0 = rf(_a0)
+		r0 = rf(movie)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -205,9 +263,27 @@ func (_m *moviesInterface) Insert(_a0 *data.Movie) error {
 	return r0
 }
 
-// Update provides a mock function with given fields: _a0
-func (_m *moviesInterface) Update(_a0 *data.Movie) error {
-	ret := _m.Called(_a0)
+// InsertWatched provides a mock function with given fields: id, userID
+func (_m *moviesInterface) InsertWatched(id int64, userID int64) error {
+	ret := _m.Called(id, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for InsertWatched")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int64, int64) error); ok {
+		r0 = rf(id, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Update provides a mock function with given fields: movie
+func (_m *moviesInterface) Update(movie *data.Movie) error {
+	ret := _m.Called(movie)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -215,7 +291,7 @@ func (_m *moviesInterface) Update(_a0 *data.Movie) error {
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*data.Movie) error); ok {
-		r0 = rf(_a0)
+		r0 = rf(movie)
 	} else {
 		r0 = ret.Error(0)
 	}

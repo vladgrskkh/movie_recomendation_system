@@ -24,7 +24,8 @@ const (
 
 type RecommendRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	MovieTitle    string                 `protobuf:"bytes,1,opt,name=movieTitle,proto3" json:"movieTitle,omitempty"`
+	MovieID       []int64                `protobuf:"varint,1,rep,packed,name=movieID,proto3" json:"movieID,omitempty"`
+	TopK          int64                  `protobuf:"varint,2,opt,name=topK,proto3" json:"topK,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -59,11 +60,18 @@ func (*RecommendRequest) Descriptor() ([]byte, []int) {
 	return file_v1_predict_predict_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *RecommendRequest) GetMovieTitle() string {
+func (x *RecommendRequest) GetMovieID() []int64 {
 	if x != nil {
-		return x.MovieTitle
+		return x.MovieID
 	}
-	return ""
+	return nil
+}
+
+func (x *RecommendRequest) GetTopK() int64 {
+	if x != nil {
+		return x.TopK
+	}
+	return 0
 }
 
 type RecommendResponse struct {
@@ -115,11 +123,10 @@ var File_v1_predict_predict_proto protoreflect.FileDescriptor
 const file_v1_predict_predict_proto_rawDesc = "" +
 	"\n" +
 	"\x18v1/predict/predict.proto\x12\n" +
-	"v1.predict\x1a\x12common/types.proto\"2\n" +
-	"\x10RecommendRequest\x12\x1e\n" +
-	"\n" +
-	"movieTitle\x18\x01 \x01(\tR\n" +
-	"movieTitle\"U\n" +
+	"v1.predict\x1a\x12common/types.proto\"@\n" +
+	"\x10RecommendRequest\x12\x18\n" +
+	"\amovieID\x18\x01 \x03(\x03R\amovieID\x12\x12\n" +
+	"\x04topK\x18\x02 \x01(\x03R\x04topK\"U\n" +
 	"\x11RecommendResponse\x12@\n" +
 	"\x0frecommendations\x18\x01 \x03(\v2\x16.common.RecommendationR\x0frecommendations2Z\n" +
 	"\x0eRecommendation\x12H\n" +

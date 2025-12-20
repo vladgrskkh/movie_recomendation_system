@@ -23,7 +23,7 @@ const (
 
 type Recommendation struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	MovieID       int64                  `protobuf:"varint,1,opt,name=movieID,proto3" json:"movieID,omitempty"`
 	Score         float64                `protobuf:"fixed64,2,opt,name=score,proto3" json:"score,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -59,11 +59,11 @@ func (*Recommendation) Descriptor() ([]byte, []int) {
 	return file_common_types_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Recommendation) GetTitle() string {
+func (x *Recommendation) GetMovieID() int64 {
 	if x != nil {
-		return x.Title
+		return x.MovieID
 	}
-	return ""
+	return 0
 }
 
 func (x *Recommendation) GetScore() float64 {
@@ -137,9 +137,9 @@ var File_common_types_proto protoreflect.FileDescriptor
 
 const file_common_types_proto_rawDesc = "" +
 	"\n" +
-	"\x12common/types.proto\x12\x06common\"<\n" +
-	"\x0eRecommendation\x12\x14\n" +
-	"\x05title\x18\x01 \x01(\tR\x05title\x12\x14\n" +
+	"\x12common/types.proto\x12\x06common\"@\n" +
+	"\x0eRecommendation\x12\x18\n" +
+	"\amovieID\x18\x01 \x01(\x03R\amovieID\x12\x14\n" +
 	"\x05score\x18\x02 \x01(\x01R\x05score\"_\n" +
 	"\x05Image\x12\x1e\n" +
 	"\n" +

@@ -158,7 +158,7 @@ func (_m *usersInterface) Update(_a0 *data.User) error {
 
 // newUsersInterface creates a new instance of usersInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
-func NewUsersInterface(t interface {
+func newUsersInterface(t interface {
 	mock.TestingT
 	Cleanup(func())
 }) *usersInterface {
