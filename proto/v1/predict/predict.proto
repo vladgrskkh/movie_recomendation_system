@@ -11,7 +11,8 @@ service Recommendation {
 }
 
 message RecommendRequest {
-    string movieTitle = 1;
+    repeated int64 movieID = 1;
+    int64 topK = 2;
 }
 
 message RecommendResponse {

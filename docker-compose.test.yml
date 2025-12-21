@@ -21,7 +21,7 @@ services:
     restart: always
     ports: 
       - "8080:8080"
-    command: ["-db-dsn=${MRS_DB_DSN}", "-grpc-address=recommender", "-jwt-secret=${JWT_SECRET_KEY}", "-kafka-address=${KAFKA_ADDRESS}", "-kafka-password-ssl=${KAFKA_PASSWORD_SSL}", "-kafka-username=${KAFKA_USERNAME}", "-kafka-password-user=${KAFKA_PASSWORD_USER}"]
+    command: ["-db-dsn=${MRS_DB_DSN}", "-grpc-address=recommender", "-jwt-secret=${JWT_SECRET_KEY}", "-kafka-address=${KAFKA_ADDRESS}", "-kafka-password-ssl=${KAFKA_PASSWORD_SSL}", "-kafka-username=${KAFKA_USERNAME}", "-kafka-password-user=${KAFKA_PASSWORD_USER}", "-redis-address=${REDIS_ADDRESS}", "-redis-password=${REDIS_PASSWORD}", "-redis-username=${REDIS_USERNAME}"]
     volumes:
       - ./backend/internal/kafka/cert:/app/cert
     depends_on:
@@ -33,6 +33,17 @@ services:
     restart: always
     expose: 
       - "50051"
+
+  redis:
+    image: bitnami/redis:latest
+    environment:
+      - REDIS_ACLFILE=/opt/bitnami/redis/mounted-etc/users.acl
+      - ALLOW_EMPTY_PASSWORD=yes
+    expose:
+      - "6379"
+    volumes:
+      - ./backend/conf/redis.acl:/opt/bitnami/redis/mounted-etc/users.acl
+      - redis-data:/data
   
   db:
     image: postgres:18
@@ -117,6 +128,7 @@ services:
 
 volumes:
   pgdata:
+  redis-data:
   data1-1:
   data1-2:
   data2-1:

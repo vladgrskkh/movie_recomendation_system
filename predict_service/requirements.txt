@@ -4,4 +4,5 @@ protobuf
 pandas
 numpy
 scikit-learn
-joblib
+scipy
+python-json-logger

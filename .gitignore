@@ -8,3 +8,7 @@ insert_tmbd.sql
 movies_array.json
 movies.json
 /__pycache__
+redis.acl
+insert_genres.sql
+insert_movie_genres.sql
+tmdb*

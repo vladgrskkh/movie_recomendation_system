@@ -21,7 +21,9 @@ COPY --from=build /install /usr/local
 
 # Copy application code (excluding unnecessary files)
 COPY --from=build /app/common ./common
-COPY --from=build /app/models ./models
+COPY --from=build /app/features ./features
+COPY --from=build /app/data ./data
+COPY --from=build /app/retrieval ./retrieval
 COPY --from=build /app/v1 ./v1
 COPY --from=build /app/main.py ./main.py
 

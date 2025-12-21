@@ -1,12 +1,12 @@
 import pandas as pd
 from pathlib import Path
-from ml.features import MovieVectorBuilder
-from ml.retrieval.recommender import ContentRecommender
+from features import MovieVectorBuilder
+from retrieval.recommender import ContentRecommender
 from pathlib import Path
 import pandas as pd
 
-DATA_DIR = Path("ml/data/movies/ru/csv")
-CPI_PATH = Path("ml/data/external/cpi.csv")
+DATA_DIR = Path("data/movies/ru/csv")
+CPI_PATH = Path("data/external/cpi.csv")
 
 movies = pd.read_csv(DATA_DIR / "movies.csv")
 
