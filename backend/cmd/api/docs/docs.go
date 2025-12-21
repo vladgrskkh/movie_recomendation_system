@@ -306,67 +306,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/movie/{movieID}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns a single movie by numeric ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "movies"
-                ],
-                "summary": "Get a movie by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Movie ID",
-                        "name": "movieID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/data.Movie"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized | Example {\"error\": \"this resourse avaliable only for authenticated users\"}",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found | Example {\"error\": \"requested resource could not be found\"}",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/movies": {
             "get": {
                 "security": [
@@ -772,6 +711,65 @@ const docTemplate = `{
             }
         },
         "/movies/{movieID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a single movie by numeric ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "movies"
+                ],
+                "summary": "Get a movie by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Movie ID",
+                        "name": "movieID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/data.Movie"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | Example {\"error\": \"this resourse avaliable only for authenticated users\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found | Example {\"error\": \"requested resource could not be found\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {
@@ -1493,6 +1491,9 @@ const docTemplate = `{
         "data.Movie": {
             "type": "object",
             "properties": {
+                "backdrop_path": {
+                    "type": "string"
+                },
                 "genres": {
                     "type": "array",
                     "items": {
@@ -1507,6 +1508,17 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "overview": {
+                    "type": "string",
+                    "example": "Two imprisoned men bond over..."
+                },
+                "poster_path": {
+                    "type": "string"
+                },
+                "release_date": {
+                    "type": "string",
+                    "example": "1994-09-23"
+                },
                 "runtime": {
                     "type": "integer",
                     "example": 142
@@ -1518,6 +1530,14 @@ const docTemplate = `{
                 "version": {
                     "type": "integer",
                     "example": 1
+                },
+                "vote_average": {
+                    "type": "number",
+                    "example": 8.7
+                },
+                "vote_count": {
+                    "type": "integer",
+                    "example": 100
                 },
                 "year": {
                     "type": "integer",
@@ -1645,6 +1665,10 @@ const docTemplate = `{
                         "Drama",
                         "Crime"
                     ]
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "runtime": {
                     "type": "integer",

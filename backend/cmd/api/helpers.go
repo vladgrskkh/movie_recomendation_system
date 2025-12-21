@@ -15,6 +15,7 @@ import (
 
 var (
 	ErrKeyNotInteger = errors.New("must be an integer")
+	ErrKeyNotFloat   = errors.New("must be an float")
 )
 
 // const (
@@ -149,6 +150,21 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int) (in
 	i, err := strconv.Atoi(s)
 	if err != nil {
 		return defaultValue, ErrKeyNotInteger
+	}
+
+	return i, nil
+}
+
+func (app *application) readFloat(qs url.Values, key string, defaultValue float64) (float64, error) {
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultValue, nil
+	}
+
+	i, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return defaultValue, ErrKeyNotFloat
 	}
 
 	return i, nil

@@ -51,7 +51,7 @@ func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Reques
 // @Failure 404 {object} map[string]string "Not Found | Example {"error": "requested resource could not be found"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Security BearerAuth
-// @Router /movie/{movieID} [get]
+// @Router /movies/{movieID} [get]
 func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
@@ -320,8 +320,9 @@ type MoviesListResponse struct {
 // @Router /movies [get]
 func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Title  string
-		Genres []string
+		Title               string
+		Genres              []string
+		SimilarityThreshold float64
 	}
 
 	var filters data.Filters
@@ -332,6 +333,13 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 
 	input.Title = app.readString(qs, "title", "")
 	input.Genres = app.readCSV(qs, "genres", []string{})
+
+	// pg_term param for full-text search
+	input.SimilarityThreshold, err = app.readFloat(qs, "similarity_threshold", 0.2)
+	if err != nil {
+		app.failedValidationResponse(w, r, err)
+		return
+	}
 
 	filters.Page, err = app.readInt(qs, "page", 1)
 	if err != nil {
@@ -359,7 +367,7 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	movies, metadata, err := app.models.Movies.GetAll(input.Title, input.Genres, filters)
+	movies, metadata, err := app.models.Movies.GetAll(input.Title, input.SimilarityThreshold, input.Genres, filters)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

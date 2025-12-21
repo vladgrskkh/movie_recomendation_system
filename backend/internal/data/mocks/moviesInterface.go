@@ -60,9 +60,9 @@ func (_m *moviesInterface) Get(id int64) (*data.Movie, error) {
 	return r0, r1
 }
 
-// GetAll provides a mock function with given fields: title, genres, fileters
-func (_m *moviesInterface) GetAll(title string, genres []string, fileters data.Filters) ([]*data.Movie, data.Metadata, error) {
-	ret := _m.Called(title, genres, fileters)
+// GetAll provides a mock function with given fields: title, similarityThreshold, genres, fileters
+func (_m *moviesInterface) GetAll(title string, similarityThreshold float64, genres []string, fileters data.Filters) ([]*data.Movie, data.Metadata, error) {
+	ret := _m.Called(title, similarityThreshold, genres, fileters)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAll")
@@ -71,25 +71,25 @@ func (_m *moviesInterface) GetAll(title string, genres []string, fileters data.F
 	var r0 []*data.Movie
 	var r1 data.Metadata
 	var r2 error
-	if rf, ok := ret.Get(0).(func(string, []string, data.Filters) ([]*data.Movie, data.Metadata, error)); ok {
-		return rf(title, genres, fileters)
+	if rf, ok := ret.Get(0).(func(string, float64, []string, data.Filters) ([]*data.Movie, data.Metadata, error)); ok {
+		return rf(title, similarityThreshold, genres, fileters)
 	}
-	if rf, ok := ret.Get(0).(func(string, []string, data.Filters) []*data.Movie); ok {
-		r0 = rf(title, genres, fileters)
+	if rf, ok := ret.Get(0).(func(string, float64, []string, data.Filters) []*data.Movie); ok {
+		r0 = rf(title, similarityThreshold, genres, fileters)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*data.Movie)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, []string, data.Filters) data.Metadata); ok {
-		r1 = rf(title, genres, fileters)
+	if rf, ok := ret.Get(1).(func(string, float64, []string, data.Filters) data.Metadata); ok {
+		r1 = rf(title, similarityThreshold, genres, fileters)
 	} else {
 		r1 = ret.Get(1).(data.Metadata)
 	}
 
-	if rf, ok := ret.Get(2).(func(string, []string, data.Filters) error); ok {
-		r2 = rf(title, genres, fileters)
+	if rf, ok := ret.Get(2).(func(string, float64, []string, data.Filters) error); ok {
+		r2 = rf(title, similarityThreshold, genres, fileters)
 	} else {
 		r2 = ret.Error(2)
 	}

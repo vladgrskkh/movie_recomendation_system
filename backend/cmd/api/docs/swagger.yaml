@@ -20,6 +20,8 @@ definitions:
     type: object
   data.Movie:
     properties:
+      backdrop_path:
+        type: string
       genres:
         example:
         - Drama
@@ -30,6 +32,14 @@ definitions:
       id:
         example: 1
         type: integer
+      overview:
+        example: Two imprisoned men bond over...
+        type: string
+      poster_path:
+        type: string
+      release_date:
+        example: "1994-09-23"
+        type: string
       runtime:
         example: 142
         type: integer
@@ -38,6 +48,12 @@ definitions:
         type: string
       version:
         example: 1
+        type: integer
+      vote_average:
+        example: 8.7
+        type: number
+      vote_count:
+        example: 100
         type: integer
       year:
         example: 1994
@@ -126,6 +142,9 @@ definitions:
         items:
           type: string
         type: array
+      id:
+        example: 1
+        type: integer
       runtime:
         example: 142
         type: integer
@@ -381,48 +400,6 @@ paths:
       summary: Send test Kafka messages
       tags:
       - kafka
-  /movie/{movieID}:
-    get:
-      description: Returns a single movie by numeric ID
-      parameters:
-      - description: Movie ID
-        in: path
-        name: movieID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/data.Movie'
-        "401":
-          description: 'Unauthorized | Example {"error": "this resourse avaliable
-            only for authenticated users"}'
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: 'Not Found | Example {"error": "requested resource could not
-            be found"}'
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: 'Internal Server Error | Example {"error": "server encountered
-            a problem and could not process your request"}'
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get a movie by ID
-      tags:
-      - movies
   /movies:
     get:
       description: Retrieve a list of movies filtered by title and genres with pagination
@@ -571,6 +548,47 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete a movie
+      tags:
+      - movies
+    get:
+      description: Returns a single movie by numeric ID
+      parameters:
+      - description: Movie ID
+        in: path
+        name: movieID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/data.Movie'
+        "401":
+          description: 'Unauthorized | Example {"error": "this resourse avaliable
+            only for authenticated users"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Not Found | Example {"error": "requested resource could not
+            be found"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {"error": "server encountered
+            a problem and could not process your request"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a movie by ID
       tags:
       - movies
     patch:

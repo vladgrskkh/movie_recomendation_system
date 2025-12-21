@@ -22,8 +22,8 @@ type Movie struct {
 	GenreIDs     []int32   `json:"-"`
 	VoteAverage  float32   `json:"vote_average,omitempty" example:"8.7"`
 	VoteCount    int32     `json:"vote_count,omitempty" example:"100"`
-	PosterPath   string    `json:"poster_path,omitempty"`
-	BackdropPath string    `json:"backdrop_path,omitempty"`
+	PosterPath   string    `json:"poster_path"`
+	BackdropPath string    `json:"backdrop_path"`
 	Version      int32     `json:"version" example:"1"`
 }
 
@@ -38,11 +38,12 @@ func (m movieModel) Get(id int64) (*Movie, error) {
 
 	query := `
 		SELECT m.id, m.created_at, m.title, m.overview, m.release_date, m.year, m.runtime, m.vote_average, m.vote_count, m.poster_path, m.backdrop_path, m.version,
-		ARRAY_AGG(g.name ORDER BY g.name) AS genres
-		FROM movies
+		COALESCE(ARRAY_AGG(g.name ORDER BY g.name) FILTER (WHERE g.name IS NOT NULL), '{}') AS genres
+		FROM movies AS m
 		LEFT JOIN movie_genres mg ON mg.movie_id = m.id
 		LEFT JOIN genres g ON g.id = mg.genre_id
 		WHERE m.id = $1
+		GROUP BY m.id
 	`
 
 	var movie Movie
@@ -155,15 +156,15 @@ func (m movieModel) Insert(movie *Movie) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := m.DB.ExecContext(ctx, queryMovieGenres, movie.ID, movie.Genres)
+	_, err := m.DB.ExecContext(ctx, queryMovieGenres, movie.ID, pq.Array(movie.Genres))
 	if err != nil {
 		return err
 	}
 
 	query := `
 		INSERT INTO movies (id, title, year, runtime)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id, created_at, version
+		VALUES ($1, $2, $3, $4)
+		RETURNING created_at, version
 	`
 	err = m.DB.QueryRowContext(ctx, query,
 		movie.ID,
@@ -261,28 +262,28 @@ func (m movieModel) Update(movie *Movie) error {
 	return nil
 }
 
-func (m movieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) {
-	// TODO: need to test this query
+func (m movieModel) GetAll(title string, similarityThreshold float64, genres []string, filters Filters) ([]*Movie, Metadata, error) {
+	// TODO: need to test this query also separate select
 	query := fmt.Sprintf(`
-	SELECT count(*) OVER(), m.id, m.created_at, m.title, m.year, m.runtime, ARRAY_AGG(g.name ORDER BY g.name) AS genres, m.version
+	SELECT count(*) OVER(), m.id, m.created_at, m.title, m.overview, m.release_date, m.year, m.runtime, m.vote_average, m.vote_count, m.poster_path, m.backdrop_path, COALESCE(ARRAY_AGG(g.name ORDER BY g.name) FILTER (WHERE g.name IS NOT NULL), '{}') AS genres, m.version
 	FROM movies m
 	LEFT JOIN movie_genres mg ON mg.movie_id = m.id
 	LEFT JOIN genres g ON g.id = mg.genre_id
-	WHERE (to_tsvector('simple', m.title) @@ plainto_tsquery('simple', $1) OR $1 = '')
-	AND ($2 = '{}' OR EXISTS (
+	WHERE (similarity(m.title, $1) > $2 OR $1 = '')
+	AND ($3 = '{}'::text[] OR EXISTS (
         SELECT 1
         FROM movie_genres mg2
         JOIN genres g2 ON g2.id = mg2.genre_id
-        WHERE mg2.movie_id = m.id AND g2.name = ANY($2)
+        WHERE mg2.movie_id = m.id AND g2.name = ANY($3)
     ))
 	GROUP BY m.id, m.created_at, m.title, m.year, m.runtime, m.version
 	ORDER BY %s %s, id ASC
-	LIMIT $3 OFFSET $4`, filters.sortColumn(), filters.sortDirection())
+	LIMIT $4 OFFSET $5`, filters.sortColumn(), filters.sortDirection())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rowsMovies, err := m.DB.QueryContext(ctx, query, title, pq.Array(genres), filters.limit(), filters.offset())
+	rowsMovies, err := m.DB.QueryContext(ctx, query, title, similarityThreshold, pq.Array(genres), filters.limit(), filters.offset())
 	if err != nil {
 		return nil, Metadata{}, err
 	}
@@ -307,8 +308,14 @@ func (m movieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 			&movie.ID,
 			&movie.CreatedAt,
 			&movie.Title,
+			&movie.Overview,
+			&movie.ReleaseDate,
 			&movie.Year,
 			&movie.Runtime,
+			&movie.VoteAverage,
+			&movie.VoteCount,
+			&movie.PosterPath,
+			&movie.BackdropPath,
 			pq.Array(&movie.Genres),
 			&movie.Version,
 		)
@@ -447,7 +454,7 @@ func (m movieModel) InsertWatched(id int64, userID int64) error {
 
 func (m movieModel) GetWatched(userID int64) ([]int64, error) {
 	query := `
-		SELECT id, FROM watched_movies
+		SELECT id FROM watched_movies
 		WHERE user_id = $1
 	`
 
