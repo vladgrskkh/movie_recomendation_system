@@ -338,8 +338,6 @@ github.com/tonistiigi/units v0.0.0-20180711220420-6950e57a87ea h1:SXhTLE6pb6eld/
 github.com/tonistiigi/units v0.0.0-20180711220420-6950e57a87ea/go.mod h1:WPnis/6cRcDZSUvVmezrxJPkiO87ThFYsoUiMwWNDJk=
 github.com/tonistiigi/vt100 v0.0.0-20240514184818-90bafcd6abab h1:H6aJ0yKQ0gF49Qb2z5hI1UHxSQt4JMyxebFR15KnApw=
 github.com/tonistiigi/vt100 v0.0.0-20240514184818-90bafcd6abab/go.mod h1:ulncasL3N9uLrVann0m+CDlJKWsIAP34MPcOJF6VRvc=
-github.com/vladgrskkh/movie-recommender-contracts v0.2.1 h1:1e656/9PReihSM6uaV8i7nZs21iq0wJf6/jAocbXX0k=
-github.com/vladgrskkh/movie-recommender-contracts v0.2.1/go.mod h1:JYoaFdflVsI1GribRGouZ/TPo3TTbLJ4lXqyRdpm51s=
 github.com/vladgrskkh/movie-recommender-contracts v0.2.2 h1:CQQnsZClYtBGe5EoW03wL6/rC2Vk1tk9UAMY9R9zMLM=
 github.com/vladgrskkh/movie-recommender-contracts v0.2.2/go.mod h1:JYoaFdflVsI1GribRGouZ/TPo3TTbLJ4lXqyRdpm51s=
 github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb h1:zGWFAtiMcyryUHoUjUJX0/lt1H2+i2Ka2n+D3DImSNo=

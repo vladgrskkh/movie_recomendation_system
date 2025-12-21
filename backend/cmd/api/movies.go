@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -108,7 +107,6 @@ func (app *application) getMoviesRecommended(w http.ResponseWriter, r *http.Requ
 
 	movies, err := app.models.RecommendedMovies.Get(user.ID)
 	if err != nil {
-		app.logger.Error(fmt.Sprintf("error getting recommender movies from redis: %w", err))
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
 			app.logger.Info("creating recommendations for user", slog.Int64("userID", user.ID))
@@ -130,7 +128,6 @@ func (app *application) getMoviesRecommended(w http.ResponseWriter, r *http.Requ
 
 	watchedMovies, err := app.models.Movies.GetWatched(user.ID)
 	if err != nil {
-		app.logger.Error(fmt.Sprintf("error getting watched movies for user: %w", err))
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -164,7 +161,6 @@ func (app *application) getMoviesRecommended(w http.ResponseWriter, r *http.Requ
 
 	movies, err = app.models.Movies.GetByIDs(movieIDs)
 	if err != nil {
-		app.logger.Error(fmt.Sprintf("error getting movies by ids: %w", err))
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -173,7 +169,6 @@ func (app *application) getMoviesRecommended(w http.ResponseWriter, r *http.Requ
 	go func() {
 		err := app.models.RecommendedMovies.Set(user.ID, movies)
 		if err != nil {
-			app.logger.Error(fmt.Sprintf("error setting recommended movies in redis: %w", err))
 			app.logError(r, err)
 		}
 	}()
