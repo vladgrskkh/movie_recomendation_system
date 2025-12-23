@@ -58,7 +58,8 @@ func (app *application) getMoviesPopular(w http.ResponseWriter, r *http.Request)
 // @Router /movies/new [get]
 func (app *application) getMoviesNew(w http.ResponseWriter, r *http.Request) {
 	// change year to something smarter, mb some flag, or env
-	movies, err := app.models.Movies.GetNew(2025)
+	// FIXME: 2005 here is bc ml model is trained only on movies older than 2008
+	movies, err := app.models.Movies.GetNew(2005)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -78,7 +79,7 @@ func (app *application) getMoviesNew(w http.ResponseWriter, r *http.Request) {
 // getMoviesRecommended godoc
 //
 // @Summary List recommended movies
-// @Description Retrieve a list of recommended movies (table in db with manual updates)
+// @Description Retrieve a list of recommended movies for user
 // @Tags movies
 // @Produce json
 // @Security BearerAuth

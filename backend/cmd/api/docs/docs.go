@@ -358,6 +358,13 @@ const docTemplate = `{
                         "description": "Sort by: one of id,title,year,runtime,-id,-title,-year,-runtime",
                         "name": "sort",
                         "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "format": "float64",
+                        "description": "Similarity threshold for full-text search",
+                        "name": "similarity_threshold",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -662,7 +669,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve a list of recommended movies (table in db with manual updates)",
+                "description": "Retrieve a list of recommended movies for user",
                 "produces": [
                     "application/json"
                 ],

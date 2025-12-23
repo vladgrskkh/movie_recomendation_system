@@ -431,6 +431,11 @@ paths:
         in: query
         name: sort
         type: string
+      - description: Similarity threshold for full-text search
+        format: float64
+        in: query
+        name: similarity_threshold
+        type: number
       produces:
       - application/json
       responses:
@@ -782,8 +787,7 @@ paths:
       - movies
   /movies/recommended:
     get:
-      description: Retrieve a list of recommended movies (table in db with manual
-        updates)
+      description: Retrieve a list of recommended movies for user
       produces:
       - application/json
       responses:

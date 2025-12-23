@@ -2,7 +2,7 @@ grpcio
 grpcio-tools
 protobuf
 pandas
-numpy
+numpy==1.26.4
 scikit-learn
 scipy
 python-json-logger

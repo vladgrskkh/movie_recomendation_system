@@ -30,7 +30,6 @@ func (s *ImageService) UploadImage(ctx context.Context, imageMetadata *domain.Im
 	opts := minio.PutObjectOptions{
 		ContentType: "image/jpeg",
 	}
-	// TODO: chang
 	err := s.movieImageRepo.Upload(ctx, imageMetadata.Bucket, imageMetadata.Name, pr, imageMetadata.Size, opts)
 	if err != nil {
 		return fmt.Errorf("error uploading image: %w", err)

@@ -312,6 +312,7 @@ type MoviesListResponse struct {
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Number of items per page" default(20)
 // @Param sort query string false "Sort by: one of id,title,year,runtime,-id,-title,-year,-runtime" default(id)
+// @Param similarity_threshold query float64 false "Similarity threshold for full-text search"
 // @Security BearerAuth
 // @Success 200 {object} MoviesListResponse
 // @Failure 401 {object} map[string]string "Unauthorized | Example {"error": "this resourse avaliable only for authenticated users"}"
@@ -338,6 +339,11 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 	input.SimilarityThreshold, err = app.readFloat(qs, "similarity_threshold", 0.2)
 	if err != nil {
 		app.failedValidationResponse(w, r, err)
+		return
+	}
+
+	if input.SimilarityThreshold > 1 {
+		app.failedValidationResponse(w, r, errors.New("similarity_threshold must be between 0 and 1"))
 		return
 	}
 

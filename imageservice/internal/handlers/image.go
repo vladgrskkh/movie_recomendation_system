@@ -51,6 +51,13 @@ forLoop:
 		if err != nil {
 			switch {
 			case errors.Is(err, io.EOF):
+				// race condition here if i don't write empty buffer(close pipe before minio can read from it
+				// resulting in mising last chunk)
+				n, err := pw.Write([]byte{})
+				if err != nil {
+					return status.Error(codes.Internal, "server encountered a problem and could not process your request")
+				}
+				h.logger.Info("zero chunk written to pipe", slog.Int("size", n))
 				break forLoop
 			default:
 				err = pw.CloseWithError(err)
@@ -61,7 +68,8 @@ forLoop:
 			}
 		}
 
-		_, err = pw.Write(buf.GetChunk().Chunk)
+		n, err := pw.Write(buf.GetChunk().Chunk)
+		h.logger.Info("image chunk written to pipe", slog.Int("size", n))
 		if err != nil {
 			return status.Error(codes.Internal, "server encountered a problem and could not process your request")
 		}
@@ -71,7 +79,6 @@ forLoop:
 	if err != nil {
 		return status.Error(codes.Internal, "server encountered a problem and could not process your request")
 	}
-
 	if err = <-errChan; err != nil {
 		return status.Error(codes.Internal, "server encountered a problem and could not process your request")
 	}
@@ -103,9 +110,18 @@ func (h *ImageHandler) Get(r *common.Image, stream grpc.ServerStreamingServer[pb
 forLoop:
 	for {
 		n, err := reader.Read(buf)
+		h.logger.Info("image chunk read from minio reader", slog.Int("size", n))
 		if err != nil {
 			switch {
 			case errors.Is(err, io.EOF):
+				// import here to write last chunk to stream(it signals EOF when NEXT chunk is empty)
+				// as far as I get it right
+				h.logger.Info("EOF reached", slog.Int("size", n))
+				err = stream.Send(&pb.ImageGetResponse{
+					Payload: &pb.ImageGetResponse_Chunk{
+						Chunk: &pb.ImageChunk{Chunk: buf[:n]},
+					},
+				})
 				break forLoop
 			default:
 				return status.Error(codes.Internal, "server encountered a problem and could not process your request")

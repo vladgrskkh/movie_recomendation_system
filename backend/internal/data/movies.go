@@ -336,8 +336,10 @@ func (m movieModel) GetAll(title string, similarityThreshold float64, genres []s
 
 func (m movieModel) GetPopular() ([]*Movie, error) {
 	query := `
-		SELECT id, title, year, poster_path, backdrop_path, version FROM movies
-		JOIN popular_movies ON movies.id = popular_movies.id
+		SELECT m.id, m.title, m.year, m.poster_path, m.backdrop_path FROM movies AS m
+		JOIN popular_movies ON m.id = popular_movies.id
+		ORDER BY m.year DESC
+		LIMIT 20
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -368,7 +370,6 @@ func (m movieModel) GetPopular() ([]*Movie, error) {
 			&movie.Year,
 			&movie.PosterPath,
 			&movie.BackdropPath,
-			&movie.Version,
 		)
 		if err != nil {
 			return nil, err

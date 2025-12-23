@@ -126,6 +126,6 @@ build/docker/api:
 .PHONY: build/docker/recommender
 build/docker/recommender:
 	@echo 'Building docker image...'
-	docker build -f ../predict_service/Dockerfile --tag vladgrskkh/mrs-recommender ../predict_service
+	docker build -f ../predict_service/Dockerfile --platform linux/amd64,linux/arm64 --tag vladgrskkh/mrs-recommender ../predict_service
 	@echo 'Pushing docker image...'
 	docker push vladgrskkh/mrs-recommender:latest
