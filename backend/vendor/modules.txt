@@ -135,7 +135,7 @@ github.com/swaggo/http-swagger
 # github.com/swaggo/swag v1.16.6
 ## explicit; go 1.18
 github.com/swaggo/swag
-# github.com/vladgrskkh/movie-recommender-contracts v0.2.2
+# github.com/vladgrskkh/movie-recommender-contracts v0.2.3
 ## explicit; go 1.25.4
 github.com/vladgrskkh/movie-recommender-contracts/common
 github.com/vladgrskkh/movie-recommender-contracts/v1/imageservice

@@ -298,3 +298,55 @@ func redisClient(cfg config) (*redis.Client, error) {
 // TODO: handlers_test remade
 // TODO: insert new model into predict service
 // TODO: seed data in db and post images to image service for movies
+// TODO: update ci/cd pipeline
+// TODO: revision on uploading image
+// TODO: 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/l43OTqhib8do1WwXig8JI8Y68Fd.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/hi1E20BEDuOAsEpJ4rLM09MLRfZ.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/5DGlfuO31upq3ieF5rHBVALz5kn.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/1fAIdDUVhQaqBr4lVPOeEiNPA3l.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/A3yr3FSiE6ECTQAPs5TFmHWKXBy.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/mO9uOoFhuFsq4iFCAdfRqndcvzW.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/w5ry8VK2mNbINQwC0ZBpCdBnaPx.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/kOqZpuN5Q3F1GU6SFJjWnYd2uBo.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/sUZfWQ8zlZx0OwOTmorDgttzIia.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/bziiIpZUOkhtZA2IMsurHywgc9Y.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/i5MaRm0FsJIpXVLAvrMsMt5YQ5p.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/5WzusZileLb3TLyMOYrwWrh4YXu.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/dDIAA48bsuJPZk1JIFIneNw1XwF.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/exk2xDI2YT5UHs5Bow79AVRGOnP.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/8Tnn2UOlecCKNLKG8ZK5Mu6bK94.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/84jdp4kDVL9jm5VmWyELd7K13jw.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/9brJrqCRm1kH0duQ4mclYblECrg.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/e0tZ5Kjg5mukFGcxEddCZymAxH4.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/yRKyJJYIzfeiVDHBe4LXguPQCvD.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/a3eYLIK5eYSHAJTtOy9PdciVjxx.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/k0oT1Vj9dlkwk5Vuuz7pvnG8iJ6.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/3v06AHzlKIsr9CV75m6oxJHTCpy.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/xDDu9iup7qobqSn6yYjsTNex1mt.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/pO5XR2R56RAbVjdks9gGGn0fbOa.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/838yNJnOk6iZj5YK1MoKiN2n1hw.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/aFt9A4TK8n869uBsOBJj5cfZRDi.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/jqu2wqiFKrmhbF6fLqwi3zRUDz7.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/feiECea2yhyiNRAfvqXzbQFgR1W.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/ob8TdzmXl6ITljpdKJDVZZpwLbw.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/8edMloIwppGDsJ4tqqhDfH9IOSN.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/eKtkT0INpwRwJUGSxxQQ1ZckHHM.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/gd5EoAU4MM57sW3vlWxJ0NMM8cV.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/jiGn1FXSQVfN2nhix0tQtmoGWcF.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/a5kImJOOgKOiCNHvYwTJPnJMzQr.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/1ohDQEb2UVWPyCJcvxFmP2hJFLN.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/dolTehtRFO6B6yVu21yU7TBShot.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/5IYyJetEctAypFYIffqx55PXTPT.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/vV40BJbN1NVYkOXVdkQt4qi1PmQ.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/8H67aqYnvwA9C36tX3Awh8vimJj.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/rlmUnv02eyEzJWaAbl8yRbhZDep.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/rGaXfUvsnIK32RikoCnYKoYsQNc.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/9t6YnN0DsIK530RWsWjVdgpcKPe.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/zjRkl5PZvFujbRndrNbf4ZKbeNC.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/tSj2g6VdJ2UXeWk9wRa19SsxRFg.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/uUXLq7fEG3hI46ZFMZzgHj11S6S.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/bXPKTWAuRO8Mu5rLCORFagX0YZ1.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w1280/sZfK9Gy0mHbGjPte0lgXTprmIsI.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/rESAN6IaAkoblJPW4pOgjOqFNhA.jpg": unexpected EOF
+// 2025/12/21 22:05:54 ERROR Get "https://image.tmdb.org/t/p/w780/ydPsTcrbPKdIN0OJwZ5n4xDYlf.jpg": unexpected EOF

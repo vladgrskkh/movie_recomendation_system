@@ -71,6 +71,7 @@ func (app *application) UploadImageHandler(w http.ResponseWriter, r *http.Reques
 				ObjectName: header.Filename,
 				BucketName: "images",
 				Format:     ext[1:],
+				Size:       header.Size,
 			},
 		},
 	})

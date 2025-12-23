@@ -56,7 +56,7 @@ github.com/rs/xid
 # github.com/tinylib/msgp v1.3.0
 ## explicit; go 1.20
 github.com/tinylib/msgp/msgp
-# github.com/vladgrskkh/movie-recommender-contracts v0.2.1
+# github.com/vladgrskkh/movie-recommender-contracts v0.2.3
 ## explicit; go 1.25.4
 github.com/vladgrskkh/movie-recommender-contracts/common
 github.com/vladgrskkh/movie-recommender-contracts/v1/imageservice

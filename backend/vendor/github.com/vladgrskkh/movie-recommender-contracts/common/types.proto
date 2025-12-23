@@ -13,4 +13,5 @@ message Image {
     string objectName = 1;
     string bucketName = 2;
     string format = 3;
+    int64 size = 4;
 }

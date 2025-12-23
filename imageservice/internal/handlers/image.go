@@ -36,7 +36,7 @@ func (h *ImageHandler) Upload(stream grpc.ClientStreamingServer[pb.ImageUploadRe
 	}
 
 	pbImageMetadata := pbImageResp.GetImage()
-	imageMetadata := domain.NewImageMetadata(pbImageMetadata.GetObjectName(), pbImageMetadata.GetBucketName(), pbImageMetadata.GetFormat(), -1)
+	imageMetadata := domain.NewImageMetadata(pbImageMetadata.GetObjectName(), pbImageMetadata.GetBucketName(), pbImageMetadata.GetFormat(), pbImageMetadata.GetSize())
 	// TODO: get size from response
 
 	pr, pw := io.Pipe()

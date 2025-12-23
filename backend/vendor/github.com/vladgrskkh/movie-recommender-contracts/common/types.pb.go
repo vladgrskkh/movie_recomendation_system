@@ -78,6 +78,7 @@ type Image struct {
 	ObjectName    string                 `protobuf:"bytes,1,opt,name=objectName,proto3" json:"objectName,omitempty"`
 	BucketName    string                 `protobuf:"bytes,2,opt,name=bucketName,proto3" json:"bucketName,omitempty"`
 	Format        string                 `protobuf:"bytes,3,opt,name=format,proto3" json:"format,omitempty"`
+	Size          int64                  `protobuf:"varint,4,opt,name=size,proto3" json:"size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -133,6 +134,13 @@ func (x *Image) GetFormat() string {
 	return ""
 }
 
+func (x *Image) GetSize() int64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
 var File_common_types_proto protoreflect.FileDescriptor
 
 const file_common_types_proto_rawDesc = "" +
@@ -140,7 +148,7 @@ const file_common_types_proto_rawDesc = "" +
 	"\x12common/types.proto\x12\x06common\"@\n" +
 	"\x0eRecommendation\x12\x18\n" +
 	"\amovieID\x18\x01 \x01(\x03R\amovieID\x12\x14\n" +
-	"\x05score\x18\x02 \x01(\x01R\x05score\"_\n" +
+	"\x05score\x18\x02 \x01(\x01R\x05score\"s\n" +
 	"\x05Image\x12\x1e\n" +
 	"\n" +
 	"objectName\x18\x01 \x01(\tR\n" +
@@ -148,7 +156,8 @@ const file_common_types_proto_rawDesc = "" +
 	"\n" +
 	"bucketName\x18\x02 \x01(\tR\n" +
 	"bucketName\x12\x16\n" +
-	"\x06format\x18\x03 \x01(\tR\x06formatBAZ?github.com/vladgrskkh/movie-recommender-contracts/common;commonb\x06proto3"
+	"\x06format\x18\x03 \x01(\tR\x06format\x12\x12\n" +
+	"\x04size\x18\x04 \x01(\x03R\x04sizeBAZ?github.com/vladgrskkh/movie-recommender-contracts/common;commonb\x06proto3"
 
 var (
 	file_common_types_proto_rawDescOnce sync.Once

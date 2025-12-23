@@ -14,7 +14,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.6
-	github.com/vladgrskkh/movie-recommender-contracts v0.2.2
+	github.com/vladgrskkh/movie-recommender-contracts v0.2.3
 	golang.org/x/crypto v0.43.0
 	google.golang.org/grpc v1.77.0
 	google.golang.org/protobuf v1.36.10
