@@ -1,6 +1,8 @@
 import grpc
 import pandas as pd
 import signal
+import os
+import multiprocessing
 from pythonjsonlogger.json import JsonFormatter
 import logging
 import sys
@@ -63,7 +65,8 @@ class RecommendationService(predict_pb2_grpc.RecommendationServicer):
         return predict_pb2.RecommendResponse(recommendations=recommendations)
 
 def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    options = (('grpc.so_reuseport', 1),)
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10), options=options)
     predict_pb2_grpc.add_RecommendationServicer_to_server(
         RecommendationService(), server
     )
@@ -81,5 +84,19 @@ def serve():
 
     server.wait_for_termination()
 
+
+def main():
+    workers_count = os.cpu_count()
+    logger.info(f"Spawning {workers_count} workers")
+
+    workers = []
+    for _ in range(workers_count):
+        worker = multiprocessing.Process(
+            target=serve)
+        worker.start()
+        workers.append(worker)
+    for worker in workers:
+        worker.join()
+
 if __name__ == "__main__":
-    serve()
+    main()

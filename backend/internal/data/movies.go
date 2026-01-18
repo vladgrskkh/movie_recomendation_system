@@ -262,28 +262,29 @@ func (m movieModel) Update(movie *Movie) error {
 	return nil
 }
 
-func (m movieModel) GetAll(title string, similarityThreshold float64, genres []string, filters Filters) ([]*Movie, Metadata, error) {
+func (m movieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) {
 	// TODO: need to test this query also separate select
+	// TODO: workaround witht setting threshold
 	query := fmt.Sprintf(`
 	SELECT count(*) OVER(), m.id, m.created_at, m.title, m.overview, m.release_date, m.year, m.runtime, m.vote_average, m.vote_count, m.poster_path, m.backdrop_path, COALESCE(ARRAY_AGG(g.name ORDER BY g.name) FILTER (WHERE g.name IS NOT NULL), '{}') AS genres, m.version
 	FROM movies m
 	LEFT JOIN movie_genres mg ON mg.movie_id = m.id
 	LEFT JOIN genres g ON g.id = mg.genre_id
-	WHERE (similarity(m.title, $1) > $2 OR $1 = '')
-	AND ($3 = '{}'::text[] OR EXISTS (
+	WHERE (m.title %% $1 OR $1 = '')
+	AND ($2 = '{}'::text[] OR EXISTS (
         SELECT 1
         FROM movie_genres mg2
         JOIN genres g2 ON g2.id = mg2.genre_id
-        WHERE mg2.movie_id = m.id AND g2.name = ANY($3)
+        WHERE mg2.movie_id = m.id AND g2.name = ANY($2)
     ))
 	GROUP BY m.id, m.created_at, m.title, m.year, m.runtime, m.version
-	ORDER BY %s %s, id ASC
-	LIMIT $4 OFFSET $5`, filters.sortColumn(), filters.sortDirection())
+	ORDER BY %s %s, similarity(m.title, $1) DESC
+	LIMIT $3 OFFSET $4`, filters.sortColumn(), filters.sortDirection())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rowsMovies, err := m.DB.QueryContext(ctx, query, title, similarityThreshold, pq.Array(genres), filters.limit(), filters.offset())
+	rowsMovies, err := m.DB.QueryContext(ctx, query, title, pq.Array(genres), filters.limit(), filters.offset())
 	if err != nil {
 		return nil, Metadata{}, err
 	}

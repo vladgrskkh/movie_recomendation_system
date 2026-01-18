@@ -155,6 +155,13 @@ definitions:
         example: 1994
         type: integer
     type: object
+  main.moviesResponse:
+    properties:
+      movies:
+        items:
+          $ref: '#/definitions/data.Movie'
+        type: array
+    type: object
   main.predictionInput:
     properties:
       title:
@@ -752,7 +759,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.predictionInput'
+            $ref: '#/definitions/main.moviesResponse'
         "400":
           description: 'Bad Request | Example {"error": "body contains badly-formated
             JSON"}'
@@ -794,9 +801,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/data.Movie'
-            type: array
+            $ref: '#/definitions/main.moviesResponse'
         "401":
           description: 'Unauthorized | Example {"error": "this resourse avaliable
             only for authenticated users"}'

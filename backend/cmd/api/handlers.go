@@ -71,7 +71,7 @@ func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"movie": movie}, nil)
+	err = app.writeJSON(w, http.StatusOK, movie, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -156,7 +156,7 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 	headers := make(http.Header)
 	headers.Set("Location", fmt.Sprintf("/v1/movie/%d", movie.ID))
 
-	err = app.writeJSON(w, http.StatusCreated, envelope{"movie": movie}, headers)
+	err = app.writeJSON(w, http.StatusCreated, movie, headers)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -373,7 +373,7 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	movies, metadata, err := app.models.Movies.GetAll(input.Title, input.SimilarityThreshold, input.Genres, filters)
+	movies, metadata, err := app.models.Movies.GetAll(input.Title, input.Genres, filters)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -750,7 +750,7 @@ type predictionInput struct {
 // @Produce json
 // @Param credentials body predictionInput true "Moive payload"
 // @Security BearerAuth
-// @Success 200 {object} predictionInput
+// @Success 200 {object} moviesResponse
 // @Failure 400 {object} map[string]string "Bad Request | Example {"error": "body contains badly-formated JSON"}"
 // @Failure 401 {object} map[string]string "Unauthorized | Example {"error": "this resourse avaliable only for authenticated users"}"
 // @Failure 422 {object} map[string]string "Unprocessable Entity | Example {"error": "validation error"}"
@@ -790,15 +790,32 @@ func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 
 	recommendation, err := app.predictClient.Recommend(ctx, &pb.RecommendRequest{
 		MovieID: []int64{movieID},
+		TopK:    10,
 	})
+
+	// TODO: need to check behavior when predict service somehow returns zero movies
+	// should not happen, it must return something or error
+	if len(recommendation.GetRecommendations()) == 0 {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	data := envelope{"recommendations": recommendation.GetRecommendations()}
+	movieIDs := make([]int64, 0, 10)
+	for _, movie := range recommendation.GetRecommendations() {
+		movieIDs = append(movieIDs, movie.MovieID)
+	}
 
-	err = app.writeJSON(w, http.StatusOK, data, nil)
+	movies, err := app.models.Movies.GetByIDs(movieIDs)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, moviesResponse{Movies: movies}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

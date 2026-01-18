@@ -620,7 +620,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.predictionInput"
+                            "$ref": "#/definitions/main.moviesResponse"
                         }
                     },
                     "400": {
@@ -681,10 +681,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/data.Movie"
-                            }
+                            "$ref": "#/definitions/main.moviesResponse"
                         }
                     },
                     "401": {
@@ -1688,6 +1685,17 @@ const docTemplate = `{
                 "year": {
                     "type": "integer",
                     "example": 1994
+                }
+            }
+        },
+        "main.moviesResponse": {
+            "type": "object",
+            "properties": {
+                "movies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/data.Movie"
+                    }
                 }
             }
         },

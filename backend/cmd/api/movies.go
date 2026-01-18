@@ -76,6 +76,10 @@ func (app *application) getMoviesNew(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type moviesResponse struct {
+	Movies []*data.Movie `json:"movies"`
+}
+
 // getMoviesRecommended godoc
 //
 // @Summary List recommended movies
@@ -83,7 +87,7 @@ func (app *application) getMoviesNew(w http.ResponseWriter, r *http.Request) {
 // @Tags movies
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} []data.Movie
+// @Success 200 {object} moviesResponse
 // @Failure 401 {object} map[string]string "Unauthorized | Example {"error": "this resourse avaliable only for authenticated users"}"
 // @Failure 404 {object} map[string]string "Not Found | Example {"error": "requested resource could not be found"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
@@ -118,7 +122,7 @@ func (app *application) getMoviesRecommended(w http.ResponseWriter, r *http.Requ
 	}
 
 	if len(movies) != 0 {
-		err = app.writeJSON(w, http.StatusOK, envelope{"movies": movies}, nil)
+		err = app.writeJSON(w, http.StatusOK, moviesResponse{Movies: movies}, nil)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
@@ -146,8 +150,6 @@ func (app *application) getMoviesRecommended(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// add to redis
-
 	// TODO: need to check behavior when predict service somehow returns zero movies
 	// should not happen, it must return something or error
 	if len(resp.GetRecommendations()) == 0 {
@@ -174,7 +176,7 @@ func (app *application) getMoviesRecommended(w http.ResponseWriter, r *http.Requ
 		}
 	}()
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"movies": movies}, nil)
+	err = app.writeJSON(w, http.StatusOK, moviesResponse{Movies: movies}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

@@ -20,7 +20,7 @@ type moviesInterface interface {
 	Insert(movie *Movie) error
 	Delete(id int64) error
 	Update(movie *Movie) error
-	GetAll(title string, similarityThreshold float64, genres []string, fileters Filters) ([]*Movie, Metadata, error)
+	GetAll(title string, genres []string, fileters Filters) ([]*Movie, Metadata, error)
 	GetPopular() ([]*Movie, error)
 	GetNew(year int) ([]*Movie, error)
 	InsertWatched(id int64, userID int64) error
