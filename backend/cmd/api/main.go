@@ -298,3 +298,6 @@ func redisClient(cfg config) (*redis.Client, error) {
 // TODO: seed data in db and post images to image service for movies
 // TODO: update ci/cd pipeline
 // TODO: revision on uploading image
+// TODO: makefile revision
+// TODO: revision on generation recommendation(now that we have like/unlike movie we should
+// heavily rely on this)

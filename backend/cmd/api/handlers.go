@@ -160,7 +160,6 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
-
 }
 
 // admin only
@@ -293,7 +292,6 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
-
 }
 
 type MoviesListResponse struct {
@@ -367,7 +365,6 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 		validation.Field(&filters.PageSize, validation.Required, validation.Min(1)),
 		validation.Field(&filters.Sort, validation.Required, validation.In(filters.SortSafeList...)),
 	)
-
 	if err != nil {
 		app.failedValidationResponse(w, r, err)
 		return
@@ -440,7 +437,6 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		validation.Field(&input.Name, validation.Required, validation.Length(1, 500)),
 		validation.Field(&input.Email, validation.Required, is.Email),
 		validation.Field(&input.Password, validation.Required, validation.Length(8, 72)))
-
 	if err != nil {
 		app.failedValidationResponse(w, r, err)
 		return

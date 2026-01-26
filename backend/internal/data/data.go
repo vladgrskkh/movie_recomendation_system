@@ -25,6 +25,8 @@ type moviesInterface interface {
 	GetNew(year int) ([]*Movie, error)
 	InsertWatched(id int64, userID int64) error
 	GetWatched(userID int64) ([]int64, error)
+	InsertFavourite(movieID, userID int64) error
+	DeleteFavourite(movieID, userID int64) error
 }
 
 type recommenderMoviesInterface interface {
@@ -62,5 +64,3 @@ func NewModels(db *sql.DB, rdb *redis.Client) Models {
 		Tokens:            tokenModel{DB: db},
 	}
 }
-
-// TODO: read about interface and how it should be for mocking dependency
