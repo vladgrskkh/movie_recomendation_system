@@ -155,16 +155,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO: helper func wrapper for this
-	defer func() {
-		e := db.Close()
-		if err != nil && e != nil {
-			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
-		} else if e != nil {
-			err = e
-		}
-	}()
-
 	logger.Info("postgres database connection pool established")
 
 	rdb, err := redisClient(cfg)
@@ -172,15 +162,6 @@ func main() {
 		logger.Log(ctx, LevelFatal, "cannot connect to redis:", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
-
-	defer func() {
-		e := rdb.Close()
-		if err != nil && e != nil {
-			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
-		} else if e != nil {
-			err = e
-		}
-	}()
 
 	logger.Info("redis connection pool established")
 
@@ -203,24 +184,6 @@ func main() {
 
 	clientImage := imageservice.NewImageClient(connImage)
 
-	defer func() {
-		e := connRecommender.Close()
-		if err != nil && e != nil {
-			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
-		} else if e != nil {
-			err = e
-		}
-	}()
-
-	defer func() {
-		e := connImage.Close()
-		if err != nil && e != nil {
-			err = fmt.Errorf("previous error: %w; close error: %w", err, e)
-		} else if e != nil {
-			err = e
-		}
-	}()
-
 	logger.Info("gRPC connections established")
 
 	p, err := kafka.NewProducer(cfg.kafka.address, cfg.kafka.passwordSSL, cfg.kafka.username, cfg.kafka.passwordUser)
@@ -232,6 +195,12 @@ func main() {
 	logger.Info("new kafka producer started")
 
 	app := newApplication(cfg, logger, db, rdb, clientRecommender, clientImage, p)
+
+	// closing all connections in defered statement
+	app.deferClose(db.Close, err)
+	app.deferClose(rdb.Close, err)
+	app.deferClose(connRecommender.Close, err)
+	app.deferClose(connImage.Close, err)
 
 	logger.Info("starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {
@@ -300,3 +269,4 @@ func redisClient(cfg config) (*redis.Client, error) {
 // TODO: makefile revision
 // TODO: revision on generation recommendation(now that we have like/unlike movie we should
 // heavily rely on this)
+// TODO: delete csv files from git

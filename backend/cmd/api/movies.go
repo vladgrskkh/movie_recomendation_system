@@ -168,13 +168,12 @@ func (app *application) getMoviesRecommended(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// TODO: wrap in background
-	go func() {
+	app.background(func() {
 		err := app.models.RecommendedMovies.Set(user.ID, movies)
 		if err != nil {
 			app.logError(r, err)
 		}
-	}()
+	})
 
 	err = app.writeJSON(w, http.StatusOK, moviesResponse{Movies: movies}, nil)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -22,7 +23,7 @@ var (
 // 	numberOfKeys = 20 // for generating kafka keys
 // )
 
-type envelope map[string]interface{}
+type envelope map[string]any
 
 // readIDParam extracts and validates the ID parameter from the URL
 func (app *application) readIDParam(r *http.Request) (int64, error) {
@@ -37,7 +38,7 @@ func (app *application) readIDParam(r *http.Request) (int64, error) {
 }
 
 // writeJSON is a helper method for writing JSON responses
-func (app *application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers http.Header) error {
+func (app *application) writeJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
 	// Convert the data to JSON
 	js, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
@@ -47,9 +48,7 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 	js = append(js, '\n')
 
 	// Add provided headers
-	for key, value := range headers {
-		w.Header()[key] = value
-	}
+	maps.Copy(w.Header(), headers)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -216,18 +215,31 @@ func (app *application) readFloat(qs url.Values, key string, defaultValue float6
 // 	return uuids
 // }
 
-// depreciated for now
-// func (app *application) background(fn func()) {
-// 	app.wg.Add(1)
-// 	go func() {
-// 		defer app.wg.Done()
+// background is a helper function to wrap function with waitgroup
+// and recover from panic if one occur
+// We need to add to background bc we want to wait for fn to execute
+// when gracefully shutting down
+func (app *application) background(fn func()) {
+	app.wg.Go(func() {
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.Error(fmt.Sprint(err))
+			}
+		}()
 
-// 		defer func() {
-// 			if err := recover(); err != nil {
-// 				app.logger.Error(fmt.Sprint(err))
-// 			}
-// 		}()
+		fn()
+	})
+}
 
-// 		fn()
-// 	}()
-// }
+// deferClose is a helper function to wrap Close() methods of any particular
+// instance(eg db conns, files) and log any error that occur during close
+func (app *application) deferClose(fn func() error, err error) {
+	defer func() {
+		e := fn()
+		if err != nil && e != nil {
+			app.logger.Error(fmt.Errorf("previous error: %w; close error: %w", err, e).Error())
+		} else if e != nil {
+			app.logger.Error(fmt.Errorf("close error: %w", e).Error())
+		}
+	}()
+}

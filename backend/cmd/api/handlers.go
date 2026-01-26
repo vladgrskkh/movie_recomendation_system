@@ -77,15 +77,13 @@ func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// TODO: wrap in background
-	go func() {
+	app.background(func() {
 		user := app.contextGetUser(r)
 
 		if user.IsAnonymous() {
 			return
 		}
 
-		// mb user redis here
 		// TODO: now that i have liked movies it makes sence to use
 		// redis here
 		err := app.models.Movies.InsertWatched(id, user.ID)
@@ -93,7 +91,7 @@ func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) 
 			app.logger.Error("error inserting watched movie", slog.String("error", err.Error()))
 			return
 		}
-	}()
+	})
 }
 
 type movieInput struct {
