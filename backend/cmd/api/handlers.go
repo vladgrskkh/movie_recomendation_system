@@ -86,6 +86,8 @@ func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) 
 		}
 
 		// mb user redis here
+		// TODO: now that i have liked movies it makes sence to use
+		// redis here
 		err := app.models.Movies.InsertWatched(id, user.ID)
 		if err != nil {
 			app.logger.Error("error inserting watched movie", slog.String("error", err.Error()))

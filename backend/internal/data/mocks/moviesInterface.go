@@ -30,6 +30,24 @@ func (_m *moviesInterface) Delete(id int64) error {
 	return r0
 }
 
+// DeleteFavourite provides a mock function with given fields: movieID, userID
+func (_m *moviesInterface) DeleteFavourite(movieID int64, userID int64) error {
+	ret := _m.Called(movieID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteFavourite")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int64, int64) error); ok {
+		r0 = rf(movieID, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: id
 func (_m *moviesInterface) Get(id int64) (*data.Movie, error) {
 	ret := _m.Called(id)
@@ -263,6 +281,24 @@ func (_m *moviesInterface) Insert(movie *data.Movie) error {
 	return r0
 }
 
+// InsertFavourite provides a mock function with given fields: movieID, userID
+func (_m *moviesInterface) InsertFavourite(movieID int64, userID int64) error {
+	ret := _m.Called(movieID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for InsertFavourite")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int64, int64) error); ok {
+		r0 = rf(movieID, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // InsertWatched provides a mock function with given fields: id, userID
 func (_m *moviesInterface) InsertWatched(id int64, userID int64) error {
 	ret := _m.Called(id, userID)
@@ -304,7 +340,8 @@ func (_m *moviesInterface) Update(movie *data.Movie) error {
 func NewMoviesInterface(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *moviesInterface {
+},
+) *moviesInterface {
 	mock := &moviesInterface{}
 	mock.Mock.Test(t)
 

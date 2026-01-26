@@ -42,6 +42,8 @@ func (app *application) routes() http.Handler {
 				r.Get("/", app.getMovieHandler)
 				r.With(app.requireActivatedUser).Patch("/", app.updateMovieHandler)
 				r.Delete("/", app.deleteMovieHandler)
+				r.Put("/", app.likeMovieHandler)
+				r.Put("/", app.unlikeMovieHandler)
 			})
 		})
 
@@ -64,8 +66,7 @@ func (app *application) routes() http.Handler {
 		})
 
 		r.Route("/images", func(r chi.Router) {
-			// TODO: remove comment when done testing
-			// r.Use(app.requireAuthenticatedUser)
+			r.Use(app.requireAuthenticatedUser)
 			r.Post("/", app.UploadImageHandler)
 			r.Get("/{imageID}", app.GetImageHandler)
 			r.Delete("/{imageID}", app.DeleteImageHandler)

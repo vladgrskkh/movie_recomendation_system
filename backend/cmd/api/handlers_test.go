@@ -47,16 +47,24 @@ func TestGetMovieHandler(t *testing.T) {
 
 	// TODO: now i return more values
 	movie := data.Movie{
-		ID:      1,
-		Title:   "Test Movie",
-		Year:    2024,
-		Runtime: 125,
-		Genres:  []string{"Drama", "Action"},
-		Version: 1,
+		ID:           1,
+		Title:        "Test Movie",
+		Overview:     "Description of a test movie",
+		ReleaseDate:  "01-01-2024",
+		Year:         2024,
+		Runtime:      125,
+		VoteAverage:  5.4,
+		VoteCount:    100,
+		PosterPath:   "someposte.jpg",
+		BackdropPath: "somebackdrop.jpg",
+		Genres:       []string{"Drama", "Action"},
+		Version:      1,
 	}
 
 	mockMovies.On("Get", int64(1)).Return(&movie, nil)
 	mockMovies.On("Get", int64(2)).Return(nil, data.ErrRecordNotFound)
+	// NOTE: not testing this properly cause i will change this anyway
+	mockMovies.On("InsertWatched", int64(1), int64(1)).Return(nil)
 
 	app.models.Movies = mockMovies
 
@@ -98,14 +106,14 @@ func TestGetMovieHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			code, _, body := ts.get(t, tt.urlPath)
 
-			var data map[string]data.Movie
+			var data data.Movie
 
 			assert.Equal(t, tt.wantCode, code, fmt.Sprintf("status code should be %d", tt.wantCode))
 			if tt.wantBody != nil {
 				err := json.Unmarshal(body, &data)
 				assert.NoError(t, err)
 
-				assert.Equal(t, *tt.wantBody, data["movie"], "movie should be equal")
+				assert.Equal(t, *tt.wantBody, data, "movie should be equal")
 			}
 		})
 	}
@@ -144,7 +152,7 @@ func TestPostMovieHandler(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		reqBody  interface{}
+		reqBody  any
 		wantCode int
 		wantBody *data.Movie
 	}{
@@ -237,17 +245,17 @@ func TestPostMovieHandler(t *testing.T) {
 
 			assert.Equal(t, tt.wantCode, code, fmt.Sprintf("status code should be %d", tt.wantCode))
 			if tt.wantBody != nil {
-				var movieResp map[string]data.Movie
+				var movieResp data.Movie
 
 				err = json.Unmarshal(body, &movieResp)
 				assert.NoError(t, err)
 
-				assert.Equal(t, int64(1), movieResp["movie"].ID, "movie ID should be 1")
-				assert.Equal(t, int32(1), movieResp["movie"].Version, "movie version should be 1")
-				assert.Equal(t, movie.Title, movieResp["movie"].Title, "movie title should be equal")
-				assert.Equal(t, movie.Year, movieResp["movie"].Year, "movie year should be equal")
-				assert.Equal(t, movie.Runtime, movieResp["movie"].Runtime, "movie runtime should be equal")
-				assert.Equal(t, movie.Genres, movieResp["movie"].Genres, "movie genres should be equal")
+				assert.Equal(t, int64(1), movieResp.ID, "movie ID should be 1")
+				assert.Equal(t, int32(1), movieResp.Version, "movie version should be 1")
+				assert.Equal(t, movie.Title, movieResp.Title, "movie title should be equal")
+				assert.Equal(t, movie.Year, movieResp.Year, "movie year should be equal")
+				assert.Equal(t, movie.Runtime, movieResp.Runtime, "movie runtime should be equal")
+				assert.Equal(t, movie.Genres, movieResp.Genres, "movie genres should be equal")
 			}
 		})
 	}
