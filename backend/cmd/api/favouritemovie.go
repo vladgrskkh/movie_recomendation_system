@@ -29,7 +29,6 @@ func (app *application) likeMovieHandler(w http.ResponseWriter, r *http.Request)
 
 	user := app.contextGetUser(r)
 
-	// TODO: implement movies method for inserting liked movie
 	err = app.models.Movies.InsertFavourite(movieID, user.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -66,7 +65,6 @@ func (app *application) unlikeMovieHandler(w http.ResponseWriter, r *http.Reques
 
 	user := app.contextGetUser(r)
 
-	// TODO: implement movies method for deleting liked movie
 	err = app.models.Movies.DeleteFavourite(movieID, user.ID)
 	if err != nil {
 		switch {

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -12,10 +11,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/vladgrskkh/movie-recommender-contracts/common"
 	pb "github.com/vladgrskkh/movie-recommender-contracts/v1/imageservice"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // UploadImageHandler godoc
-//
 // @Summary Upload image
 // @Description Upload an image file (jpg or png). Multipart form: field name `image`.
 // @Tags images
@@ -42,16 +42,10 @@ func (app *application) UploadImageHandler(w http.ResponseWriter, r *http.Reques
 		app.imageUnsupportedMediaTypeResponse(w, r)
 		return
 	}
-	// TODO: better error handling, for now its okey
-	defer func() {
-		e := file.Close()
-		if err != nil && e != nil {
-			app.logger.Error(fmt.Errorf("previous error: %w; close error: %w", err, e).Error())
-		} else if e != nil {
-			app.logger.Error(e.Error())
-		}
-	}()
 
+	app.deferClose(file.Close, err)
+
+	// TODO: read about should i validate filename
 	app.logger.Info("file metadata", slog.Int64("size", header.Size), slog.String("filename", header.Filename))
 
 	stream, err := app.imageClient.Upload(context.Background())
@@ -75,7 +69,6 @@ func (app *application) UploadImageHandler(w http.ResponseWriter, r *http.Reques
 			},
 		},
 	})
-	// TODO: think about what error server can return
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -102,7 +95,12 @@ forLoop:
 			},
 		})
 		if err != nil {
-			app.serverErrorResponse(w, r, err)
+			switch {
+			case status.Code(err) == codes.InvalidArgument:
+				app.badRequestResponse(w, r, err)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
 			return
 		}
 	}
@@ -136,10 +134,13 @@ func (app *application) GetImageHandler(w http.ResponseWriter, r *http.Request) 
 	imageID := chi.URLParam(r, "imageID")
 
 	stream, err := app.imageClient.Get(context.Background(), &common.Image{ObjectName: imageID, BucketName: "images"})
-	// TODO: check what error is returned here from the server(it can be not found or something else so i need to
-	// handle it better)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case status.Code(err) == codes.NotFound:
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 	ext := path.Ext(imageID)
@@ -189,10 +190,14 @@ func (app *application) DeleteImageHandler(w http.ResponseWriter, r *http.Reques
 	// check for appropriate id
 	imageID := chi.URLParam(r, "imageID")
 
-	// TODO: better error handling (not found etc)
 	res, err := app.imageClient.Delete(context.Background(), &common.Image{ObjectName: imageID, BucketName: "images"})
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case status.Code(err) == codes.NotFound:
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

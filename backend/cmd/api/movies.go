@@ -13,6 +13,11 @@ import (
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 )
 
+const (
+	// Param that regulates number of movies from recommendation service
+	topK = 10
+)
+
 // getMoviesPopular godoc
 //
 // @Summary List popular movies
@@ -137,8 +142,7 @@ func (app *application) getMoviesRecommended(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// TODO: tune top_k
-	resp, err := app.predictClient.Recommend(context.Background(), &pb.RecommendRequest{MovieID: watchedMovies, TopK: 10})
+	resp, err := app.predictClient.Recommend(context.Background(), &pb.RecommendRequest{MovieID: watchedMovies, TopK: topK})
 	if err != nil {
 		switch status.Code(err) {
 		case codes.InvalidArgument:
@@ -150,8 +154,6 @@ func (app *application) getMoviesRecommended(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// TODO: need to check behavior when predict service somehow returns zero movies
-	// should not happen, it must return something or error
 	if len(resp.GetRecommendations()) == 0 {
 		app.serverErrorResponse(w, r, err)
 		return

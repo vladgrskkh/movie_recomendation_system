@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -10,7 +11,8 @@ import (
 )
 
 var (
-	ErrNotFound = fmt.Errorf("object not found")
+	ErrNotFound     = errors.New("object not found")
+	ErrNoSuchBucket = errors.New("bucket not exists")
 )
 
 type MovieImageRepo struct {
@@ -46,6 +48,15 @@ func (r *MovieImageRepo) MakeBucket(ctx context.Context, bucketName string, opts
 func (r *MovieImageRepo) Upload(ctx context.Context, bucketName string, objectName string, object io.Reader, size int64, opts minio.PutObjectOptions) error {
 	info, err := r.storage.PutObject(ctx, bucketName, objectName, object, size, opts)
 	if err != nil {
+		v, ok := err.(*minio.ErrorResponse)
+		if ok {
+			switch v.Code {
+			case minio.NoSuchBucket:
+				return ErrNoSuchBucket
+			default:
+				return err
+			}
+		}
 		return fmt.Errorf("error uploading file: %w", err)
 	}
 
@@ -61,9 +72,12 @@ func (r *MovieImageRepo) Get(ctx context.Context, bucketName string, objectName 
 			switch v.Code {
 			case minio.NoSuchKey:
 				return nil, ErrNotFound
+			case minio.NoSuchBucket:
+				return nil, ErrNotFound
+			default:
+				return nil, err
 			}
 		}
-
 		return nil, err
 	}
 
@@ -78,6 +92,8 @@ func (r *MovieImageRepo) Delete(ctx context.Context, bucketName string, objectNa
 		if ok {
 			switch v.Code {
 			case minio.NoSuchKey:
+				return ErrNotFound
+			case minio.NoSuchBucket:
 				return ErrNotFound
 			}
 		}

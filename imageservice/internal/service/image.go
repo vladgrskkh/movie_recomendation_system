@@ -13,6 +13,9 @@ import (
 )
 
 // TODO: error domain, logging
+var (
+	ErrImageCredentials = errors.New("failed image upload due to")
+)
 
 type ImageService struct {
 	logger         *slog.Logger
@@ -32,7 +35,12 @@ func (s *ImageService) UploadImage(ctx context.Context, imageMetadata *domain.Im
 	}
 	err := s.movieImageRepo.Upload(ctx, imageMetadata.Bucket, imageMetadata.Name, pr, imageMetadata.Size, opts)
 	if err != nil {
-		return fmt.Errorf("error uploading image: %w", err)
+		switch {
+		case errors.Is(err, repository.ErrNoSuchBucket):
+			return errors.Join(ErrImageCredentials, err)
+		default:
+			return fmt.Errorf("error uploading image: %w", err)
+		}
 	}
 
 	return nil

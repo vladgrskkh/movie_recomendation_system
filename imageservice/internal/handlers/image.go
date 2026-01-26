@@ -37,11 +37,11 @@ func (h *ImageHandler) Upload(stream grpc.ClientStreamingServer[pb.ImageUploadRe
 
 	pbImageMetadata := pbImageResp.GetImage()
 	imageMetadata := domain.NewImageMetadata(pbImageMetadata.GetObjectName(), pbImageMetadata.GetBucketName(), pbImageMetadata.GetFormat(), pbImageMetadata.GetSize())
-	// TODO: get size from response
 
 	pr, pw := io.Pipe()
 	errChan := make(chan error)
 	go func() {
+		// TODO: need to check if error occur will it close reader buffer
 		errChan <- h.imageService.UploadImage(context.Background(), imageMetadata, pr)
 	}()
 
@@ -71,7 +71,8 @@ forLoop:
 		n, err := pw.Write(buf.GetChunk().Chunk)
 		h.logger.Info("image chunk written to pipe", slog.Int("size", n))
 		if err != nil {
-			return status.Error(codes.Internal, "server encountered a problem and could not process your request")
+			h.logger.Error("error writting image chunk to pipe", slog.Any("error", err))
+			break forLoop
 		}
 	}
 
@@ -80,7 +81,12 @@ forLoop:
 		return status.Error(codes.Internal, "server encountered a problem and could not process your request")
 	}
 	if err = <-errChan; err != nil {
-		return status.Error(codes.Internal, "server encountered a problem and could not process your request")
+		switch {
+		case errors.Is(err, service.ErrImageCredentials):
+			return status.Error(codes.InvalidArgument, "non existing bucket or invalid image creds")
+		default:
+			return status.Error(codes.Internal, "server encountered a problem and could not process your request")
+		}
 	}
 
 	err = stream.SendAndClose(&pb.ImageUploadResponse{
@@ -92,8 +98,6 @@ forLoop:
 	return nil
 }
 
-// TODO: change proto contract so that request is not common.Image instead pb.ImageGetRequest
-// TODO: change proto contract (message field)
 func (h *ImageHandler) Get(r *common.Image, stream grpc.ServerStreamingServer[pb.ImageGetResponse]) error {
 	imageMetadata := domain.NewImageMetadata(r.GetObjectName(), r.GetBucketName(), r.GetFormat(), 0)
 	reader, err := h.imageService.GetImage(context.Background(), imageMetadata)
@@ -122,6 +126,9 @@ forLoop:
 						Chunk: &pb.ImageChunk{Chunk: buf[:n]},
 					},
 				})
+				if err != nil {
+					return status.Error(codes.Internal, "server encountered a problem and could not process your request")
+				}
 				break forLoop
 			default:
 				return status.Error(codes.Internal, "server encountered a problem and could not process your request")
@@ -157,5 +164,3 @@ func (h *ImageHandler) Delete(ctx context.Context, r *common.Image) (*pb.ImageDe
 		Message: "successfully delete image",
 	}, nil
 }
-
-// TODO: better status code message when error occur

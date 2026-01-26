@@ -788,8 +788,6 @@ func (app *application) predictHandler(w http.ResponseWriter, r *http.Request) {
 		TopK:    10,
 	})
 
-	// TODO: need to check behavior when predict service somehow returns zero movies
-	// should not happen, it must return something or error
 	if len(recommendation.GetRecommendations()) == 0 {
 		app.serverErrorResponse(w, r, err)
 		return

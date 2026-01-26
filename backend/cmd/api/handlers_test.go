@@ -45,7 +45,6 @@ func TestGetMovieHandler(t *testing.T) {
 
 	mockMovies := mocks.NewMoviesInterface(t)
 
-	// TODO: now i return more values
 	movie := data.Movie{
 		ID:           1,
 		Title:        "Test Movie",
