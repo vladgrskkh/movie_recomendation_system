@@ -42,8 +42,8 @@ func (app *application) routes() http.Handler {
 				r.Get("/", app.getMovieHandler)
 				r.With(app.requireActivatedUser).Patch("/", app.updateMovieHandler)
 				r.Delete("/", app.deleteMovieHandler)
-				r.Put("/", app.likeMovieHandler)
-				r.Put("/", app.unlikeMovieHandler)
+				r.Put("/like", app.likeMovieHandler)
+				r.Put("/unlike", app.unlikeMovieHandler)
 			})
 		})
 

@@ -6,6 +6,7 @@ import (
 )
 
 func (m movieModel) InsertFavourite(movieID, userID int64) error {
+	// NOTE: should i check if movie exists?
 	query := `
 		INSERT INTO movie_favourite (movie_id, user_id)
 		VALUES $1, $2

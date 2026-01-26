@@ -293,7 +293,6 @@ func redisClient(cfg config) (*redis.Client, error) {
 // TODO: prometheus work around duplicate metrics with tests
 // TODO: fix bug with github tags in ci/cd pipeline
 // TODO: ci/cd for image service
-// TODO: handlers_test remade
 // TODO: insert new model into predict service
 // TODO: seed data in db and post images to image service for movies
 // TODO: update ci/cd pipeline

@@ -665,6 +665,93 @@ paths:
       summary: Update a movie
       tags:
       - movies
+  /movies/{movieID}/like:
+    put:
+      consumes:
+      - application/json
+      description: Functionality for liking movie
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'OK | Example {"message": "successfully liked movie"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'Bad Request | Example {"error": "body contains badly-formated
+            JSON"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: 'Forbidden | Example {"error": "your account must be activated
+            to access this resourse"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {"error": "server encountered
+            a problem and could not process your request"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Like a movie
+      tags:
+      - movies
+  /movies/{movieID}/unlike:
+    put:
+      consumes:
+      - application/json
+      description: Functionality for liking movie
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'OK | Example {"message": "successfully unliked movie"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'Bad Request | Example {"error": "body contains badly-formated
+            JSON"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: 'Forbidden | Example {"error": "your account must be activated
+            to access this resourse"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Not Found | Example {"error": "requested resource could not
+            be found"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Internal Server Error | Example {"error": "server encountered
+            a problem and could not process your request"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Like a movie
+      tags:
+      - movies
   /movies/new:
     get:
       description: Retrieve a list of new movies (20 movies by certain year)

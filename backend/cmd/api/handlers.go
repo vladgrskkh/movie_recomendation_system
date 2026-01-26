@@ -164,7 +164,6 @@ func (app *application) postMovieHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// admin only
 // DeleteMovie godoc
 //
 // @Summary Delete a movie
