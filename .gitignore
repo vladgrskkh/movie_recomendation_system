@@ -13,3 +13,4 @@ insert_genres.sql
 insert_movie_genres.sql
 tmdb*
 load/
+*.csv

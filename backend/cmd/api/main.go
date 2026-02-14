@@ -250,7 +250,6 @@ func redisClient(cfg config) (*redis.Client, error) {
 }
 
 // TODO: makefile revision
-// TODO: delete csv files from git
 
 // TODO: revision on generation recommendation(now that we have like/unlike movie we should
 // heavily rely on this)
