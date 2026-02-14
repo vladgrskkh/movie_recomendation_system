@@ -12,10 +12,7 @@ import (
 	"github.com/vladgrskkh/movie_recomendation_system/imageservice/internal/repository"
 )
 
-// TODO: error domain, logging
-var (
-	ErrImageCredentials = errors.New("failed image upload due to")
-)
+var ErrInvalidImageCredentials = errors.New("invalid image credentials")
 
 type ImageService struct {
 	logger         *slog.Logger
@@ -33,13 +30,15 @@ func (s *ImageService) UploadImage(ctx context.Context, imageMetadata *domain.Im
 	opts := minio.PutObjectOptions{
 		ContentType: "image/jpeg",
 	}
+	s.logger.Debug("Starting image upload", slog.String("bucket", imageMetadata.Bucket), slog.String("filename", imageMetadata.Name), slog.Int64("size", imageMetadata.Size))
+
 	err := s.movieImageRepo.Upload(ctx, imageMetadata.Bucket, imageMetadata.Name, pr, imageMetadata.Size, opts)
 	if err != nil {
 		switch {
 		case errors.Is(err, repository.ErrNoSuchBucket):
-			return errors.Join(ErrImageCredentials, err)
-		default:
 			return fmt.Errorf("error uploading image: %w", err)
+		default:
+			return err
 		}
 	}
 
@@ -47,6 +46,8 @@ func (s *ImageService) UploadImage(ctx context.Context, imageMetadata *domain.Im
 }
 
 func (s *ImageService) GetImage(ctx context.Context, imageMetadata *domain.ImageMetadata) (io.Reader, error) {
+	s.logger.Debug("Starting image fetch", slog.String("bucket", imageMetadata.Bucket), slog.String("filename", imageMetadata.Name), slog.Int64("size", imageMetadata.Size))
+
 	object, err := s.movieImageRepo.Get(ctx, imageMetadata.Bucket, imageMetadata.Name, minio.GetObjectOptions{})
 	if err != nil {
 		switch {
@@ -61,6 +62,8 @@ func (s *ImageService) GetImage(ctx context.Context, imageMetadata *domain.Image
 }
 
 func (s *ImageService) DeleteImage(ctx context.Context, imageMetadata *domain.ImageMetadata) error {
+	s.logger.Debug("Starting image delete", slog.String("bucket", imageMetadata.Bucket), slog.String("filename", imageMetadata.Name), slog.Int64("size", imageMetadata.Size))
+
 	err := s.movieImageRepo.Delete(ctx, imageMetadata.Bucket, imageMetadata.Name, minio.RemoveObjectOptions{})
 	if err != nil {
 		switch {

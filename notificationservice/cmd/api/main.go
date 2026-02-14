@@ -1,15 +1,10 @@
 package main
 
 import (
-	"context"
-	"flag"
-	"fmt"
 	"log/slog"
 	"os"
 
-	"github.com/BurntSushi/toml"
-	"github.com/joho/godotenv"
-
+	"github.com/vladgrskkh/movie_recomendation_system/notificationservice/config"
 	"github.com/vladgrskkh/movie_recomendation_system/notificationservice/internal/mailer"
 )
 
@@ -24,66 +19,29 @@ var LevelNames = map[slog.Leveler]string{
 	LevelFatal: "FATAL",
 }
 
-var (
-	loggerOpts = &slog.HandlerOptions{
-		Level: LevelTrace,
+var loggerOpts = &slog.HandlerOptions{
+	Level: LevelTrace,
 
-		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			if a.Key == slog.LevelKey {
-				level := a.Value.Any().(slog.Level)
-				levelLabel, exists := LevelNames[level]
-				if !exists {
-					levelLabel = level.String()
-				}
-
-				a.Value = slog.StringValue(levelLabel)
+	ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+		if a.Key == slog.LevelKey {
+			level := a.Value.Any().(slog.Level)
+			levelLabel, exists := LevelNames[level]
+			if !exists {
+				levelLabel = level.String()
 			}
-			return a
-		},
-	}
-)
 
-type config struct {
-	Mailer struct {
-		MailerAPIKey string
-		Sender       string
-	}
-	ConsumerMailer struct {
-		ConsumerGroup string `toml:"consumer_group"`
-		ConsumerCount int    `toml:"consumer_count"`
-		Topic         string `toml:"topic"`
-	} `toml:"consumer_mailer"`
+			a.Value = slog.StringValue(levelLabel)
+		}
+		return a
+	},
 }
 
 func main() {
-	var cfg config
-	var cfgFile string
-
-	flag.StringVar(&cfgFile, "cfg", "config.toml", "TOML config file path(vary based on where deploy)")
-
-	flag.Parse()
-
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, loggerOpts))
 
-	ctx := context.Background()
-
-	err := godotenv.Load()
+	cfg, err := config.New()
 	if err != nil {
-		logger.Log(ctx, LevelFatal, "error loading .env", slog.String("error", err.Error()))
-		os.Exit(1)
-	}
-
-	cfg.Mailer.MailerAPIKey = os.Getenv("MAILERSEND_API_KEYD")
-	cfg.Mailer.Sender = os.Getenv("SMTP_USERNAMED")
-
-	metadata, err := toml.DecodeFile(cfgFile, &cfg)
-	if err != nil {
-		logger.Log(ctx, LevelFatal, "error loading configuration", slog.String("error", err.Error()))
-		os.Exit(1)
-	}
-
-	if len(metadata.Undecoded()) > 0 {
-		logger.Log(ctx, LevelFatal, fmt.Sprintf("unknown configuration keys: %v", metadata.Undecoded()))
+		logger.Error("Failed to create config file", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
@@ -95,7 +53,7 @@ func main() {
 
 	err = app.server()
 	if err != nil {
-		app.logger.Error(err.Error())
+		app.logger.Error("Something went wrong while shuttind down server", slog.String("error", err.Error()))
 	}
 }
 

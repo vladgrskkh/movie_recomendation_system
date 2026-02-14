@@ -249,24 +249,13 @@ func redisClient(cfg config) (*redis.Client, error) {
 	return rdb, nil
 }
 
-// Task for today::::::::::::::::::
-// ::::::::::::::::::::::::::::::::
-// TODO: write tests for the handlers and other components (2 hours)
-// ::::::::::::::::::::::::::::::::
+// TODO: makefile revision
+// TODO: delete csv files from git
 
+// TODO: revision on generation recommendation(now that we have like/unlike movie we should
+// heavily rely on this)
 // TODO: write tests for the handlers and other components
 // TODO: user profile handler
 // TODO: add more metrics, grafana settings (best practice)
-// TODO: make use of makefile in cicd pipelines
-// TODO: need to check if i may need more than one producer (worker pool)
 // TODO: prometheus work around duplicate metrics with tests
-// TODO: fix bug with github tags in ci/cd pipeline
-// TODO: ci/cd for image service
-// TODO: insert new model into predict service
-// TODO: seed data in db and post images to image service for movies
-// TODO: update ci/cd pipeline
-// TODO: revision on uploading image
-// TODO: makefile revision
-// TODO: revision on generation recommendation(now that we have like/unlike movie we should
-// heavily rely on this)
-// TODO: delete csv files from git
+// TODO: redis movie cache

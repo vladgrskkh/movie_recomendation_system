@@ -14,9 +14,7 @@ const (
 	flushTimeout = 5000 // ms
 )
 
-var (
-	ErrUnknownEventType = errors.New("unknown event type")
-)
+var ErrUnknownEventType = errors.New("unknown event type")
 
 type Producer struct {
 	producer *kafka.Producer

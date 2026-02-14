@@ -25,7 +25,6 @@ type Consumer struct {
 }
 
 func NewConsumer(logger *slog.Logger, handler Handler, topic, consumerGroup string, consumerNumber int) (*Consumer, error) {
-	// os.Getenv func to config file(think about it)
 	cfg := &kafka.ConfigMap{
 		"bootstrap.servers":        os.Getenv("KAFKA_ADDRESS"),
 		"group.id":                 consumerGroup,
@@ -79,12 +78,12 @@ func (c *Consumer) Start() {
 
 		c.logger.Info("Message is not nil")
 
-		// need to experiment with this(when i failed to send email what do i do(mb dlq or just ignore it and let
+		// NOTE: need to experiment with this(when i failed to send email what do i do(mb dlq or just ignore it and let
 		// user handler this by calling retry send email himself))
 		// for now i will do second cause its easier
 		err = c.handler.HandleMessage(kafkaMessage.Value, kafkaMessage.TopicPartition, c.consumerNumber)
 		if err != nil {
-			// think about dlq
+			// NOTE: think about dlq
 			c.logger.Error(err.Error())
 		}
 

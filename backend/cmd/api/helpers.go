@@ -243,3 +243,12 @@ func (app *application) deferClose(fn func() error, err error) {
 		}
 	}()
 }
+
+func (app *application) validateImage(buf []byte) bool {
+	contentType := http.DetectContentType(buf)
+	if contentType != "image/jpeg" && contentType != "image/png" {
+		return false
+	}
+
+	return true
+}

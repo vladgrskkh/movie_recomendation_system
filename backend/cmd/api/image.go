@@ -36,16 +36,28 @@ func (app *application) UploadImageHandler(w http.ResponseWriter, r *http.Reques
 		app.badRequestResponse(w, r, err)
 		return
 	}
+	app.deferClose(file.Close, err)
 
-	contentType := header.Header.Get("Content-Type")
-	if contentType != "image/jpeg" && contentType != "image/png" {
+	// need 512 bytes to determent content type
+	buf := make([]byte, 512)
+	_, err = file.Read(buf)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if valid := app.validateImage(buf); !valid {
 		app.imageUnsupportedMediaTypeResponse(w, r)
 		return
 	}
 
-	app.deferClose(file.Close, err)
+	// set to beggining after validating content type
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
-	// TODO: read about should i validate filename
 	app.logger.Info("file metadata", slog.Int64("size", header.Size), slog.String("filename", header.Filename))
 
 	stream, err := app.imageClient.Upload(context.Background())
@@ -74,7 +86,7 @@ func (app *application) UploadImageHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	buf := make([]byte, 1024*32)
+	buf = make([]byte, 1024*32)
 
 forLoop:
 	for {

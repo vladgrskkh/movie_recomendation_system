@@ -59,5 +59,3 @@ func main() {
 
 // TODO: integration tests
 // TODO: caddy for reverse proxy onto 4 minio instanses(also read about caddy load balancer)
-// TODO: domain struct and errors(check where to store errors from different layers)
-// TODO: check when uploading image can i do it without allocating full sized buffer

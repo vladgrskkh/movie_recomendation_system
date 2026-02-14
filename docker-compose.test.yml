@@ -1,14 +1,13 @@
+---
 x-minio-common: &minio-common
   image: minio/minio:latest
   command: server --console-address ":9001" http://minio{1...4}/data{1...2}
-  expose:
-    - "9000"
-    - "9001"
+  expose: ['9000', '9001']
   environment:
     MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
     MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
   healthcheck:
-    test: ["CMD", "mc", "ready", "local"]
+    test: [CMD, mc, ready, local]
     interval: 5s
     timeout: 5s
     retries: 5
@@ -16,78 +15,68 @@ x-minio-common: &minio-common
 services:
   api:
     build: ./backend
-    env_file:
-      - ./backend/.env
+    env_file: [./backend/.env]
     restart: always
-    ports: 
-      - "8080:8080"
-    command: ["-db-dsn=${MRS_DB_DSN}", "-grpc-address=recommender", "-jwt-secret=${JWT_SECRET_KEY}", "-kafka-address=${KAFKA_ADDRESS}", "-kafka-password-ssl=${KAFKA_PASSWORD_SSL}", "-kafka-username=${KAFKA_USERNAME}", "-kafka-password-user=${KAFKA_PASSWORD_USER}", "-redis-address=${REDIS_ADDRESS}", "-redis-password=${REDIS_PASSWORD}", "-redis-username=${REDIS_USERNAME}"]
-    volumes:
-      - ./backend/internal/kafka/cert:/app/cert
-    depends_on:
-      - db
-      - migrate
+    ports: [8080:8080]
+    command:
+      - -db-dsn=${MRS_DB_DSN}
+      - -grpc-address=recommender
+      - -jwt-secret=${JWT_SECRET_KEY}
+      - -kafka-address=${KAFKA_ADDRESS}
+      - -kafka-password-ssl=${KAFKA_PASSWORD_SSL}
+      - -kafka-username=${KAFKA_USERNAME}
+      - -kafka-password-user=${KAFKA_PASSWORD_USER}
+      - -redis-address=${REDIS_ADDRESS}
+      - -redis-password=${REDIS_PASSWORD}
+      - -redis-username=${REDIS_USERNAME}
+    volumes: [./backend/internal/kafka/cert:/app/cert]
+    depends_on: [db, migrate]
 
   recommender:
     image: vladgrskkh/mrs-recommender:latest
     restart: always
-    expose: 
-      - "50051"
+    expose: ['50051']
 
   redis:
     image: bitnami/redis:latest
     environment:
       - REDIS_ACLFILE=/opt/bitnami/redis/mounted-etc/users.acl
       - ALLOW_EMPTY_PASSWORD=yes
-    expose:
-      - "6379"
+    expose: ['6379']
     volumes:
       - ./backend/conf/redis.acl:/opt/bitnami/redis/mounted-etc/users.acl
       - redis-data:/data
-  
+
   db:
     image: postgres:18
-    env_file:
-      - ./backend/.env_db 
+    env_file: [./backend/.env_db]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mrs_user -d mrs"]
+      test: [CMD-SHELL, pg_isready -U mrs_user -d mrs]
       interval: 5s
       timeout: 5s
       retries: 5
-    volumes:
-      - pgdata:/var/lib/postgresql
-      
+    volumes: [pgdata:/var/lib/postgresql]
+
   migrate:
     image: migrate/migrate
-    env_file:
-      - ./backend/.env
+    env_file: [./backend/.env]
     depends_on:
-        db:
-          condition: service_healthy
-    command: [
-      "-path", "/migrations",
-      "-database", "${MRS_DB_DSN}",
-      "up"
-    ]
-    volumes:
-      - ./backend/migrations:/migrations
+      db:
+        condition: service_healthy
+    command: [-path, /migrations, -database, '${MRS_DB_DSN}', up]
+    volumes: [./backend/migrations:/migrations]
 
   prometheus:
     container_name: prometheus
     image: prom/prometheus:v2.55.0
-    volumes:
-      - ./backend/conf/prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
-    depends_on:
-      - api
+    volumes: [./backend/conf/prometheus.yml:/etc/prometheus/prometheus.yml]
+    ports: [9090:9090]
+    depends_on: [api]
 
   image-service:
     build: ./imageservice
-    env_file:
-      - ./imageservice/.env
-    expose: 
-      - "50052"
+    env_file: [./imageservice/.env]
+    expose: ['50052']
     depends_on:
       minio1:
         condition: service_healthy
@@ -101,30 +90,22 @@ services:
   minio1:
     <<: *minio-common
     hostname: minio1
-    volumes:
-      - data1-1:/data1
-      - data1-2:/data2
+    volumes: [data1-1:/data1, data1-2:/data2]
 
   minio2:
     <<: *minio-common
     hostname: minio2
-    volumes:
-      - data2-1:/data1
-      - data2-2:/data2
+    volumes: [data2-1:/data1, data2-2:/data2]
 
   minio3:
     <<: *minio-common
     hostname: minio3
-    volumes:
-      - data3-1:/data1
-      - data3-2:/data2
+    volumes: [data3-1:/data1, data3-2:/data2]
 
   minio4:
     <<: *minio-common
     hostname: minio4
-    volumes:
-      - data4-1:/data1
-      - data4-2:/data2
+    volumes: [data4-1:/data1, data4-2:/data2]
 
 volumes:
   pgdata:

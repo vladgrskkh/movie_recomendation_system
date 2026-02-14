@@ -1,11 +1,11 @@
 ---
-name: CI Notification Service Pipeline
+name: CI Image Service Pipeline
 
 on:
   push:
-    branches: [dev/notification-service, development]
+    branches: [dev/image-service, development]
   pull_request:
-    branches: [dev/notification-service, development]
+    branches: [dev/image-service, development]
 
 jobs:
   build-test:
@@ -23,16 +23,16 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd notificationservice
+          cd imageservice 
           go mod download
 
       - name: Run linters
         uses: golangci/golangci-lint-action@v7
         with:
           version: v2.5.0
-          working-directory: notificationservice
+          working-directory: imageservice
 
       - name: Run tests
         run: |-
-          cd notificationservice
+          cd imageservice 
           go test ./... -v

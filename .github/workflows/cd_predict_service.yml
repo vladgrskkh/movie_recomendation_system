@@ -1,0 +1,78 @@
+---
+name: CD Predict Service Pipeline
+
+on: workflow_dispatch
+
+jobs:
+  docker-publish:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: ./predict_service
+          file: ./predict_service/Dockerfile
+          push: true
+          tags: |
+            vladgrskkh/mrs-recommender:latest
+            vladgrskkh/mrs-recommender:${{ github.sha }}
+
+  deploy:
+    name: Deploy to VPS
+    needs: docker-publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create folder on VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          passphrase: ${{ secrets.VPS_PASSPHRASE }}
+          script: |
+            mkdir ~/predict_service
+
+      - name: Copy files to VPS
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          passphrase: ${{ secrets.VPS_PASSPHRASE }}
+          source: predict_service/docker-compose.yml
+          target: ~/predict_service
+          timeout: 120s
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          passphrase: ${{ secrets.VPS_PASSPHRASE }}
+          timeout: 120s
+          script: |-
+            cd ~/predict_service
+            docker compose pull
+            docker compose down
+            docker compose up -d --build
+            docker system prune -f

@@ -23,7 +23,7 @@ func (app *application) NewSendEmailHandler() *SendEmailHandler {
 	}
 }
 
-// HandlerMessage func send email to repepient with either activation token or reset password token.
+// HandleMessage func send email to repepient with either activation token or reset password token.
 func (h *SendEmailHandler) HandleMessage(message []byte, topic kafka.TopicPartition, consumerNumber int) error {
 	var details struct {
 		UserID       int64   `json:"user_id"`
@@ -79,7 +79,7 @@ func (h *DummyKafkaHandler) HandleMessage(message []byte, topic kafka.TopicParti
 	msg := fmt.Sprintf("Consumer %d, Message from kafka: with offset %d on partition %d", consumerNumber, topic.Offset, topic.Partition)
 	h.logger.Info(msg)
 
-	// will try and see how it will work concurently
+	// NOTE: will try and see how it will work concurently
 	h.logger.Info(fmt.Sprintf("Message: %s", details.Message))
 
 	return nil

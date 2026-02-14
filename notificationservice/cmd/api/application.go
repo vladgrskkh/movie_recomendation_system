@@ -3,19 +3,20 @@ package main
 import (
 	"log/slog"
 
+	"github.com/vladgrskkh/movie_recomendation_system/notificationservice/config"
 	"github.com/vladgrskkh/movie_recomendation_system/notificationservice/internal/consumer"
 	"github.com/vladgrskkh/movie_recomendation_system/notificationservice/internal/mailer"
 )
 
 type application struct {
-	config          config
+	config          *config.Config
 	logger          *slog.Logger
 	mailer          *mailer.Mailer
 	mailerConsumers []*consumer.Consumer
 	dummyConsumers  []*consumer.Consumer
 }
 
-func newApplication(cfg config, logger *slog.Logger, mailer *mailer.Mailer) *application {
+func newApplication(cfg *config.Config, logger *slog.Logger, mailer *mailer.Mailer) *application {
 	return &application{
 		config: cfg,
 		logger: logger,

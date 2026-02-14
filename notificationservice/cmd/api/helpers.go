@@ -45,7 +45,7 @@ func (app *application) startDummyKafkaConsumers() error {
 	return nil
 }
 
-func readJSON(body []byte, dst interface{}) error {
+func readJSON(body []byte, dst any) error {
 	byteReader := bytes.NewBuffer(body)
 	dec := json.NewDecoder(byteReader)
 	dec.DisallowUnknownFields()

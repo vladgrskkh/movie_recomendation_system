@@ -1,164 +1,101 @@
-x-minio-common: &minio-common
-  image: minio/minio:latest
-  command: server --console-address ":9001" http://minio{1...4}/data{1...2}
-  expose:
-    - "9000"
-    - "9001"
-  environment:
-    MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
-    MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
-  healthcheck:
-    test: ["CMD", "mc", "ready", "local"]
-    interval: 5s
-    timeout: 5s
-    retries: 5
-
+---
 services:
   api:
     image: vladgrskkh/mrs-api:latest
-    env_file:
-      - .env
+    env_file: [.env]
     restart: always
-    expose: 
-      - "8080"
-    command: ["-db-dsn=${MRS_DB_DSND}", "-grpc-address=recommender", "-jwt-secret=${JWT_SECRET_KEYD}", "-kafka-address=${KAFKA_ADDRESS}", "-kafka-password-ssl=${KAFKA_PASSWORD_SSL}", "-kafka-username=${KAFKA_USERNAME}", "-kafka-password-user=${KAFKA_PASSWORD_USER}"]
-    depends_on:
-      - db
-      - migrate
-    volumes:
-      - ./cert:/app/cert
+    expose: ['8080']
+    command:
+      - -env=production
+      - -db-dsn=${MRS_DB_DSN}
+      - -grpc-address=recommender
+      - -jwt-secret=${JWT_SECRET_KEY}
+      - -kafka-address=${KAFKA_ADDRESS}
+      - -kafka-password-ssl=${KAFKA_PASSWORD_SSL}
+      - -kafka-username=${KAFKA_USERNAME}
+      - -kafka-password-user=${KAFKA_PASSWORD_USER}
+      - -redis-address=${REDIS_ADDRESS}
+      - -redis-password=${REDIS_PASSWORD}
+      - -redis-username=${REDIS_USERNAME}
+    depends_on: [db, migrate, redis]
+    networks: [shared-network]
+    volumes: [./cert:/app/cert]
 
-  recommender:
-    image: vladgrskkh/mrs-recommender:latest
-    restart: always
-    expose: 
-      - "50051"
-  
-  image-service:
-    build: ./imageservice
-    env_file:
-      - ./imageservice/.env
-    expose: 
-      - "50052"
-    depends_on:
-      minio1:
-        condition: service_healthy
-      minio2:
-        condition: service_healthy
-      minio3:
-        condition: service_healthy
-      minio4:
-        condition: service_healthy
-
-  minio1:
-    <<: *minio-common
-    hostname: minio1
-    volumes:
-      - data1-1:/data1
-      - data1-2:/data2
-
-  minio2:
-    <<: *minio-common
-    hostname: minio2
-    volumes:
-      - data2-1:/data1
-      - data2-2:/data2
-
-  minio3:
-    <<: *minio-common
-    hostname: minio3
-    volumes:
-      - data3-1:/data1
-      - data3-2:/data2
-
-  minio4:
-    <<: *minio-common
-    hostname: minio4
-    volumes:
-      - data4-1:/data1
-      - data4-2:/data2
-  
   db:
     image: postgres:18
-    env_file:
-      - .env_db 
+    env_file: [.env_db]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mrs_user -d mrs"]
+      test: [CMD-SHELL, pg_isready -U mrs_user -d mrs]
       interval: 5s
       timeout: 5s
       retries: 5
-    volumes:
-      - pgdata:/var/lib/postgresql
+    networks: [shared-network]
+    volumes: [pgdata:/var/lib/postgresql]
 
   migrate:
     image: migrate/migrate
-    env_file:
-      - .env
+    env_file: [.env]
     depends_on:
-        db:
-          condition: service_healthy
-    command: [
-      "-path", "/migrations",
-      "-database", "${MRS_DB_DSND}",
-      "up"
-    ]
+      db:
+        condition: service_healthy
+    command: [-path, /migrations, -database, '${MRS_DB_DSND}', up]
+    networks: [shared-network]
+    volumes: [./migrations:/migrations]
+
+  redis:
+    image: bitnami/redis:latest
+    environment:
+      - REDIS_ACLFILE=/opt/bitnami/redis/mounted-etc/users.acl
+      - ALLOW_EMPTY_PASSWORD=yes
+    expose: ['6379']
+    networks: [shared-network]
     volumes:
-      - ./migrations:/migrations
+      - ./conf/redis.acl:/opt/bitnami/redis/mounted-etc/users.acl
+      - redis-data:/data
 
   caddy:
     image: serfriz/caddy-duckdns:latest
     restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - "80:80"
-      - "443:443"
+    env_file: [.env]
+    ports: [80:80, 443:443]
+    networks: [shared-network]
     volumes:
       - $PWD/conf/Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
-    depends_on:
-      - api
+    depends_on: [api]
 
   prometheus:
     container_name: prometheus
     image: prom/prometheus:v2.55.0
-    volumes:
-      - $PWD/conf/prometheus.yml:/etc/prometheus/prometheus.yml
-    expose:
-      - "9090"
-    depends_on:
-      - api
-  
+    volumes: [$PWD/conf/prometheus.yml:/etc/prometheus/prometheus.yml]
+    expose: ['9090']
+    networks: [shared-network]
+    depends_on: [api]
+
   grafana:
     container_name: grafana
     image: grafana/grafana:11.3.0
-    env_file:
-      - .env
+    env_file: [.env]
     volumes:
       - $PWD/conf/grafana.yml:/etc/grafana/provisioning/datasources/datasource.yaml
       - grafana-data:/var/lib/grafana
-    expose:
-      - "3000"
+    expose: ['3000']
     environment:
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
       - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana
       - GF_SERVER_SERVE_FROM_SUB_PATH=false
-    depends_on:
-      - api
-      - prometheus
+    networks: [shared-network]
+    depends_on: [api, prometheus]
+
+networks:
+  shared-network:
+    external: true
 
 volumes:
   pgdata:
+  redis_data:
   caddy_data:
   caddy_config:
   grafana-data:
-  data1-1:
-  data1-2:
-  data2-1:
-  data2-2:
-  data3-1:
-  data3-2:
-  data4-1:
-  data4-2:

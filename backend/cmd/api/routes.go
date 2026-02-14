@@ -20,7 +20,7 @@ func (app *application) routes() http.Handler {
 	r.Use(app.authentication)
 
 	// Rate-limit all routes
-	// Think about adding rate limmiter for specific routes(registaration, login)
+	// NOTE: Think about adding rate limmiter for specific routes(registaration, login)
 	if app.config.limiter.enable {
 		r.Use(httprate.LimitByIP(app.config.limiter.rps, time.Second))
 	}
@@ -37,13 +37,13 @@ func (app *application) routes() http.Handler {
 			r.Get("/new", app.getMoviesNew)
 			r.Get("/recommended", app.getMoviesRecommended)
 			r.Get("/popular", app.getMoviesPopular)
+			r.Put("/like", app.likeMovieHandler)
+			r.Put("/unlike", app.unlikeMovieHandler)
 
 			r.Route("/{movieID}", func(r chi.Router) {
 				r.Get("/", app.getMovieHandler)
 				r.With(app.requireActivatedUser).Patch("/", app.updateMovieHandler)
 				r.Delete("/", app.deleteMovieHandler)
-				r.Put("/like", app.likeMovieHandler)
-				r.Put("/unlike", app.unlikeMovieHandler)
 			})
 		})
 

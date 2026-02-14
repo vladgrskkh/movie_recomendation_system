@@ -41,7 +41,6 @@ func (h *ImageHandler) Upload(stream grpc.ClientStreamingServer[pb.ImageUploadRe
 	pr, pw := io.Pipe()
 	errChan := make(chan error)
 	go func() {
-		// TODO: need to check if error occur will it close reader buffer
 		errChan <- h.imageService.UploadImage(context.Background(), imageMetadata, pr)
 	}()
 
@@ -49,15 +48,18 @@ forLoop:
 	for {
 		buf, err := stream.Recv()
 		if err != nil {
+			// checking grpc stream error
 			switch {
 			case errors.Is(err, io.EOF):
-				// race condition here if i don't write empty buffer(close pipe before minio can read from it
+				// NOTE: race condition here if i don't write empty buffer(close pipe before minio can read from it
 				// resulting in mising last chunk)
+				// (mb Im wrong here, need to double check this)
 				n, err := pw.Write([]byte{})
 				if err != nil {
+					pw.CloseWithError(err)
 					return status.Error(codes.Internal, "server encountered a problem and could not process your request")
 				}
-				h.logger.Info("zero chunk written to pipe", slog.Int("size", n))
+				h.logger.Debug("zero chunk written to pipe", slog.Int("size", n))
 				break forLoop
 			default:
 				err = pw.CloseWithError(err)
@@ -68,11 +70,26 @@ forLoop:
 			}
 		}
 
-		n, err := pw.Write(buf.GetChunk().Chunk)
-		h.logger.Info("image chunk written to pipe", slog.Int("size", n))
-		if err != nil {
-			h.logger.Error("error writting image chunk to pipe", slog.Any("error", err))
-			break forLoop
+		// grpc stream is ok, than checking if minio upload failed
+		select {
+		case errUpload := <-errChan:
+			pw.CloseWithError(errUpload) //nolint:errcheck
+
+			switch {
+			case errors.Is(errUpload, service.ErrInvalidImageCredentials):
+				return status.Error(codes.InvalidArgument, "non existing bucket or invalid image creds")
+			default:
+				return status.Error(codes.Internal, "server encountered a problem and could not process your request")
+			}
+
+		// all ok, write next chunk
+		default:
+			n, err := pw.Write(buf.GetChunk().Chunk)
+			h.logger.Debug("image chunk written to pipe", slog.Int("size", n))
+			if err != nil {
+				h.logger.Error("error writting image chunk to pipe", slog.Any("error", err))
+				break forLoop
+			}
 		}
 	}
 
@@ -82,7 +99,7 @@ forLoop:
 	}
 	if err = <-errChan; err != nil {
 		switch {
-		case errors.Is(err, service.ErrImageCredentials):
+		case errors.Is(err, service.ErrInvalidImageCredentials):
 			return status.Error(codes.InvalidArgument, "non existing bucket or invalid image creds")
 		default:
 			return status.Error(codes.Internal, "server encountered a problem and could not process your request")
@@ -120,7 +137,7 @@ forLoop:
 			case errors.Is(err, io.EOF):
 				// import here to write last chunk to stream(it signals EOF when NEXT chunk is empty)
 				// as far as I get it right
-				h.logger.Info("EOF reached", slog.Int("size", n))
+				h.logger.Debug("EOF reached", slog.Int("size", n))
 				err = stream.Send(&pb.ImageGetResponse{
 					Payload: &pb.ImageGetResponse_Chunk{
 						Chunk: &pb.ImageChunk{Chunk: buf[:n]},

@@ -2,10 +2,15 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/vladgrskkh/movie_recomendation_system/internal/data"
 )
+
+type likeMovieInput struct {
+	MovieID int64 `json:"movie_id" example:"1"`
+}
 
 // likeMovieHandler godoc
 //
@@ -19,9 +24,11 @@ import (
 // @Failure 403 {object} map[string]string "Forbidden | Example {"error": "your account must be activated to access this resourse"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Security BearerAuth
-// @Router /movies/{movieID}/like [put]
+// @Router /movies/like [put]
 func (app *application) likeMovieHandler(w http.ResponseWriter, r *http.Request) {
-	movieID, err := app.readIDParam(r)
+	var input likeMovieInput
+
+	err := app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
@@ -29,13 +36,13 @@ func (app *application) likeMovieHandler(w http.ResponseWriter, r *http.Request)
 
 	user := app.contextGetUser(r)
 
-	err = app.models.Movies.InsertFavourite(movieID, user.ID)
+	err = app.models.Movies.InsertFavourite(input.MovieID, user.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	message := "successfully liked movie with id %d"
+	message := fmt.Sprintf("successfully liked movie with id %d", input.MovieID)
 	err = app.writeJSON(w, http.StatusOK, envelope{"message": message}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -55,9 +62,11 @@ func (app *application) likeMovieHandler(w http.ResponseWriter, r *http.Request)
 // @Failure 404 {object} map[string]string "Not Found | Example {"error": "requested resource could not be found"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
 // @Security BearerAuth
-// @Router /movies/{movieID}/unlike [put]
+// @Router /movies/unlike [put]
 func (app *application) unlikeMovieHandler(w http.ResponseWriter, r *http.Request) {
-	movieID, err := app.readIDParam(r)
+	var input likeMovieInput
+
+	err := app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
@@ -65,10 +74,9 @@ func (app *application) unlikeMovieHandler(w http.ResponseWriter, r *http.Reques
 
 	user := app.contextGetUser(r)
 
-	err = app.models.Movies.DeleteFavourite(movieID, user.ID)
+	err = app.models.Movies.DeleteFavourite(input.MovieID, user.ID)
 	if err != nil {
 		switch {
-		// NOTE: maybe use here validation error or bad request idk
 		case errors.Is(err, data.ErrRecordNotFound):
 			app.notFoundResponse(w, r)
 		default:
@@ -78,7 +86,7 @@ func (app *application) unlikeMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	message := "successfully unliked movie"
+	message := fmt.Sprintf("successfully unliked movie with id %d", input.MovieID)
 	err = app.writeJSON(w, http.StatusOK, envelope{"message": message}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)

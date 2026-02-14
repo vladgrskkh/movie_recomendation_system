@@ -1085,7 +1085,6 @@ func (app *application) createKafkaMessage(w http.ResponseWriter, r *http.Reques
 	}
 	kafkaMsg.Message = input.Message
 
-	// test with worker pool
 	for range input.Count {
 		err := app.producer.Produce(kafkaMsg, "dummy", nil, time.Now())
 		if err != nil {

@@ -19,7 +19,6 @@ WORKDIR /app
 
 COPY --from=build /install /usr/local
 
-# Copy application code (excluding unnecessary files)
 COPY --from=build /app/common ./common
 COPY --from=build /app/features ./features
 COPY --from=build /app/data ./data
@@ -29,5 +28,4 @@ COPY --from=build /app/main.py ./main.py
 
 EXPOSE 50051
 
-# Default command
 CMD ["python", "main.py"]

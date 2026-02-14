@@ -1,16 +1,19 @@
+---
 name: CD Backend Pipeline
 
-on:
-  workflow_dispatch
+on: workflow_dispatch
 
 jobs:
   docker-publish:
-    name: 🐳 Build & Push Docker Image
+    name: Build & Push Docker Image
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🛎 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Generate metadata
         id: meta
@@ -21,19 +24,19 @@ jobs:
           linker_flags="-s -X main.buildTime=${current_time} -X main.version=${git_description}"
           echo "linker_flags=${linker_flags}" >> $GITHUB_OUTPUT
 
-      - name: 🧰 Setup Docker Buildx
+      - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: 🔐 Login to Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 🐳 Build and push
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
@@ -46,7 +49,7 @@ jobs:
             vladgrskkh/mrs-api:latest
             vladgrskkh/mrs-api:${{ github.sha }}
 
-      - name: 🐳 Build and push
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
@@ -58,12 +61,12 @@ jobs:
             vladgrskkh/mrs-recommender:${{ github.sha }}
 
   deploy:
-    name: 🚀 Deploy to VPS
+    name: Deploy to VPS
     needs: docker-publish
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🛎 Checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Create .env on VPS
@@ -74,37 +77,35 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
           script: |
-            mkdir -p ~/mrs
             mkdir -p ~/mrs/backend
-            echo "MRS_DB_DSND=${{ secrets.MRS_DB_DSND }}" > ~/mrs/backend/.env
-            echo "SMTP_USERNAMED=${{ secrets.SMTP_USERNAMED }}" >> ~/mrs/backend/.env
-            echo "SMTP_PASSWORDD=${{ secrets.SMTP_PASSWORDD }}" >> ~/mrs/backend/.env
+            echo "MRS_DB_DSN=${{ secrets.MRS_DB_DSN }}" > ~/mrs/backend/.env
             echo "GF_SECURITY_ADMIN_USER=${{ secrets.GF_SECURITY_ADMIN_USER }}" >> ~/mrs/backend/.env
             echo "GF_SECURITY_ADMIN_PASSWORD=${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}" >> ~/mrs/backend/.env
             echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" > ~/mrs/backend/.env_db
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> ~/mrs/backend/.env_db
             echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> ~/mrs/backend/.env_db
-            echo "MAILERSEND_API_KEYD=${{ secrets.MAILERSEND_API_KEYD }}" >> ~/mrs/backend/.env
-            echo "JWT_SECRET_KEYD=${{ secrets.JWT_SECRET_KEYD }}" >> ~/mrs/backend/.env
+            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> ~/mrs/backend/.env
             echo "DUCKDNS_TOKEN=${{ secrets.DUCKDNS_TOKEN }}" >> ~/mrs/backend/.env
             echo "KAFKA_PASSWORD_SSL=${{ secrets.KAFKA_PASSWORD_SSL }}" >> ~/mrs/backend/.env
             echo "KAFKA_ADDRESS"="${{ secrets.KAFKA_ADDRESS }}" >> ~/mrs/backend/.env
             echo "KAFKA_USERNAME=${{ secrets.KAFKA_USERNAME }}" >> ~/mrs/backend/.env
             echo "KAFKA_PASSWORD_USER=${{ secrets.KAFKA_PASSWORD_USER }}" >> ~/mrs/backend/.env
+            echo "REDIS_ADDERESS=redis:6379" >> ~/mrs/backend/.env
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> ~/mrs/backend/.env
+            echo "REDIS_USERNAME=${{ secrets.REDIS_USERNAME }}" >> ~/mrs/backend/.env
 
-
-      - name: 🔐 Copy files to VPS
+      - name: Copy files to VPS
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
-          source: "backend/docker-compose.yml,backend/migrations,backend/conf"
-          target: "~/mrs/"
+          source: backend/docker-compose.yml,backend/migrations,backend/conf
+          target: ~/mrs/
           timeout: 120s
 
-      - name: 🚀 Deploy via SSH
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -112,8 +113,9 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
           timeout: 120s
-          script: |
+          script: |-
             cd ~/mrs/backend
+            docker network create shared-network
             docker compose pull
             docker compose down
             docker compose up -d --build

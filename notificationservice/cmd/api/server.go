@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -53,7 +54,8 @@ func (app *application) shutdown() error {
 		for _, c := range app.mailerConsumers {
 			closeErr := c.Stop()
 			if closeErr != nil && err == nil {
-				err = closeErr
+				app.logger.Error("something went wrong while shutting down consumers", slog.String("error", closeErr.Error()))
+				err = fmt.Errorf("%w, %w", err, closeErr)
 			}
 		}
 	}()
@@ -63,7 +65,8 @@ func (app *application) shutdown() error {
 		for _, c := range app.dummyConsumers {
 			closeErr := c.Stop()
 			if closeErr != nil && err == nil {
-				err = closeErr
+				app.logger.Error("something went wrong while shutting down consumers", slog.String("error", closeErr.Error()))
+				err = fmt.Errorf("%w, %w", err, closeErr)
 			}
 		}
 	}()

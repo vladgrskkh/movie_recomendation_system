@@ -1,99 +1,89 @@
+---
 name: CD Notification Service Pipeline
 
-on:
-  workflow_dispatch
+on: workflow_dispatch
 
 jobs:
   docker-publish:
-    name: 🐳 Build & Push Docker Image
+    name: Build & Push Docker Image
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🛎 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-    #   - name: Generate metadata
-    #     id: meta
-    #     shell: bash
-    #     run: |
-    #       current_time=$(date -Iseconds)
-    #       git_description=$(git describe --always --dirty --tags --long)
-    #       linker_flags="-s -X main.buildTime=${current_time} -X main.version=${git_description}"
-    #       echo "linker_flags=${linker_flags}" >> $GITHUB_OUTPUT
-
-      - name: 🧰 Setup Docker Buildx
+      - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: 🔐 Login to Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 🐳 Build and push
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
           context: ./notificationservice
           file: ./notificationservice/Dockerfile
           push: true
-        #   build-args: |
-        #     LINKER_FLAGS=${{ steps.meta.outputs.linker_flags}}
           tags: |
             vladgrskkh/mrs-notification-service:latest
             vladgrskkh/mrs-notification-service:${{ github.sha }}
 
   deploy:
-    name: 🚀 Deploy to VPS
+    name: Deploy to VPS
     needs: docker-publish
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🛎 Checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Create .env on VPS
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
+          host: ${{ secrets.VPS_HOST_1 }}
+          username: ${{ secrets.VPS_USER_1 }}
           key: ${{ secrets.VPS_SSH_KEY }}
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
           script: |
             mkdir -p ~/kafka
-            echo "MRS_DB_DSND=${{ secrets.MRS_DB_DSND }}" > ~/kafka/.env
-            echo "SMTP_USERNAMED=${{ secrets.SMTP_USERNAMED }}" >> ~/kafka/.env
-            echo "SMTP_PASSWORDD=${{ secrets.SMTP_PASSWORDD }}" >> ~/kafka/.env
-            echo "GF_SECURITY_ADMIN_USER=${{ secrets.GF_SECURITY_ADMIN_USER }}" >> ~/kafka/.env
-            echo "GF_SECURITY_ADMIN_PASSWORD=${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}" >> ~/kafka/.env
-            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" > ~/kafka/.env_db
-            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> ~/kafka/.env_db
-            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> ~/kafka/.env_db
-            echo "MAILERSEND_API_KEYD=${{ secrets.MAILERSEND_API_KEYD }}" >> ~/kafka/.env
-            echo "JWT_SECRET_KEYD=${{ secrets.JWT_SECRET_KEYD }}" >> ~/kafka/.env
-            echo "DUCKDNS_TOKEN=${{ secrets.DUCKDNS_TOKEN }}" >> ~/kafka/.env
+            echo "SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" >> ~/kafka/.env
+            echo "MAILERSEND_API_KEY=${{ secrets.MAILERSEND_API_KEY }}" >> ~/kafka/.env
+            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> ~/kafka/.env
             echo "KAFKA_PASSWORD_SSL=${{ secrets.KAFKA_PASSWORD_SSL }}" >> ~/kafka/.env
             echo "KAFKA_ADDRESS=kafka1:9092" >> ~/kafka/.env
-            echo "KAFKA_USERNAMEL=${{ secrets.KAFKA_USERNAME }}" >> ~/kafka/.env
+            echo "KAFKA_USERNAME=${{ secrets.KAFKA_USERNAME }}" >> ~/kafka/.env
             echo "KAFKA_PASSWORD_USER=${{ secrets.KAFKA_PASSWORD_USER }}" >> ~/kafka/.env
+            echo "KAFKA_CLUSTER_ID=${{ secrets.KAFKA_CLUSTER_ID }}" >> ~/kafka/.env
+            echo "KAFKA_EXTERNAL_ADDRESS=${{ secrets.KAFKA_EXTERNAL_ADDRESS }}" >> ~/kafka/.env
+            echo "KAFKA_USERNAME_1=${{ secrets.KAFKA_USERNAME_1 }}" >> ~/kafka/.env
+            echo "KAFKA_PASSWORD_1=${{ secrets.KAFKA_PASSWORD_1 }}" >> ~/kafka/.env
+            echo "KAFKA_CERT_PASSWORD=${{ secrets.KAFKA_CERT_PASSWORD }}" >> ~/kafka/.env
+            echo "KAFKA_KEYSTORE_PASSWORD=${{ secrets.KAFKA_KEYSTORE_PASSWORD }}" >> ~/kafka/.env
+            echo "KAFKA_KEY_PASSWORD=${{ secrets.KAFKA_KEY_PASSWORD }}" >> ~/kafka/.env
+            echo "KAFKA_TRUSTSTORE_PASSWORD=${{ secrets.KAFKA_TRUSTSTORE_PASSWORD }}" >> ~/kafka/.env
+            echo "KAFKAUI_USERNAME=${{ secrets.KAFKAUI_USERNAME }}" >> ~/kafka/.env
+            echo "KAFKAUI_PASSWORD=${{ secrets.KAFKAUI_PASSWORD }}" >> ~/kafka/.env
 
-
-      - name: 🔐 Copy files to VPS
+      - name: Copy files to VPS
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
-          source: "notificationservice/docker-compose.yml,notificationservice/config_prod.yml"
-          target: "~/kafka"
-          strip_components: 1 # change to flatten:true when author merge pr
+          source: notificationservice/docker-compose.yml,notificationservice/config_prod.yml
+          target: ~/kafka
+          strip_components: 1  # change to flatten:true when author merge pr
           timeout: 120s
 
-      - name: 🚀 Deploy via SSH
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -101,7 +91,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
           timeout: 120s
-          script: |
+          script: |-
             cd ~/kafka
             docker compose pull
             docker compose down
