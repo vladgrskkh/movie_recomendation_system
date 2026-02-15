@@ -53,7 +53,7 @@ jobs:
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
           script: |
             mkdir -p ~/kafka
-            echo "SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" >> ~/kafka/.env
+            echo "SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" > ~/kafka/.env
             echo "MAILERSEND_API_KEY=${{ secrets.MAILERSEND_API_KEY }}" >> ~/kafka/.env
             echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> ~/kafka/.env
             echo "KAFKA_PASSWORD_SSL=${{ secrets.KAFKA_PASSWORD_SSL }}" >> ~/kafka/.env

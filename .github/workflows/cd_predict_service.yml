@@ -60,6 +60,7 @@ jobs:
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
           source: predict_service/docker-compose.yml
           target: ~/predict_service
+          strip_components: 1
           timeout: 120s
 
       - name: Deploy via SSH

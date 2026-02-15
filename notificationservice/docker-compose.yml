@@ -6,7 +6,6 @@ services:
     depends_on:
       kafka1:
         condition: service_healthy
-    networks: [shared-network]
     volumes:
       - ./config_prod.toml:/app/config_prog.toml
       - ./.env:/app/.env
@@ -61,8 +60,6 @@ services:
       KAFKA_LISTENER_NAME_EXTERNAL_SSL_CLIENT_AUTH: required
       KAFKA_LOG_DIRS: /var/lib/kafka/data
 
-    networks: [shared-network]
-
     volumes:
       - ./keystore/kafka1.server.keystore.jks:/etc/kafka/secrets/kafka1.server.keystore.jks
       - ./truststore/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks
@@ -95,7 +92,6 @@ services:
       KAFKA_CLUSTERS_0_SSL_TRUSTSTORELOCATION: /kafka.truststore.jks
       KAFKA_CLUSTERS_0_SSL_TRUSTSTOREPASSWORD: ${KAFKA_TRUSTSTORE_PASSWORD}
 
-    networks: [shared-network]
     volumes: [./truststore/kafka.truststore.jks:/kafka.truststore.jks:ro]
     depends_on: [kafka1]
 
@@ -109,4 +105,5 @@ services:
 networks:
   shared-network:
     external: true
-volumes: kafka1_data
+volumes:
+  kafka1_data:

@@ -38,7 +38,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: [-path, /migrations, -database, '${MRS_DB_DSND}', up]
+    command: [-path, /migrations, -database, '${MRS_DB_DSN}', up]
     networks: [shared-network]
     volumes: [./migrations:/migrations]
 
@@ -95,7 +95,7 @@ networks:
 
 volumes:
   pgdata:
-  redis_data:
+  redis-data:
   caddy_data:
   caddy_config:
   grafana-data:

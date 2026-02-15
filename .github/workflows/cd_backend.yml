@@ -90,7 +90,7 @@ jobs:
             echo "KAFKA_ADDRESS"="${{ secrets.KAFKA_ADDRESS }}" >> ~/mrs/backend/.env
             echo "KAFKA_USERNAME=${{ secrets.KAFKA_USERNAME }}" >> ~/mrs/backend/.env
             echo "KAFKA_PASSWORD_USER=${{ secrets.KAFKA_PASSWORD_USER }}" >> ~/mrs/backend/.env
-            echo "REDIS_ADDERESS=redis:6379" >> ~/mrs/backend/.env
+            echo "REDIS_ADDRESS=redis:6379" >> ~/mrs/backend/.env
             echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> ~/mrs/backend/.env
             echo "REDIS_USERNAME=${{ secrets.REDIS_USERNAME }}" >> ~/mrs/backend/.env
 

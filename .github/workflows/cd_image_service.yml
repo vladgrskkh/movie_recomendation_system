@@ -53,7 +53,7 @@ jobs:
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
           script: |
             mkdir -p ~/imageservice
-            echo "MINIO_ENDPOINT=minio1:9000" >> ~/imageservice/.env
+            echo "MINIO_ENDPOINT=minio1:9000" > ~/imageservice/.env
             echo "MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}" >> ~/imageservice/.env
             echo "MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}" >> ~/imageservice/.env
             echo "MINIO_BUCKET_NAME=images" >> ~/imageservice/.env

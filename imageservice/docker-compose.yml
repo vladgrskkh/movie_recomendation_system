@@ -15,7 +15,7 @@ x-minio-common: &minio-common
 
 services:
   image-service:
-    build: .
+    image: vladgrskkh/mrs-image-service:latest
     env_file: [.env]
     ports: [8081:8081]
     networks: [shared-network]
