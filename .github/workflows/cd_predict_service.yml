@@ -49,7 +49,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
           script: |
-            mkdir ~/predict_service
+            mkdir -p ~/predict_service
 
       - name: Copy files to VPS
         uses: appleboy/scp-action@v1
