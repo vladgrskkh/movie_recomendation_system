@@ -27,6 +27,7 @@ import (
 // @Failure 401 {object} map[string]string "Unauthorized | Example {\"error\": \"this resourse avaliable only for authenticated users\"}"
 // @Failure 415 {object} map[string]string "Unsupported Media Type | Example {\"error\": \"only jpeg and png images are allowed\"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {"error": "server encountered a problem and could not process your request"}"
+// @Security BearerAuth
 // @Router /images [post]
 func (app *application) UploadImageHandler(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
@@ -141,6 +142,7 @@ forLoop:
 // @Failure 401 {object} map[string]string "Unauthorized | Example {\"error\": \"this resourse avaliable only for authenticated users\"}"
 // @Failure 404 {object} map[string]string "Not Found | Example {\"error\": \"requested resource could not be found\"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}"
+// @Security BearerAuth
 // @Router /images/{imageID} [get]
 func (app *application) GetImageHandler(w http.ResponseWriter, r *http.Request) {
 	imageID := chi.URLParam(r, "imageID")
@@ -197,6 +199,7 @@ forLoop:
 // @Failure 401 {object} map[string]string "Unauthorized | Example {\"error\": \"this resourse avaliable only for authenticated users\"}"
 // @Failure 404 {object} map[string]string "Not Found | Example {\"error\": \"requested resource could not be found\"}"
 // @Failure 500 {object} map[string]string "Internal Server Error | Example {\"error\": \"server encountered a problem and could not process your request\"}"
+// @Security BearerAuth
 // @Router /images/{imageID} [delete]
 func (app *application) DeleteImageHandler(w http.ResponseWriter, r *http.Request) {
 	// check for appropriate id

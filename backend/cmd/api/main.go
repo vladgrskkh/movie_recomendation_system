@@ -148,20 +148,23 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, loggerOpts))
 
 	ctx := context.Background()
+	// empty app struct to call deferClose method
+	app := application{}
 
 	db, err := openDB(cfg)
 	if err != nil {
 		logger.Log(ctx, LevelFatal, "cannot connect to database:", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
+	defer app.deferClose(db.Close, err)
 
 	logger.Info("postgres database connection pool established")
-
 	rdb, err := redisClient(cfg)
 	if err != nil {
 		logger.Log(ctx, LevelFatal, "cannot connect to redis:", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
+	defer app.deferClose(rdb.Close, err)
 
 	logger.Info("redis connection pool established")
 
@@ -173,6 +176,7 @@ func main() {
 		logger.Log(ctx, LevelFatal, "cannot connect to gRPC recommender server:", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
+	defer app.deferClose(connRecommender.Close, err)
 
 	clientRecommender := predict.NewRecommendationClient(connRecommender)
 	// TODO: fetch from config
@@ -181,6 +185,7 @@ func main() {
 		logger.Log(ctx, LevelFatal, "cannot connect to gRPC image server:", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
+	defer app.deferClose(connImage.Close, err)
 
 	clientImage := imageservice.NewImageClient(connImage)
 
@@ -194,13 +199,9 @@ func main() {
 
 	logger.Info("new kafka producer started")
 
-	app := newApplication(cfg, logger, db, rdb, clientRecommender, clientImage, p)
+	app = newApplication(cfg, logger, db, rdb, clientRecommender, clientImage, p)
 
 	// closing all connections in defered statement
-	defer app.deferClose(db.Close, err)
-	defer app.deferClose(rdb.Close, err)
-	defer app.deferClose(connRecommender.Close, err)
-	defer app.deferClose(connImage.Close, err)
 
 	logger.Info("starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {
