@@ -258,3 +258,5 @@ func redisClient(cfg config) (*redis.Client, error) {
 // TODO: add more metrics, grafana settings (best practice)
 // TODO: prometheus work around duplicate metrics with tests
 // TODO: redis movie cache
+// TODO: README update
+// TODO: migration for new db shema

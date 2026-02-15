@@ -74,8 +74,8 @@ jobs:
       - name: Copy files to VPS
         uses: appleboy/scp-action@v1
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
+          host: ${{ secrets.VPS_HOST_1 }}
+          username: ${{ secrets.VPS_USER_1 }}
           key: ${{ secrets.VPS_SSH_KEY }}
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
           source: notificationservice/docker-compose.yml,notificationservice/config_prod.yml
@@ -86,8 +86,8 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
+          host: ${{ secrets.VPS_HOST_1 }}
+          username: ${{ secrets.VPS_USER_1 }}
           key: ${{ secrets.VPS_SSH_KEY }}
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
           timeout: 120s
