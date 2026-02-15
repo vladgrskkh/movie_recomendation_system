@@ -233,15 +233,15 @@ func (app *application) background(fn func()) {
 
 // deferClose is a helper function to wrap Close() methods of any particular
 // instance(eg db conns, files) and log any error that occur during close
-func (app *application) deferClose(fn func() error, err error) {
-	defer func() {
+func (app *application) deferClose(fn func() error, err error) func() {
+	return func() {
 		e := fn()
 		if err != nil && e != nil {
 			app.logger.Error(fmt.Errorf("previous error: %w; close error: %w", err, e).Error())
 		} else if e != nil {
 			app.logger.Error(fmt.Errorf("close error: %w", e).Error())
 		}
-	}()
+	}
 }
 
 func (app *application) validateImage(buf []byte) bool {

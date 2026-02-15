@@ -197,10 +197,10 @@ func main() {
 	app := newApplication(cfg, logger, db, rdb, clientRecommender, clientImage, p)
 
 	// closing all connections in defered statement
-	app.deferClose(db.Close, err)
-	app.deferClose(rdb.Close, err)
-	app.deferClose(connRecommender.Close, err)
-	app.deferClose(connImage.Close, err)
+	defer app.deferClose(db.Close, err)
+	defer app.deferClose(rdb.Close, err)
+	defer app.deferClose(connRecommender.Close, err)
+	defer app.deferClose(connImage.Close, err)
 
 	logger.Info("starting server", slog.Int("port", cfg.port), slog.String("environment", cfg.env))
 	if err := app.server(); err != nil {
