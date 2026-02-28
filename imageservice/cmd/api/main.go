@@ -27,7 +27,7 @@ func main() {
 
 	// minio connection.
 	logger.Info("connecting to minio server")
-	client, err := minio.New(cfg.Minio.Endopint, &minio.Options{
+	client, err := minio.New(cfg.Minio.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.Minio.AccessKey, cfg.Minio.SecretKey, ""),
 		Secure: false, // in the same container (mb tune this later cause its will run under caddy)
 	})
@@ -58,4 +58,6 @@ func main() {
 }
 
 // TODO: integration tests
+// TODO: for some reason image get returns internal error when there is no image(need to investigate this)
 // TODO: caddy for reverse proxy onto 4 minio instanses(also read about caddy load balancer)
+// TODO: docker compose unable to mount drivers with minio instances

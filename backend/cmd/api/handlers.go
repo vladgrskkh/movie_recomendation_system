@@ -881,7 +881,7 @@ func (app *application) createPasswordResetCodeHandler(w http.ResponseWriter, r 
 		Task:         "send reset password token to user email",
 	}
 
-	// change key later (need to test how it works)
+	// NOTE: change key later (need to test how it works)
 	err = app.producer.Produce(message, "email", nil, time.Now())
 	if err != nil {
 		// log or return if cannot produce msg (either bad json format or some problem with brokers)

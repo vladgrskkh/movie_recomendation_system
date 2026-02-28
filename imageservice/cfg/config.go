@@ -7,7 +7,7 @@ import (
 )
 
 type minioConfig struct {
-	Endopint   string `env:"MINIO_ENDPOINT"`
+	Endpoint   string `env:"MINIO_ENDPOINT"`
 	AccessKey  string `env:"MINIO_ACCESS_KEY"`
 	SecretKey  string `env:"MINIO_SECRET_KEY"`
 	BucketName string `env:"MINIO_BUCKET_NAME"`
