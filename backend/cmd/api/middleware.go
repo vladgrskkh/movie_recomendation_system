@@ -74,11 +74,13 @@ func (app *application) authentication(next http.Handler) http.Handler {
 
 func (app *application) requireAuthenticatedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := app.contextGetUser(r)
+		if app.config.authFlag {
+			user := app.contextGetUser(r)
 
-		if user.IsAnonymous() {
-			app.authenticationRequiredResponse(w, r)
-			return
+			if user.IsAnonymous() {
+				app.authenticationRequiredResponse(w, r)
+				return
+			}
 		}
 
 		next.ServeHTTP(w, r)

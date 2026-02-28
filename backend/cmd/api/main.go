@@ -64,9 +64,10 @@ var loggerOpts = &slog.HandlerOptions{
 }
 
 type config struct {
-	port int
-	env  string
-	db   struct {
+	port     int
+	env      string
+	authFlag bool
+	db       struct {
 		dsn          string
 		maxOpenConns int
 		maxIdleConns int
@@ -102,6 +103,7 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 8080, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
+	flag.BoolVar(&cfg.authFlag, "auth", true, "Authentication feature flag")
 
 	flag.StringVar(&cfg.db.dsn, "db-dsn", "", "PostgreSQL DSN")
 
@@ -261,3 +263,5 @@ func redisClient(cfg config) (*redis.Client, error) {
 // TODO: redis movie cache
 // TODO: README update
 // TODO: migration for new db shema
+// TODO: firebase authentication
+// TODO: image presign feature
