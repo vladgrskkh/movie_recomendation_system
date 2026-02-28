@@ -67,7 +67,12 @@ func (r *MovieImageRepo) Upload(ctx context.Context, bucketName string, objectNa
 func (r *MovieImageRepo) Get(ctx context.Context, bucketName string, objectName string, opts minio.GetObjectOptions) (*minio.Object, error) {
 	object, err := r.storage.GetObject(ctx, bucketName, objectName, opts)
 	if err != nil {
-		v, ok := err.(*minio.ErrorResponse)
+		return nil, fmt.Errorf("something went wrong during image fetch: %w", err)
+	}
+
+	_, err = object.Stat()
+	if err != nil {
+		v, ok := err.(minio.ErrorResponse)
 		if ok {
 			switch v.Code {
 			case minio.NoSuchKey:
@@ -86,6 +91,7 @@ func (r *MovieImageRepo) Get(ctx context.Context, bucketName string, objectName 
 }
 
 func (r *MovieImageRepo) Delete(ctx context.Context, bucketName string, objectName string, opts minio.RemoveObjectOptions) error {
+	// NOTE: this call always return nil err if no network problem occurs, so need to find a way to mark non-existing images
 	err := r.storage.RemoveObject(ctx, bucketName, objectName, opts)
 	if err != nil {
 		v, ok := err.(*minio.ErrorResponse)

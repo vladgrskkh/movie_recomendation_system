@@ -265,3 +265,4 @@ func redisClient(cfg config) (*redis.Client, error) {
 // TODO: migration for new db shema
 // TODO: firebase authentication
 // TODO: image presign feature
+// TODO: add back csv files
